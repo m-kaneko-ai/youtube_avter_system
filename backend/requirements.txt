@@ -1,0 +1,43 @@
+# ===== Core FastAPI =====
+fastapi>=0.115.0
+uvicorn[standard]==0.27.0
+python-multipart>=0.0.7
+
+# ===== Database & ORM =====
+sqlalchemy==2.0.25
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+alembic==1.13.1
+
+# ===== Authentication & Security =====
+python-jose[cryptography]>=3.5.0
+passlib[bcrypt]==1.7.4
+pydantic==2.5.3
+pydantic-settings==2.1.0
+email-validator==2.1.0
+google-auth==2.27.0
+google-auth-oauthlib==1.2.0
+
+# ===== External Services =====
+httpx==0.26.0
+redis==5.0.1
+
+# ===== Monitoring =====
+psutil==5.9.8
+
+# ===== AI APIs =====
+anthropic==0.40.0
+google-generativeai==0.8.3
+google-api-python-client==2.155.0
+
+# ===== Background Tasks =====
+celery==5.3.6
+
+# ===== Development & Testing =====
+pytest==8.0.0
+pytest-asyncio==0.24.0
+ruff==0.1.15
+mypy==1.8.0
+
+# ===== Environment Variables =====
+python-dotenv==1.0.0
