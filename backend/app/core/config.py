@@ -64,6 +64,11 @@ class Settings(BaseSettings):
         """CORS許可オリジンのリスト"""
         return [origin.strip() for origin in self.CORS_ORIGIN.split(",")]
 
+    @property
+    def debug(self) -> bool:
+        """デバッグモードかどうか"""
+        return self.NODE_ENV == "development"
+
 
 # シングルトンインスタンス
 settings = Settings()
