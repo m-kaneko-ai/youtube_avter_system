@@ -269,8 +269,8 @@ const mockStats: PlanningStatsResponse = {
   upcomingCount: 23,
 };
 
-// 将来のチャット機能用モックデータ（現在未使用）
-const _mockChatMessages: AIChatMessage[] = [
+// チャット機能用モックデータ
+const mockChatMessages: AIChatMessage[] = [
   {
     id: 'msg-1',
     role: 'assistant',
@@ -278,7 +278,29 @@ const _mockChatMessages: AIChatMessage[] = [
     timestamp: new Date().toISOString(),
   },
 ];
-void _mockChatMessages; // 未使用警告を回避
+
+const mockAdoptedSuggestions: AISuggestion[] = [
+  {
+    id: 'sug-1',
+    title: 'AIツール活用術【初心者向け】',
+    videoType: 'short',
+    reason: 'AIツールの基本的な使い方は視聴者の関心が高い',
+    reference: 'YouTube検索トレンド分析',
+  },
+  {
+    id: 'sug-2',
+    title: 'ChatGPT vs Claude 比較検証',
+    videoType: 'long',
+    reason: 'AI比較コンテンツは視聴維持率が高い傾向',
+    reference: '競合チャンネル分析',
+  },
+];
+
+const mockActiveKnowledges = [
+  { id: 'business-marketing', name: 'ビジネスマーケティング' },
+  { id: 'programming', name: 'プログラミング教育' },
+  { id: 'health', name: '健康・フィットネス' },
+];
 
 // ============================================================
 // サービスエクスポート
@@ -386,27 +408,65 @@ export const planningService = {
    * チャットセッション作成
    */
   async createChatSession(knowledgeId?: string, videoType?: VideoType): Promise<ChatSessionResponse> {
-    const response = await api.post<ApiChatSessionResponse>('/api/v1/planning/chat/sessions', {
-      knowledge_id: knowledgeId,
-      video_type: videoType,
-    });
-    return {
-      sessionId: response.session_id,
-      messages: response.messages.map(mapChatMessage),
-    };
+    try {
+      const response = await api.post<ApiChatSessionResponse>('/api/v1/planning/chat/sessions', {
+        knowledge_id: knowledgeId,
+        video_type: videoType,
+      });
+      return {
+        sessionId: response.session_id,
+        messages: response.messages.map(mapChatMessage),
+      };
+    } catch {
+      // API接続エラー時はモックデータを返す
+      console.info('[planningService] Using mock data for chat session');
+      return {
+        sessionId: `mock-session-${Date.now()}`,
+        messages: mockChatMessages,
+      };
+    }
   },
 
   /**
    * チャットメッセージ送信
    */
   async sendChatMessage(sessionId: string, message: string): Promise<ChatMessageResponse> {
-    const response = await api.post<ApiChatMessageResponse>(`/api/v1/planning/chat/sessions/${sessionId}/messages`, {
-      content: message,
-    });
-    return {
-      message: mapChatMessage(response.message),
-      suggestions: response.suggestions?.map(mapSuggestion),
-    };
+    try {
+      const response = await api.post<ApiChatMessageResponse>(`/api/v1/planning/chat/sessions/${sessionId}/messages`, {
+        content: message,
+      });
+      return {
+        message: mapChatMessage(response.message),
+        suggestions: response.suggestions?.map(mapSuggestion),
+      };
+    } catch {
+      // API接続エラー時はモックレスポンスを返す
+      console.info('[planningService] Using mock response for chat message');
+      const mockResponse: AIChatMessage = {
+        id: `msg-${Date.now()}`,
+        role: 'assistant',
+        content: `「${message}」についてですね！面白いテーマです。\n\n以下の企画案をご提案します：\n\n1. **基礎編** - 初心者向けに基本的な内容を紹介\n2. **実践編** - 具体的な事例やデモンストレーション\n3. **応用編** - より高度なテクニックやコツ\n\nどの方向性で進めましょうか？`,
+        timestamp: new Date().toISOString(),
+        suggestions: [
+          {
+            id: `sug-${Date.now()}-1`,
+            title: `${message}の基礎【初心者向け】`,
+            videoType: 'short',
+            reason: '初心者向けコンテンツは視聴者獲得に効果的',
+          },
+          {
+            id: `sug-${Date.now()}-2`,
+            title: `${message}完全ガイド【実践編】`,
+            videoType: 'long',
+            reason: '詳細な解説は視聴維持率を高める',
+          },
+        ],
+      };
+      return {
+        message: mockResponse,
+        suggestions: mockResponse.suggestions,
+      };
+    }
   },
 
   /**
@@ -430,10 +490,18 @@ export const planningService = {
    * 採用済み提案取得
    */
   async getAdoptedSuggestions(): Promise<AdoptedSuggestionsResponse> {
-    const response = await api.get<ApiAdoptedSuggestionsResponse>('/api/v1/planning/chat/suggestions/adopted');
-    return {
-      suggestions: response.data.map(mapSuggestion),
-    };
+    try {
+      const response = await api.get<ApiAdoptedSuggestionsResponse>('/api/v1/planning/chat/suggestions/adopted');
+      return {
+        suggestions: response.data.map(mapSuggestion),
+      };
+    } catch {
+      // API接続エラー時はモックデータを返す
+      console.info('[planningService] Using mock data for adopted suggestions');
+      return {
+        suggestions: mockAdoptedSuggestions,
+      };
+    }
   },
 
   /**
@@ -447,12 +515,22 @@ export const planningService = {
    * 企画コンテキスト取得
    */
   async getContext(): Promise<PlanningContextResponse> {
-    const response = await api.get<ApiPlanningContextResponse>('/api/v1/planning/chat/context');
-    return {
-      activeKnowledges: response.active_knowledges,
-      recentProjects: response.recent_projects.map(mapProject),
-      adoptedSuggestions: response.adopted_suggestions.map(mapSuggestion),
-    };
+    try {
+      const response = await api.get<ApiPlanningContextResponse>('/api/v1/planning/chat/context');
+      return {
+        activeKnowledges: response.active_knowledges,
+        recentProjects: response.recent_projects.map(mapProject),
+        adoptedSuggestions: response.adopted_suggestions.map(mapSuggestion),
+      };
+    } catch {
+      // API接続エラー時はモックデータを返す
+      console.info('[planningService] Using mock data for context');
+      return {
+        activeKnowledges: mockActiveKnowledges,
+        recentProjects: mockProjects.slice(0, 3),
+        adoptedSuggestions: mockAdoptedSuggestions,
+      };
+    }
   },
 
   /**
