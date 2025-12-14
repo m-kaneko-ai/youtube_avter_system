@@ -917,6 +917,11 @@ export type EngagementStatus = 'draft' | 'active' | 'paused' | 'completed' | 'ar
 export type LinkType = 'description' | 'pinned_comment' | 'end_screen' | 'card';
 
 /**
+ * 連携リンクの配置位置
+ */
+export type LinkPosition = 'top' | 'middle' | 'bottom';
+
+/**
  * 動画サマリー（連携表示用）
  */
 export interface VideoSummary {

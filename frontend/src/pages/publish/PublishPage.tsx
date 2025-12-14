@@ -1,6 +1,7 @@
 import { useNavigationStore } from '../../stores/navigationStore';
 import { SchedulerTab } from './components/SchedulerTab';
 import { MultiPlatformTab } from './components/MultiPlatformTab';
+import { ShortToLongLinkTab } from './components/ShortToLongLinkTab';
 
 export const PublishPage = () => {
   const { getActiveTab } = useNavigationStore();
@@ -12,6 +13,8 @@ export const PublishPage = () => {
         return <SchedulerTab />;
       case 'multi':
         return <MultiPlatformTab />;
+      case 'engagement':
+        return <ShortToLongLinkTab />;
       default:
         return <SchedulerTab />;
     }

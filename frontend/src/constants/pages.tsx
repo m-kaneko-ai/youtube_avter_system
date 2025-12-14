@@ -76,6 +76,7 @@ export const PAGES: PageDefinition[] = [
     tabs: [
       { id: 'scheduler', label: '投稿スケジューラー' },
       { id: 'multi', label: 'マルチPF展開' },
+      { id: 'engagement', label: 'ショート連携' },
     ],
   },
   {
@@ -88,7 +89,8 @@ export const PAGES: PageDefinition[] = [
       { id: 'revenue', label: '収益管理' },
       { id: 'knowledge', label: 'ナレッジ・成功事例' },
       { id: 'template', label: 'テンプレート' },
-      { id: 'series', label: 'シリーズ管理' },
+      { id: 'series', label: 'シリーズ分析' },
+      { id: 'series-detail', label: 'シリーズ管理' },
     ],
   },
   {

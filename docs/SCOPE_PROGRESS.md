@@ -715,7 +715,7 @@
 | UTM自動生成 | - | [x] | [x] | |
 | 短縮URL (TinyURL) | - | [x] | [x] | |
 
-#### Phase 2: 連携機能（Day 4-5）⏳ 進行中
+#### Phase 2: 連携機能（Day 4-5）✅ 完了
 
 | タスク | 担当 | 開始 | 完了 | 備考 |
 |--------|------|------|------|------|
@@ -726,8 +726,8 @@
 | フロントエンド型定義 | - | [x] | [x] | types/index.ts |
 | フロントエンドサービス | - | [x] | [x] | engagement.ts, series.ts |
 | DBマイグレーション | - | [x] | [x] | 6テーブル追加 |
-| ショート→長尺UI | - | [ ] | [ ] | ShortToLongLink.tsx |
-| シリーズ詳細UI | - | [ ] | [ ] | SeriesDetailTab.tsx |
+| ショート→長尺UI | - | [x] | [x] | ShortToLongLinkTab.tsx |
+| シリーズ詳細UI | - | [x] | [x] | SeriesDetailTab.tsx |
 
 #### Phase 3: 学習システム（Day 6-8）
 
@@ -787,8 +787,8 @@
 | コンポーネント | モック | 実装 | テスト |
 |--------------|--------|------|--------|
 | CTATab.tsx | [x] | [x] | [ ] |
-| ShortToLongLink.tsx | [ ] | [ ] | [ ] |
-| SeriesDetailTab.tsx | [ ] | [ ] | [ ] |
+| ShortToLongLinkTab.tsx | [x] | [x] | [ ] |
+| SeriesDetailTab.tsx | [x] | [x] | [ ] |
 | RetentionTab.tsx | [ ] | [ ] | [ ] |
 | ThumbnailABTest.tsx | [ ] | [ ] | [ ] |
 | OptimalTimeSelector.tsx | [ ] | [ ] | [ ] |
@@ -810,7 +810,7 @@
 ### 12.5 完了チェックリスト
 
 - [x] Phase 1: CTA基盤の動作確認 ✅ 2025-12-15完了
-- [ ] Phase 2: ショート→長尺連携の動作確認
+- [x] Phase 2: ショート→長尺連携の動作確認 ✅ 2025-12-15完了
 - [ ] Phase 3: 学習システムの動作確認
 - [ ] Phase 4: 最適化機能の動作確認
 - [ ] Phase 5: 自動化機能の動作確認

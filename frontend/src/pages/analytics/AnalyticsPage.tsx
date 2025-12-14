@@ -4,7 +4,7 @@ import { cn } from '../../utils/cn';
 import { useThemeStore } from '../../stores/themeStore';
 import { useNavigationStore } from '../../stores/navigationStore';
 import { Modal } from '../../components/common';
-import { RevenueTab, KnowledgeTab, TemplateTab, SeriesTab } from './components';
+import { RevenueTab, KnowledgeTab, TemplateTab, SeriesTab, SeriesDetailTab } from './components';
 
 type Period = '7days' | '30days' | '90days';
 
@@ -30,6 +30,9 @@ export const AnalyticsPage = () => {
   }
   if (activeTab === 'series') {
     return <SeriesTab />;
+  }
+  if (activeTab === 'series-detail') {
+    return <SeriesDetailTab />;
   }
 
   return (
