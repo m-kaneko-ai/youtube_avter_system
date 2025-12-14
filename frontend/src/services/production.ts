@@ -625,6 +625,37 @@ const mockEditProjects: EditProject[] = [
   },
 ];
 
+const mockVideoForReview: VideoForReview = {
+  id: 'video-review-1',
+  title: 'AIツール活用術【初心者向け完全ガイド】',
+  videoUrl: '',
+  thumbnailUrl: undefined,
+  duration: 480,
+  status: 'pending_review',
+  qualityScores: {
+    overall: 85,
+    audio: 90,
+    video: 82,
+    sync: 88,
+  },
+  issues: [
+    {
+      type: 'audio',
+      timestamp: 45,
+      description: '軽微な背景ノイズが検出されました',
+      severity: 'low',
+    },
+    {
+      type: 'video',
+      timestamp: 120,
+      description: '一部フレームでわずかなブレが検出されました',
+      severity: 'low',
+    },
+  ],
+  createdAt: new Date(Date.now() - 3600000).toISOString(),
+  updatedAt: new Date().toISOString(),
+};
+
 // ============================================================
 // サービスエクスポート
 // ============================================================
@@ -816,8 +847,13 @@ export const productionService = {
    * レビュー用動画取得
    */
   async getVideoForReview(videoId: string): Promise<VideoForReview> {
-    const response = await api.get<ApiVideoForReview>(`/api/v1/production/quality/${videoId}`);
-    return mapVideoForReview(response);
+    try {
+      const response = await api.get<ApiVideoForReview>(`/api/v1/production/quality/${videoId}`);
+      return mapVideoForReview(response);
+    } catch {
+      console.info('[productionService] Using mock data for video review');
+      return mockVideoForReview;
+    }
   },
 
   /**
