@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creator Studio AI - 本番運用レベル診断レポート</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --accent-yellow: #eab308;
+            --accent-red: #ef4444;
+            --accent-orange: #f97316;
+            --border-color: #475569;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-blue), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .date {
+            color: var(--text-secondary);
+            margin-top: 1rem;
+        }
+
+        /* Score Section */
+        .score-section {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .score-circle {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-secondary);
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .score-value {
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--accent-red);
+        }
+
+        .score-max {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .grade {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.5rem;
+            background: var(--accent-red);
+        }
+
+        .grade-a { background: var(--accent-green); }
+        .grade-b { background: var(--accent-blue); }
+        .grade-c { background: var(--accent-yellow); color: #000; }
+        .grade-d { background: var(--accent-orange); }
+        .grade-f { background: var(--accent-red); }
+
+        .category-scores {
+            background: var(--bg-secondary);
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .category-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .category-name {
+            width: 150px;
+            font-weight: 500;
+        }
+
+        .category-bar {
+            flex: 1;
+            height: 24px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 0 1rem;
+        }
+
+        .category-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+        }
+
+        .category-score {
+            width: 80px;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .fill-security { background: linear-gradient(90deg, var(--accent-red), var(--accent-orange)); }
+        .fill-performance { background: linear-gradient(90deg, var(--accent-blue), var(--accent-green)); }
+        .fill-reliability { background: linear-gradient(90deg, var(--accent-orange), var(--accent-yellow)); }
+        .fill-operability { background: linear-gradient(90deg, var(--accent-red), var(--accent-orange)); }
+        .fill-quality { background: linear-gradient(90deg, var(--accent-yellow), var(--accent-green)); }
+
+        /* Cards */
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card h2 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .card h3 {
+            margin: 1rem 0 0.5rem;
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        /* CVSS Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+        }
+
+        .cvss-high {
+            color: var(--accent-red);
+            font-weight: bold;
+        }
+
+        .cvss-medium {
+            color: var(--accent-orange);
+            font-weight: bold;
+        }
+
+        .cvss-low {
+            color: var(--accent-yellow);
+            font-weight: bold;
+        }
+
+        /* Task List */
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-priority {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .priority-critical {
+            background: var(--accent-red);
+        }
+
+        .priority-high {
+            background: var(--accent-orange);
+        }
+
+        .priority-medium {
+            background: var(--accent-yellow);
+            color: #000;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 500;
+        }
+
+        .task-detail {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        /* License Section */
+        .license-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--accent-green);
+            border-radius: 0.5rem;
+            color: var(--accent-green);
+        }
+
+        /* Grid Sections */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .score-section, .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 3rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        /* Icons */
+        .icon {
+            width: 24px;
+            height: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Creator Studio AI</h1>
+            <p class="subtitle">本番運用レベル診断レポート</p>
+            <p class="date">診断日: 2025年12月13日</p>
+        </header>
+
+        <!-- Score Overview -->
+        <section class="score-section">
+            <div class="score-circle">
+                <div class="score-value">55.5</div>
+                <div class="score-max">/ 100点</div>
+                <div class="grade grade-d">D評価 (Poor)</div>
+            </div>
+            <div class="category-scores">
+                <h2>カテゴリ別スコア</h2>
+
+                <div class="category-item">
+                    <span class="category-name">セキュリティ</span>
+                    <div class="category-bar">
+                        <div class="category-fill fill-security" style="width: 46.7%"></div>
+                    </div>
+                    <span class="category-score">14/30</span>
+                </div>
+
+                <div class="category-item">
+                    <span class="category-name">パフォーマンス</span>
+                    <div class="category-bar">
+                        <div class="category-fill fill-performance" style="width: 80%"></div>
+                    </div>
+                    <span class="category-score">16/20</span>
+                </div>
+
+                <div class="category-item">
+                    <span class="category-name">信頼性</span>
+                    <div class="category-bar">
+                        <div class="category-fill fill-reliability" style="width: 55%"></div>
+                    </div>
+                    <span class="category-score">11/20</span>
+                </div>
+
+                <div class="category-item">
+                    <span class="category-name">運用性</span>
+                    <div class="category-bar">
+                        <div class="category-fill fill-operability" style="width: 40%"></div>
+                    </div>
+                    <span class="category-score">8/20</span>
+                </div>
+
+                <div class="category-item">
+                    <span class="category-name">コード品質</span>
+                    <div class="category-bar">
+                        <div class="category-fill fill-quality" style="width: 65%"></div>
+                    </div>
+                    <span class="category-score">6.5/10</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- CVSS Vulnerabilities -->
+        <div class="card">
+            <h2>CVSS 3.1 脆弱性詳細</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>パッケージ</th>
+                        <th>CVE番号</th>
+                        <th>CVSS Score</th>
+                        <th>影響</th>
+                        <th>修正バージョン</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>python-jose</td>
+                        <td>CVE-2024-33663</td>
+                        <td class="cvss-high">7.5 (High)</td>
+                        <td>Algorithm Confusion - JWTセキュリティバイパス</td>
+                        <td>>= 3.4.0</td>
+                    </tr>
+                    <tr>
+                        <td>FastAPI</td>
+                        <td>CVE-2024-24762</td>
+                        <td class="cvss-high">7.5 (High)</td>
+                        <td>ReDoS - Content-Type解析時のDoS</td>
+                        <td>>= 0.109.1</td>
+                    </tr>
+                    <tr>
+                        <td>python-jose</td>
+                        <td>CVE-2024-33664</td>
+                        <td class="cvss-medium">5.3 (Medium)</td>
+                        <td>JWT Bomb - 圧縮トークンによるDoS</td>
+                        <td>>= 3.4.0</td>
+                    </tr>
+                    <tr>
+                        <td>esbuild (vitest)</td>
+                        <td>GHSA-67mh-4wv8-2f99</td>
+                        <td class="cvss-medium">5.3 (Medium)</td>
+                        <td>CORS設定の脆弱性（開発環境）</td>
+                        <td>vitest >= 3.2.4</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- License Check -->
+        <div class="card">
+            <h2>ライセンス確認</h2>
+            <div class="license-status">
+                <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                </svg>
+                <span>全依存関係が商用利用可能（MIT / Apache-2.0）</span>
+            </div>
+        </div>
+
+        <!-- Critical Tasks -->
+        <div class="card">
+            <h2>必須対応事項（Critical）</h2>
+            <ul class="task-list">
+                <li class="task-item">
+                    <span class="task-priority priority-critical">CRITICAL</span>
+                    <div class="task-content">
+                        <div class="task-title">python-jose 脆弱性修正</div>
+                        <div class="task-detail">CVE-2024-33663/33664 - バージョン3.5.0以上へアップグレード</div>
+                    </div>
+                </li>
+                <li class="task-item">
+                    <span class="task-priority priority-critical">CRITICAL</span>
+                    <div class="task-content">
+                        <div class="task-title">FastAPI 脆弱性修正</div>
+                        <div class="task-detail">CVE-2024-24762 (ReDoS) - バージョン0.109.1以上へアップグレード</div>
+                    </div>
+                </li>
+                <li class="task-item">
+                    <span class="task-priority priority-critical">CRITICAL</span>
+                    <div class="task-content">
+                        <div class="task-title">JWTトークン保存方式の変更</div>
+                        <div class="task-detail">localStorage → HttpOnly Cookie（XSS攻撃対策）</div>
+                    </div>
+                </li>
+                <li class="task-item">
+                    <span class="task-priority priority-critical">CRITICAL</span>
+                    <div class="task-content">
+                        <div class="task-title">グローバルエラーハンドラー実装</div>
+                        <div class="task-detail">main.pyに@app.exception_handler追加、エラーログ記録</div>
+                    </div>
+                </li>
+                <li class="task-item">
+                    <span class="task-priority priority-critical">CRITICAL</span>
+                    <div class="task-content">
+                        <div class="task-title">構造化ロギング導入</div>
+                        <div class="task-detail">structlog/loguru導入、print文置換、ログレベル管理</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- High Priority Tasks -->
+        <div class="card">
+            <h2>高優先度対応事項（High）</h2>
+            <ul class="task-list">
+                <li class="task-item">
+                    <span class="task-priority priority-high">HIGH</span>
+                    <div class="task-content">
+                        <div class="task-title">セキュリティヘッダー設定</div>
+                        <div class="task-detail">CSP, HSTS, X-Frame-Optionsの設定（Helmet導入）</div>
+                    </div>
+                </li>
+                <li class="task-item">
+                    <span class="task-priority priority-high">HIGH</span>
+                    <div class="task-content">
+                        <div class="task-title">Redisキャッシング実装</div>
+                        <div class="task-detail">マスターデータ、分析APIレスポンスのキャッシュ</div>
+                    </div>
+                </li>
+                <li class="task-item">
+                    <span class="task-priority priority-high">HIGH</span>
+                    <div class="task-content">
+                        <div class="task-title">重要トランザクションの明示的管理</div>
+                        <div class="task-detail">adopt_suggestion(), auth_service()でasync with session.begin()</div>
+                    </div>
+                </li>
+                <li class="task-item">
+                    <span class="task-priority priority-high">HIGH</span>
+                    <div class="task-content">
+                        <div class="task-title">/metricsエンドポイント実装</div>
+                        <div class="task-detail">prometheus-fastapi-instrumentor導入</div>
+                    </div>
+                </li>
+                <li class="task-item">
+                    <span class="task-priority priority-high">HIGH</span>
+                    <div class="task-content">
+                        <div class="task-title">README.md作成</div>
+                        <div class="task-detail">セットアップ手順、環境変数、開発コマンドの文書化</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Medium Priority Tasks -->
+        <div class="card">
+            <h2>中優先度対応事項（Medium）</h2>
+            <ul class="task-list">
+                <li class="task-item">
+                    <span class="task-priority priority-medium">MEDIUM</span>
+                    <div class="task-content">
+                        <div class="task-title">vitest メジャーバージョンアップ</div>
+                        <div class="task-detail">2.1.9 → 3.2.4（esbuild脆弱性修正、破壊的変更あり）</div>
+                    </div>
+                </li>
+                <li class="task-item">
+                    <span class="task-priority priority-medium">MEDIUM</span>
+                    <div class="task-content">
+                        <div class="task-title">console.log削除</div>
+                        <div class="task-detail">AIChatTab.tsx, CompetitorTab.tsx内の2件</div>
+                    </div>
+                </li>
+                <li class="task-item">
+                    <span class="task-priority priority-medium">MEDIUM</span>
+                    <div class="task-content">
+                        <div class="task-title">DEPLOYMENT.md作成</div>
+                        <div class="task-detail">Vercel/Cloud Runデプロイ手順の文書化</div>
+                    </div>
+                </li>
+                <li class="task-item">
+                    <span class="task-priority priority-medium">MEDIUM</span>
+                    <div class="task-content">
+                        <div class="task-title">巨大ファイルの分割</div>
+                        <div class="task-detail">research.ts(753行), production.ts(671行), analytics.ts(583行)</div>
+                    </div>
+                </li>
+                <li class="task-item">
+                    <span class="task-priority priority-medium">MEDIUM</span>
+                    <div class="task-content">
+                        <div class="task-title">フロントエンドテスト拡充</div>
+                        <div class="task-detail">コンポーネント単体テスト追加（現在カバレッジ2%未満）</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Summary -->
+        <div class="grid-2">
+            <div class="card">
+                <h2>診断サマリー</h2>
+                <h3>強み</h3>
+                <ul>
+                    <li>バンドルサイズ優秀（126KB gzip）</li>
+                    <li>型安全性が高い（any型0件）</li>
+                    <li>API仕様書が充実</li>
+                    <li>E2Eテスト99.3%パス</li>
+                    <li>全ライセンス商用利用可能</li>
+                </ul>
+                <h3>改善が必要な点</h3>
+                <ul>
+                    <li>CVSS High脆弱性2件（即時対応必要）</li>
+                    <li>ロギング未実装（障害調査不可）</li>
+                    <li>セキュリティヘッダー未設定</li>
+                    <li>キャッシング戦略未実装</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h2>次のステップ</h2>
+                <ol>
+                    <li><strong>即時</strong>: 脆弱性パッケージのアップグレード</li>
+                    <li><strong>即時</strong>: グローバルエラーハンドラー追加</li>
+                    <li><strong>1週間以内</strong>: 構造化ロギング導入</li>
+                    <li><strong>1週間以内</strong>: JWTトークン保存方式変更</li>
+                    <li><strong>2週間以内</strong>: キャッシング実装</li>
+                    <li><strong>1ヶ月以内</strong>: 90点達成を目指す</li>
+                </ol>
+                <h3>目標</h3>
+                <p>90点以上（A評価）達成で本番環境デプロイ可能</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>Creator Studio AI 本番運用診断レポート</p>
+            <p>生成日時: 2025-12-13 | 診断基準: CVSS 3.1準拠</p>
+        </footer>
+    </div>
+</body>
+</html>

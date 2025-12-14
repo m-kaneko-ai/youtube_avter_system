@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { Lightbulb, Sparkles, MessageCircle, Image, Edit3, Share2, Plus } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { useThemeStore } from '../../stores/themeStore';
 import { useNavigationStore } from '../../stores/navigationStore';
+import { TitleTab } from './components/TitleTab';
+import { SEOTab } from './components/SEOTab';
 
 export const ScriptPage = () => {
   const { mode, getThemeClasses } = useThemeStore();
@@ -9,6 +12,10 @@ export const ScriptPage = () => {
   const isDarkMode = mode === 'dark';
   const themeClasses = getThemeClasses();
   const activeTab = getActiveTab('script');
+
+  // 現在選択中の台本・動画ID（実際にはURLパラメータやストアから取得）
+  const [currentScriptId] = useState<string>('script-001');
+  const [currentVideoId] = useState<string>('video-001');
 
   if (activeTab === 'script') {
     return (
@@ -261,7 +268,7 @@ export const ScriptPage = () => {
                     isDarkMode ? 'bg-black/50 text-slate-200' : 'bg-white/90 text-slate-700'
                   )}
                 >
-                  Imagen 3
+                  Nano Banana Pro
                 </div>
               </div>
               <div className="p-5">
@@ -303,11 +310,20 @@ export const ScriptPage = () => {
     );
   }
 
-  // Default placeholder for other tabs
+  // Title Tab
+  if (activeTab === 'title') {
+    return <TitleTab scriptId={currentScriptId} videoId={currentVideoId} />;
+  }
+
+  // SEO Tab
+  if (activeTab === 'seo') {
+    return <SEOTab scriptId={currentScriptId} videoId={currentVideoId} />;
+  }
+
+  // Default fallback
   return (
     <div className={cn('text-center py-20 px-8', themeClasses.textSecondary)}>
-      {activeTab === 'title' && 'タイトル選定機能'}
-      {activeTab === 'seo' && 'SEO設定機能'}
+      コンテンツを読み込み中...
     </div>
   );
 };

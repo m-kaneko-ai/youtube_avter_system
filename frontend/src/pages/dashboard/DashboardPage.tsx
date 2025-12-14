@@ -11,6 +11,8 @@ import {
 import { cn } from '../../utils/cn';
 import { useThemeStore } from '../../stores/themeStore';
 import { useNavigationStore } from '../../stores/navigationStore';
+import { TasksTab } from './components/TasksTab';
+import { NotificationsTab } from './components/NotificationsTab';
 
 export const DashboardPage = () => {
   const { mode, getThemeClasses } = useThemeStore();
@@ -20,19 +22,11 @@ export const DashboardPage = () => {
   const activeTab = getActiveTab('dashboard');
 
   if (activeTab === 'tasks') {
-    return (
-      <div className={cn('text-center py-20 px-8', themeClasses.textSecondary)}>
-        今日のタスクリストを表示
-      </div>
-    );
+    return <TasksTab />;
   }
 
   if (activeTab === 'notifications') {
-    return (
-      <div className={cn('text-center py-20 px-8', themeClasses.textSecondary)}>
-        通知一覧を表示
-      </div>
-    );
+    return <NotificationsTab />;
   }
 
   return (

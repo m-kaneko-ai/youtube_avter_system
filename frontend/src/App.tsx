@@ -1,15 +1,31 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout, PublicLayout } from './components/layout';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import {
   LoginPage,
   DashboardPage,
+  ResearchPage,
+  PlanningPage,
   ScriptPage,
+  ProductionPage,
+  PublishPage,
   AnalyticsPage,
-  PlaceholderPage,
+  AdminPage,
 } from './pages';
+import { useThemeStore } from './stores/themeStore';
 
 function App() {
+  const mode = useThemeStore((state) => state.mode);
+
+  useEffect(() => {
+    if (mode === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [mode]);
+
   return (
     <BrowserRouter>
       <Routes>
@@ -27,17 +43,17 @@ function App() {
           }
         >
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/research" element={<PlaceholderPage title="リサーチ" />} />
-          <Route path="/planning" element={<PlaceholderPage title="企画" />} />
+          <Route path="/research" element={<ResearchPage />} />
+          <Route path="/planning" element={<PlanningPage />} />
           <Route path="/script" element={<ScriptPage />} />
-          <Route path="/production" element={<PlaceholderPage title="動画制作" />} />
-          <Route path="/publish" element={<PlaceholderPage title="公開・配信" />} />
+          <Route path="/production" element={<ProductionPage />} />
+          <Route path="/publish" element={<PublishPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route
             path="/admin"
             element={
               <ProtectedRoute requiredRoles={['owner', 'team']}>
-                <PlaceholderPage title="管理" />
+                <AdminPage />
               </ProtectedRoute>
             }
           />

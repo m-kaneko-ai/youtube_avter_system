@@ -2,6 +2,7 @@ import { CreditCard } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { useThemeStore } from '../../stores/themeStore';
 import { useNavigationStore } from '../../stores/navigationStore';
+import { RevenueTab, KnowledgeTab, TemplateTab, SeriesTab } from './components';
 
 export const AnalyticsPage = () => {
   const { mode, getThemeClasses } = useThemeStore();
@@ -10,15 +11,18 @@ export const AnalyticsPage = () => {
   const themeClasses = getThemeClasses();
   const activeTab = getActiveTab('analytics');
 
-  if (activeTab !== 'performance') {
-    return (
-      <div className={cn('text-center py-20 px-8', themeClasses.textSecondary)}>
-        {activeTab === 'revenue' && '収益管理機能'}
-        {activeTab === 'knowledge' && 'ナレッジ・成功事例'}
-        {activeTab === 'template' && 'テンプレート管理'}
-        {activeTab === 'series' && 'シリーズ管理'}
-      </div>
-    );
+  // Render tab content based on active tab
+  if (activeTab === 'revenue') {
+    return <RevenueTab />;
+  }
+  if (activeTab === 'knowledge') {
+    return <KnowledgeTab />;
+  }
+  if (activeTab === 'template') {
+    return <TemplateTab />;
+  }
+  if (activeTab === 'series') {
+    return <SeriesTab />;
   }
 
   return (

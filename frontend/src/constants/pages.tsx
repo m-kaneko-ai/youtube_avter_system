@@ -39,8 +39,9 @@ export const PAGES: PageDefinition[] = [
     path: '/planning',
     description: 'アイデアを形にする',
     tabs: [
-      { id: 'concept', label: 'コンセプト設計' },
       { id: 'calendar', label: 'コンテンツカレンダー' },
+      { id: 'list', label: '企画一覧' },
+      { id: 'ai', label: 'AI提案' },
     ],
   },
   {
