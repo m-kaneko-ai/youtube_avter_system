@@ -1,11 +1,113 @@
 import { useState } from 'react';
-import { Lightbulb, Sparkles, MessageCircle, Image, Edit3, Share2, Plus } from 'lucide-react';
+import { Lightbulb, Sparkles, Wand2, Image, Edit3, Share2, Plus, ArrowLeft } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { useThemeStore } from '../../stores/themeStore';
 import { useNavigationStore } from '../../stores/navigationStore';
 import { TitleTab } from './components/TitleTab';
 import { SEOTab } from './components/SEOTab';
+import { ScriptEditorColumn, ScriptSection } from './components/ScriptEditorColumn';
 import { toast } from '../../components/common';
+
+// 初期データ（実際にはAPIから取得）
+const initialGeminiSections: ScriptSection[] = [
+  {
+    id: 'gemini-1',
+    label: '導入',
+    timestamp: '0:00-0:30',
+    content: 'プログラミングを始めたいあなたへ。なぜPythonが選ばれるのか、その3つの理由を解説します。',
+  },
+  {
+    id: 'gemini-2',
+    label: '理由1：読みやすさ',
+    timestamp: '0:30-1:30',
+    content: 'Pythonの最大の特徴は、英語を読むようにコードが読めることです。例えば...',
+  },
+  {
+    id: 'gemini-3',
+    label: '理由2：豊富なライブラリ',
+    timestamp: '1:30-2:30',
+    content: 'データ分析、Web開発、AI開発。やりたいことに合わせたライブラリが揃っています。',
+  },
+  {
+    id: 'gemini-4',
+    label: '理由3：コミュニティ',
+    timestamp: '2:30-3:30',
+    content: '困ったときに助けてくれる仲間がたくさんいます。Stack Overflowでの質問数は常にトップクラス。',
+  },
+  {
+    id: 'gemini-5',
+    label: 'まとめ',
+    timestamp: '3:30-4:00',
+    content: '今日からPythonを始めてみませんか？コメント欄で質問もお待ちしています。',
+  },
+];
+
+const initialClaudeSections: ScriptSection[] = [
+  {
+    id: 'claude-1',
+    label: '導入',
+    timestamp: '0:00-0:30',
+    content: '毎日のルーチンワーク、退屈じゃありませんか？実はPythonを使えば、その作業、1クリックで終わります。',
+  },
+  {
+    id: 'claude-2',
+    label: '自動化の実例',
+    timestamp: '0:30-1:30',
+    content: '想像してみてください。朝出社してコーヒーを飲んでいる間に、昨日の売上集計が終わっている世界を...',
+  },
+  {
+    id: 'claude-3',
+    label: '具体的なコード',
+    timestamp: '1:30-2:30',
+    content: '実際のコードを見てみましょう。たった10行で、Excelファイルを自動で処理できます。',
+  },
+  {
+    id: 'claude-4',
+    label: '応用例',
+    timestamp: '2:30-3:30',
+    content: 'メール送信、ファイル整理、データ収集...自動化できることは無限大です。',
+  },
+  {
+    id: 'claude-5',
+    label: 'アクション',
+    timestamp: '3:30-4:00',
+    content: 'まずは小さな自動化から始めてみましょう。概要欄にサンプルコードを載せておきます。',
+  },
+];
+
+// AIミックス版の初期データ（両方の良いところを組み合わせ）
+const initialMixedSections: ScriptSection[] = [
+  {
+    id: 'mixed-1',
+    label: '導入（感情訴求）',
+    timestamp: '0:00-0:30',
+    content: '毎日のルーチンワーク、退屈じゃありませんか？実はPythonを使えば、その作業、1クリックで終わります。',
+  },
+  {
+    id: 'mixed-2',
+    label: '理由1：読みやすさ',
+    timestamp: '0:30-1:30',
+    content: 'Pythonの最大の特徴は、英語を読むようにコードが読めることです。初心者でも理解しやすい構文で、挫折しにくいのが魅力です。',
+  },
+  {
+    id: 'mixed-3',
+    label: '自動化の実例',
+    timestamp: '1:30-2:30',
+    content: '想像してみてください。朝出社してコーヒーを飲んでいる間に、昨日の売上集計が終わっている世界を。たった10行のコードで実現できます。',
+  },
+  {
+    id: 'mixed-4',
+    label: '豊富なライブラリ',
+    timestamp: '2:30-3:30',
+    content: 'データ分析、Web開発、AI開発。やりたいことに合わせたライブラリが揃っています。車輪の再発明は不要です。',
+  },
+  {
+    id: 'mixed-5',
+    label: 'アクション',
+    timestamp: '3:30-4:00',
+    content: '今日からPythonを始めてみませんか？概要欄にサンプルコードを載せておきます。コメント欄で質問もお待ちしています。',
+  },
+];
 
 export const ScriptPage = () => {
   const { mode, getThemeClasses } = useThemeStore();
@@ -17,6 +119,18 @@ export const ScriptPage = () => {
   // 現在選択中の台本・動画ID（実際にはURLパラメータやストアから取得）
   const [currentScriptId] = useState<string>('script-001');
   const [currentVideoId] = useState<string>('video-001');
+
+  // 台本データ
+  const [geminiSections, setGeminiSections] = useState<ScriptSection[]>(initialGeminiSections);
+  const [claudeSections, setClaudeSections] = useState<ScriptSection[]>(initialClaudeSections);
+  const [mixedSections, setMixedSections] = useState<ScriptSection[]>(initialMixedSections);
+  const [isMixedGenerated, setIsMixedGenerated] = useState(false);
+
+  // 表示モード管理
+  type ViewMode = 'compare' | 'withMix' | 'focus';
+  type FocusTarget = 'gemini' | 'claude' | 'mixed' | null;
+  const [viewMode, setViewMode] = useState<ViewMode>('compare');
+  const [focusedColumn, setFocusedColumn] = useState<FocusTarget>(null);
 
   // ハンドラー関数
   const handleGenerateIdea = () => {
@@ -31,12 +145,44 @@ export const ScriptPage = () => {
     toast.info('Claudeで台本を書き直しています...');
   };
 
+  const handleRewriteMixed = () => {
+    toast.info('AIミックス版を再生成しています...');
+  };
+
+  const handleGenerateMixed = () => {
+    toast.info('両方の良いところをミックス中...');
+    setTimeout(() => {
+      setIsMixedGenerated(true);
+      setViewMode('withMix');
+      toast.success('AIミックス版を生成しました！');
+    }, 1500);
+  };
+
+  const handleColumnDoubleClick = (column: FocusTarget) => {
+    setFocusedColumn(column);
+    setViewMode('focus');
+  };
+
+  const handleExitFocus = () => {
+    setFocusedColumn(null);
+    setViewMode(isMixedGenerated ? 'withMix' : 'compare');
+  };
+
+  const handleBackToCompare = () => {
+    setViewMode('compare');
+    setIsMixedGenerated(false);
+  };
+
   const handleAdoptGemini = () => {
     toast.success('Geminiの台本を採用しました');
   };
 
   const handleAdoptClaude = () => {
     toast.success('Claudeの台本を採用しました');
+  };
+
+  const handleAdoptMixed = () => {
+    toast.success('AIミックス版の台本を採用しました');
   };
 
   const handleEditThumbnail = () => {
@@ -56,222 +202,161 @@ export const ScriptPage = () => {
   };
 
   if (activeTab === 'script') {
-    return (
-      <div className="px-8 pb-8 h-[calc(100vh-11rem)]">
-        <div className="h-full flex flex-col gap-6">
-          {/* Input Area */}
-          <div
-            className={cn(
-              'p-2 rounded-2xl shadow-sm border flex gap-2 items-center max-w-4xl mx-auto w-full transition-shadow focus-within:shadow-md ring-4',
-              themeClasses.cardBg,
-              themeClasses.cardBorder,
-              isDarkMode ? 'ring-slate-800' : 'ring-slate-50/50'
-            )}
-          >
-            <div className={cn('pl-4', themeClasses.textSecondary)}>
-              <Lightbulb size={20} />
+    // フォーカスモード（1カラム拡大）
+    if (viewMode === 'focus' && focusedColumn) {
+      const focusData = {
+        gemini: { sections: geminiSections, setSections: setGeminiSections, title: '【2025年版】Python入門完全ガイド', onAdopt: handleAdoptGemini, onRewrite: handleRewriteGemini },
+        claude: { sections: claudeSections, setSections: setClaudeSections, title: 'まだExcelで消耗してるの？Pythonで自動化しよう', onAdopt: handleAdoptClaude, onRewrite: handleRewriteClaude },
+        mixed: { sections: mixedSections, setSections: setMixedSections, title: 'Python入門×自動化で始める効率化ライフ', onAdopt: handleAdoptMixed, onRewrite: handleRewriteMixed },
+      }[focusedColumn];
+
+      return (
+        <div className="px-6 pb-4 h-[calc(100vh-5rem)]">
+          <div className="h-full flex flex-col gap-3">
+            {/* 戻るボタン */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleExitFocus}
+                className={cn(
+                  'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                  isDarkMode
+                    ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                )}
+              >
+                <ArrowLeft size={14} /> 比較画面に戻る
+              </button>
+              <span className={cn('text-xs', themeClasses.textSecondary)}>
+                ダブルクリックで比較画面に戻れます
+              </span>
             </div>
-            <input
-              type="text"
-              placeholder="どんな動画を作りたいですか？（例：30代向けの資産形成入門、楽しく学べるPython講座...）"
-              className={cn(
-                'flex-1 bg-transparent border-none py-3 text-base focus:ring-0 placeholder:text-slate-400',
-                themeClasses.text
-              )}
-            />
-            <button
-              onClick={handleGenerateIdea}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-blue-500/20 transition-all transform active:scale-95"
+
+            {/* フォーカス表示（1カラム） */}
+            <div
+              className="flex-1 max-w-4xl mx-auto w-full min-h-0"
+              onDoubleClick={handleExitFocus}
             >
-              <Sparkles size={16} /> アイデアを生成
-            </button>
+              <ScriptEditorColumn
+                aiType={focusedColumn}
+                title={focusData.title}
+                sections={focusData.sections}
+                onSectionsChange={focusData.setSections}
+                onAdopt={focusData.onAdopt}
+                onRewriteAll={focusData.onRewrite}
+                isRecommended={focusedColumn === 'mixed'}
+              />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // 通常表示（比較モード / ミックス込みモード）
+    return (
+      <div className="px-6 pb-4 h-[calc(100vh-5rem)]">
+        <div className="h-full flex flex-col gap-3">
+          {/* ヘッダーエリア */}
+          <div className="flex items-center justify-between">
+            {/* Input Area */}
+            <div
+              className={cn(
+                'p-1.5 rounded-xl shadow-sm border flex gap-2 items-center flex-1 max-w-2xl transition-shadow focus-within:shadow-md',
+                themeClasses.cardBg,
+                themeClasses.cardBorder
+              )}
+            >
+              <div className={cn('pl-3', themeClasses.textSecondary)}>
+                <Lightbulb size={18} />
+              </div>
+              <input
+                type="text"
+                placeholder="どんな動画を作りたいですか？"
+                className={cn(
+                  'flex-1 bg-transparent border-none py-2 text-sm focus:ring-0 placeholder:text-slate-400',
+                  themeClasses.text
+                )}
+              />
+              <button
+                onClick={handleGenerateIdea}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-500/20 transition-all transform active:scale-95"
+              >
+                <Sparkles size={14} /> 生成
+              </button>
+            </div>
+
+            {/* モード切替・戻るボタン */}
+            <div className="flex items-center gap-2 ml-4">
+              {viewMode === 'withMix' && (
+                <button
+                  onClick={handleBackToCompare}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                    isDarkMode
+                      ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  )}
+                >
+                  <ArrowLeft size={12} /> 比較に戻る
+                </button>
+              )}
+              <span className={cn('text-[10px]', themeClasses.textSecondary)}>
+                ダブルクリックで拡大
+              </span>
+            </div>
           </div>
 
           {/* AI Comparison Columns */}
-          <div className="flex-1 grid grid-cols-2 gap-8 min-h-0">
-            {/* Gemini Column */}
-            <div
-              className={cn(
-                'flex flex-col rounded-3xl shadow-sm border overflow-hidden group transition-colors',
-                themeClasses.cardBg,
-                themeClasses.cardBorder,
-                'hover:border-blue-500/50'
-              )}
-            >
-              <div
-                className={cn(
-                  'p-4 border-b flex justify-between items-center',
-                  isDarkMode
-                    ? 'bg-blue-900/10 border-blue-900/20'
-                    : 'bg-gradient-to-r from-blue-50 to-white border-blue-50'
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      'w-8 h-8 rounded-lg flex items-center justify-center text-blue-500',
-                      isDarkMode ? 'bg-blue-900/30' : 'bg-blue-100'
-                    )}
-                  >
-                    <Sparkles size={16} />
-                  </div>
-                  <div>
-                    <span className={cn('font-bold block text-sm', themeClasses.text)}>
-                      Gemini 1.5 Pro
-                    </span>
-                    <span className={cn('text-[10px]', themeClasses.textSecondary)}>
-                      論理的・構造的アプローチ
-                    </span>
-                  </div>
-                </div>
-                <span className="text-xs text-blue-500 bg-blue-500/10 px-3 py-1 rounded-full font-bold border border-blue-500/20">
-                  Recommended
-                </span>
-              </div>
-              <div
-                className={cn(
-                  'flex-1 p-6 overflow-y-auto text-sm leading-relaxed scrollbar-thin',
-                  themeClasses.scrollbar,
-                  isDarkMode ? 'text-slate-300' : 'text-slate-600'
-                )}
-              >
-                <h3 className={cn('font-bold text-xl mb-4', themeClasses.text)}>
-                  【2025年版】Python入門完全ガイド
-                </h3>
-                <div className="space-y-6">
-                  <div className={cn('pl-4 border-l-2', isDarkMode ? 'border-blue-900' : 'border-blue-100')}>
-                    <p className="text-xs font-bold text-blue-500 mb-1">導入 (0:00-0:30)</p>
-                    <p>
-                      プログラミングを始めたいあなたへ。なぜPythonが選ばれるのか、その3つの理由を解説します。
-                    </p>
-                  </div>
-                  <div className={cn('pl-4 border-l-2', isDarkMode ? 'border-blue-900' : 'border-blue-100')}>
-                    <p className="text-xs font-bold text-blue-500 mb-1">理由1：読みやすさ (0:30-1:30)</p>
-                    <p>
-                      Pythonの最大の特徴は、英語を読むようにコードが読めることです。例えば...
-                    </p>
-                  </div>
-                  <div
-                    className={cn(
-                      'p-4 rounded-xl italic text-xs',
-                      isDarkMode ? 'bg-slate-800 text-slate-500' : 'bg-slate-50 text-slate-500'
-                    )}
-                  >
-                    ... 続きを生成中
-                  </div>
-                </div>
-              </div>
-              <div
-                className={cn(
-                  'p-4 border-t flex justify-end gap-3 backdrop-blur-sm',
-                  isDarkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-white/50'
-                )}
-              >
-                <button
-                  onClick={handleRewriteGemini}
-                  className={cn(
-                    'px-4 py-2 text-sm rounded-lg transition-colors',
-                    isDarkMode ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-500 hover:bg-slate-100'
-                  )}
-                >
-                  書き直し
-                </button>
-                <button
-                  onClick={handleAdoptGemini}
-                  className="px-6 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all"
-                >
-                  これを採用
-                </button>
-              </div>
+          <div className={cn(
+            'flex-1 grid gap-4 min-h-0',
+            viewMode === 'withMix' ? 'grid-cols-3' : 'grid-cols-2'
+          )}>
+            {/* Gemini */}
+            <div onDoubleClick={() => handleColumnDoubleClick('gemini')} className="cursor-pointer min-h-0">
+              <ScriptEditorColumn
+                aiType="gemini"
+                title="【2025年版】Python入門完全ガイド"
+                sections={geminiSections}
+                onSectionsChange={setGeminiSections}
+                onAdopt={handleAdoptGemini}
+                onRewriteAll={handleRewriteGemini}
+              />
             </div>
 
-            {/* Claude Column */}
-            <div
-              className={cn(
-                'flex flex-col rounded-3xl shadow-sm border overflow-hidden group transition-colors',
-                themeClasses.cardBg,
-                themeClasses.cardBorder,
-                'hover:border-orange-500/50'
-              )}
-            >
-              <div
-                className={cn(
-                  'p-4 border-b flex justify-between items-center',
-                  isDarkMode
-                    ? 'bg-orange-900/10 border-orange-900/20'
-                    : 'bg-gradient-to-r from-orange-50 to-white border-orange-50'
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      'w-8 h-8 rounded-lg flex items-center justify-center text-orange-500',
-                      isDarkMode ? 'bg-orange-900/30' : 'bg-orange-100'
-                    )}
-                  >
-                    <MessageCircle size={16} />
-                  </div>
-                  <div>
-                    <span className={cn('font-bold block text-sm', themeClasses.text)}>
-                      Claude 3.5 Sonnet
-                    </span>
-                    <span className={cn('text-[10px]', themeClasses.textSecondary)}>
-                      自然的・ストーリーテリング
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div
-                className={cn(
-                  'flex-1 p-6 overflow-y-auto text-sm leading-relaxed scrollbar-thin',
-                  themeClasses.scrollbar,
-                  isDarkMode ? 'text-slate-300' : 'text-slate-600'
-                )}
-              >
-                <h3 className={cn('font-bold text-xl mb-4', themeClasses.text)}>
-                  まだExcelで消耗してるの？Pythonで自動化しよう
-                </h3>
-                <div className="space-y-6">
-                  <div className={cn('pl-4 border-l-2', isDarkMode ? 'border-orange-900' : 'border-orange-100')}>
-                    <p className="text-xs font-bold text-orange-500 mb-1">導入 (0:00-0:30)</p>
-                    <p>
-                      毎日のルーチンワーク、退屈じゃありませんか？実はPythonを使えば、その作業、1クリックで終わります。
-                    </p>
-                  </div>
-                  <div className={cn('pl-4 border-l-2', isDarkMode ? 'border-orange-900' : 'border-orange-100')}>
-                    <p className="text-xs font-bold text-orange-500 mb-1">自動化の実例 (0:30-1:30)</p>
-                    <p>
-                      想像してみてください。朝出社してコーヒーを飲んでいる間に、昨日売上の集計が終わっている世界を...
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div
-                className={cn(
-                  'p-4 border-t flex justify-end gap-3 backdrop-blur-sm',
-                  isDarkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-white/50'
-                )}
-              >
-                <button
-                  onClick={handleRewriteClaude}
-                  className={cn(
-                    'px-4 py-2 text-sm rounded-lg transition-colors',
-                    isDarkMode ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-500 hover:bg-slate-100'
-                  )}
-                >
-                  書き直し
-                </button>
-                <button
-                  onClick={handleAdoptClaude}
-                  className={cn(
-                    'px-6 py-2 text-white text-sm font-bold rounded-lg shadow-lg transition-all',
-                    isDarkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-slate-900 hover:bg-slate-800'
-                  )}
-                >
-                  これを採用
-                </button>
-              </div>
+            {/* Claude */}
+            <div onDoubleClick={() => handleColumnDoubleClick('claude')} className="cursor-pointer min-h-0">
+              <ScriptEditorColumn
+                aiType="claude"
+                title="まだExcelで消耗してるの？Pythonで自動化しよう"
+                sections={claudeSections}
+                onSectionsChange={setClaudeSections}
+                onAdopt={handleAdoptClaude}
+                onRewriteAll={handleRewriteClaude}
+              />
             </div>
+
+            {/* ミックス生成ボタン or ミックス版 */}
+            {viewMode === 'compare' ? (
+              <div className="col-span-2 flex justify-center items-start pt-4">
+                <button
+                  onClick={handleGenerateMixed}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-purple-500/20 transition-all transform active:scale-95"
+                >
+                  <Wand2 size={18} /> 両方の良いところをミックスして生成
+                </button>
+              </div>
+            ) : (
+              <div onDoubleClick={() => handleColumnDoubleClick('mixed')} className="cursor-pointer min-h-0">
+                <ScriptEditorColumn
+                  aiType="mixed"
+                  title="Python入門×自動化で始める効率化ライフ"
+                  sections={mixedSections}
+                  onSectionsChange={setMixedSections}
+                  onAdopt={handleAdoptMixed}
+                  onRewriteAll={handleRewriteMixed}
+                  isRecommended
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

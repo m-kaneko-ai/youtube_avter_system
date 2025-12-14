@@ -2,6 +2,7 @@ import { useNavigationStore } from '../../stores/navigationStore';
 import { TeamTab } from './components/TeamTab';
 import { ApprovalTab } from './components/ApprovalTab';
 import { ClientTab } from './components/ClientTab';
+import { KnowledgeChatTab } from './components/KnowledgeChatTab';
 
 export const AdminPage = () => {
   const { getActiveTab } = useNavigationStore();
@@ -15,6 +16,8 @@ export const AdminPage = () => {
         return <ApprovalTab />;
       case 'client':
         return <ClientTab />;
+      case 'knowledge':
+        return <KnowledgeChatTab />;
       default:
         return <TeamTab />;
     }

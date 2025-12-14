@@ -90,3 +90,65 @@ class ChatSessionResponse(BaseModel):
 class ChatMessageRequest(BaseModel):
     """チャットメッセージ送信リクエスト"""
     content: str = Field(..., min_length=1, description="メッセージ内容")
+
+
+# ============================================================
+# RAG解析関連のスキーマ
+# ============================================================
+
+class RAGMissingField(BaseModel):
+    """RAG解析で検出された不足フィールド"""
+    step: str = Field(..., description="ステップID（例: business_info, main_target）")
+    field: str = Field(..., description="フィールド名")
+    field_label: str = Field(..., description="フィールドの日本語ラベル")
+
+
+class RAGNeedsConfirmation(BaseModel):
+    """RAG解析で確認が必要なフィールド"""
+    step: str = Field(..., description="ステップID")
+    field: str = Field(..., description="フィールド名")
+    value: Optional[str] = Field(None, description="抽出された値")
+    reason: Optional[str] = Field(None, description="確認が必要な理由")
+
+
+class RAGExtractedData(BaseModel):
+    """RAG解析で抽出されたデータ"""
+    business_info: Optional[dict[str, Any]] = Field(None, description="ビジネス基本情報")
+    main_target: Optional[dict[str, Any]] = Field(None, description="メインターゲット")
+    sub_target: Optional[dict[str, Any]] = Field(None, description="サブターゲット")
+    competitor: Optional[dict[str, Any]] = Field(None, description="競合分析")
+    company: Optional[dict[str, Any]] = Field(None, description="自社分析")
+    aha_concept: Optional[dict[str, Any]] = Field(None, description="AHAコンセプト")
+    concept_story: Optional[dict[str, Any]] = Field(None, description="コンセプト・ストーリー")
+    product_design: Optional[dict[str, Any]] = Field(None, description="商品設計")
+
+
+class RAGAnalysisRequest(BaseModel):
+    """RAG解析リクエスト"""
+    content: str = Field(..., min_length=1, description="解析するテキストコンテンツ")
+    file_name: Optional[str] = Field(None, description="元ファイル名")
+
+
+class RAGAnalysisResponse(BaseModel):
+    """RAG解析レスポンス"""
+    extracted_data: RAGExtractedData = Field(..., description="抽出されたデータ")
+    missing_fields: list[RAGMissingField] = Field(..., description="不足フィールド一覧")
+    needs_confirmation: list[RAGNeedsConfirmation] = Field(..., description="確認が必要なフィールド")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="全体の信頼度（0.0-1.0）")
+    total_fields: int = Field(..., description="全フィールド数")
+    extracted_fields: int = Field(..., description="抽出済みフィールド数")
+
+
+class RAGHearingRequest(BaseModel):
+    """RAGヒアリングリクエスト"""
+    missing_field: RAGMissingField = Field(..., description="ヒアリング対象のフィールド")
+    user_answer: str = Field(..., min_length=1, description="ユーザーの回答")
+    previous_context: Optional[str] = Field(None, description="前回のコンテキスト")
+
+
+class RAGHearingResponse(BaseModel):
+    """RAGヒアリングレスポンス"""
+    extracted_value: str = Field(..., description="抽出された値")
+    follow_up_question: Optional[str] = Field(None, description="フォローアップ質問（必要な場合）")
+    is_complete: bool = Field(..., description="このフィールドの回答が完了したか")
+    next_field: Optional[RAGMissingField] = Field(None, description="次の不足フィールド")

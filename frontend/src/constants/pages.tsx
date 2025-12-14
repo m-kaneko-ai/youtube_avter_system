@@ -100,6 +100,7 @@ export const PAGES: PageDefinition[] = [
       { id: 'team', label: 'チーム管理' },
       { id: 'approval', label: '承認ワークフロー' },
       { id: 'client', label: 'クライアントポータル' },
+      { id: 'knowledge', label: 'ナレッジ作成' },
     ],
     requiredRoles: ['owner', 'team'],
   },

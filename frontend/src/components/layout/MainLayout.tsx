@@ -3,7 +3,6 @@ import { cn } from '../../utils/cn';
 import { useThemeStore } from '../../stores/themeStore';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
-import { TabNavigation } from './TabNavigation';
 import { getPageByPath } from '../../constants/pages';
 
 export const MainLayout = () => {
@@ -37,8 +36,7 @@ export const MainLayout = () => {
           )}
         ></div>
 
-        <Header />
-        {currentPage && <TabNavigation page={currentPage} />}
+        <Header page={currentPage} />
         <main
           className={cn(
             'flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent',

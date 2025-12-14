@@ -87,9 +87,16 @@ class ApiClient {
   }
 
   private getHeaders(): HeadersInit {
-    return {
+    const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
+
+    // 開発モードで認証バイパスヘッダーを追加
+    if (import.meta.env.DEV) {
+      (headers as Record<string, string>)['X-Dev-Bypass'] = 'true';
+    }
+
+    return headers;
   }
 
   async get<T>(path: string, options?: RequestOptions): Promise<T> {

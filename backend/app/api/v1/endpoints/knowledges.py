@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 import math
 
-from app.api.deps import get_db_session, get_current_user_role
+from app.api.deps import get_db_session, get_current_user_role, get_current_user_role_dev
 from app.schemas.knowledge import (
     KnowledgeCreate,
     KnowledgeUpdate,
@@ -18,6 +18,9 @@ from app.schemas.knowledge import (
     ChatSessionResponse,
     ChatMessageRequest,
     ChatMessage,
+    RAGAnalysisRequest,
+    RAGAnalysisResponse,
+    RAGMissingField,
 )
 from app.services.knowledge_service import KnowledgeService
 
@@ -245,3 +248,84 @@ async def send_chat_message(
         created_at=chat_session.created_at,
         updated_at=chat_session.updated_at,
     )
+
+
+# ============================================================
+# RAG解析エンドポイント
+# ============================================================
+
+@router.post(
+    "/rag/analyze",
+    response_model=RAGAnalysisResponse,
+    summary="RAGコンテンツ解析",
+    description="アップロードされたテキストコンテンツを解析し、ナレッジ情報を抽出します。Claude/Gemini APIを使用。",
+)
+async def analyze_rag_content(
+    request: RAGAnalysisRequest,
+    current_user_role: str = Depends(get_current_user_role_dev),
+) -> RAGAnalysisResponse:
+    """
+    RAGコンテンツ解析エンドポイント
+
+    アップロードされたPDF/TXTのテキストコンテンツを解析し、
+    8セクションのナレッジ情報を抽出します。
+
+    Args:
+        request: 解析リクエスト（テキストコンテンツ）
+        current_user_role: 実行者のロール
+
+    Returns:
+        RAGAnalysisResponse: 解析結果（抽出データ、不足フィールド、信頼度）
+    """
+    # 権限チェック（Owner/Teamのみ実行可能）
+    from app.models.user import UserRole
+    from fastapi import HTTPException
+    if current_user_role not in [UserRole.OWNER.value, UserRole.TEAM.value]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="RAG解析にはOwnerまたはTeamロールが必要です",
+        )
+
+    return await KnowledgeService.analyze_rag_content(
+        content=request.content,
+        file_name=request.file_name,
+    )
+
+
+@router.post(
+    "/rag/hearing-question",
+    response_model=dict,
+    summary="ヒアリング質問生成",
+    description="不足フィールドに対するヒアリング質問を生成します。",
+)
+async def generate_hearing_question(
+    missing_field: RAGMissingField,
+    previous_answer: Optional[str] = None,
+    current_user_role: str = Depends(get_current_user_role_dev),
+) -> dict:
+    """
+    ヒアリング質問生成エンドポイント
+
+    Args:
+        missing_field: 不足フィールド情報
+        previous_answer: 前回の回答（フォローアップ質問用）
+        current_user_role: 実行者のロール
+
+    Returns:
+        dict: 生成された質問
+    """
+    # 権限チェック（Owner/Teamのみ実行可能）
+    from app.models.user import UserRole
+    from fastapi import HTTPException
+    if current_user_role not in [UserRole.OWNER.value, UserRole.TEAM.value]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="ヒアリング質問生成にはOwnerまたはTeamロールが必要です",
+        )
+
+    question = await KnowledgeService.generate_hearing_question(
+        missing_field=missing_field,
+        previous_answer=previous_answer,
+    )
+
+    return {"question": question}

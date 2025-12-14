@@ -5,12 +5,13 @@ FastAPIエンドポイントで使用する依存性注入ヘルパー
 セキュリティ強化: Cookie/Headerの両方からトークン取得に対応
 """
 from typing import AsyncGenerator, Optional
-from fastapi import Depends, HTTPException, status, Cookie, Request
+from fastapi import Depends, HTTPException, status, Cookie, Request, Header
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import decode_access_token
+from app.core.config import settings
 
 # HTTPベアラートークンスキーム（auto_error=Falseでオプショナルに）
 security = HTTPBearer(auto_error=False)
@@ -200,6 +201,37 @@ def require_role(required_roles: list[str]):
         return role
 
     return role_checker
+
+
+# ===== 開発モード用の認証バイパス =====
+async def get_current_user_role_dev(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    access_token_cookie: Optional[str] = Cookie(None, alias="access_token"),
+    x_dev_bypass: Optional[str] = Header(None, alias="X-Dev-Bypass"),
+) -> str:
+    """
+    開発モード用のロール取得（バイパス可能）
+
+    開発モード（NODE_ENV=development）で、X-Dev-Bypass: true ヘッダーが
+    設定されている場合、認証をバイパスしてOwnerロールを返す。
+
+    Args:
+        request: FastAPIリクエストオブジェクト
+        credentials: HTTPベアラー認証情報（オプション）
+        access_token_cookie: Cookieからのアクセストークン
+        x_dev_bypass: 開発バイパスヘッダー
+
+    Returns:
+        str: ユーザーロール
+    """
+    # 開発モードでバイパスヘッダーがある場合
+    if settings.debug and x_dev_bypass == "true":
+        return "owner"
+
+    # 通常の認証フロー（トークンを取得してロール取得）
+    token = await get_token_from_request(request, credentials, access_token_cookie)
+    return await get_current_user_role(token)
 
 
 # エクスポート用エイリアス

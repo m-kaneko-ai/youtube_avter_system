@@ -486,3 +486,219 @@ export interface PlanningState {
   /** エラーメッセージ */
   error: string | null;
 }
+
+// =============================================
+// ナレッジ作成チャットボット用型定義
+// =============================================
+
+/**
+ * ナレッジチャットのステップ定義
+ */
+export type KnowledgeChatStep =
+  | 'business_info'      // ビジネス基本情報
+  | 'main_target'        // メインターゲット
+  | 'sub_target'         // サブターゲット
+  | 'competitor'         // 競合分析
+  | 'company'            // 自社分析
+  | 'aha_concept'        // AHAコンセプト
+  | 'concept_story'      // コンセプト・ストーリー
+  | 'product_design';    // 商品設計
+
+/**
+ * ナレッジセクション情報
+ */
+export interface KnowledgeSection {
+  /** ステップID */
+  id: KnowledgeChatStep;
+  /** ステップ番号 */
+  stepNumber: number;
+  /** タイトル */
+  title: string;
+  /** 説明 */
+  description: string;
+  /** 必須かどうか */
+  isRequired: boolean;
+  /** 収集する情報のキー */
+  dataKeys: string[];
+}
+
+/**
+ * ナレッジチャットメッセージ
+ */
+export interface KnowledgeChatMessage {
+  /** メッセージID */
+  id: string;
+  /** ロール */
+  role: 'user' | 'assistant' | 'system';
+  /** メッセージ内容 */
+  content: string;
+  /** 関連するステップ */
+  step?: KnowledgeChatStep;
+  /** タイムスタンプ */
+  timestamp: string;
+  /** メタデータ（抽出された情報など） */
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * 収集されたナレッジデータ
+ */
+export interface CollectedKnowledgeData {
+  // ビジネス基本情報
+  businessInfo?: {
+    industry?: string;
+    annualRevenue?: string;
+    yearsInBusiness?: string;
+    services?: string;
+    businessModel?: string;
+  };
+  // メインターゲット
+  mainTarget?: {
+    attributes?: string;
+    situation?: string;
+    frustrations?: string;
+    painPoints?: string;
+    desires?: string;
+    insights?: string;
+  };
+  // サブターゲット
+  subTarget?: {
+    attributes?: string;
+    situation?: string;
+    frustrations?: string;
+    painPoints?: string;
+    desires?: string;
+    insights?: string;
+  };
+  // 競合分析
+  competitor?: {
+    mainCompetitors?: string;
+    competitorValue?: string;
+    customerComplaints?: string;
+    differentiation?: string;
+  };
+  // 自社分析
+  company?: {
+    strengths?: string;
+    mission?: string;
+    achievements?: string;
+    uniqueMethod?: string;
+  };
+  // AHAコンセプト
+  ahaConcept?: {
+    commonSense?: string;
+    destruction?: string;
+    insight?: string;
+    naming?: string;
+  };
+  // コンセプト・ストーリー
+  conceptStory?: {
+    character?: string;
+    beforeStory?: string;
+    transformationStory?: string;
+    afterStory?: string;
+  };
+  // 商品設計
+  productDesign?: {
+    priceRange?: string;
+    curriculum?: string;
+    deliverables?: string;
+    support?: string;
+  };
+}
+
+/**
+ * ナレッジチャットセッション
+ */
+export interface KnowledgeChatSession {
+  /** セッションID */
+  id: string;
+  /** クライアントID */
+  clientId?: string;
+  /** ナレッジ名 */
+  knowledgeName?: string;
+  /** 現在のステップ */
+  currentStep: KnowledgeChatStep;
+  /** 現在のステップ番号 */
+  currentStepNumber: number;
+  /** メッセージ履歴 */
+  messages: KnowledgeChatMessage[];
+  /** 収集されたデータ */
+  collectedData: CollectedKnowledgeData;
+  /** ステップ完了状態 */
+  completedSteps: KnowledgeChatStep[];
+  /** セッションステータス */
+  status: 'active' | 'paused' | 'completed';
+  /** 作成日時 */
+  createdAt: string;
+  /** 更新日時 */
+  updatedAt: string;
+}
+
+/**
+ * ナレッジチャットの進捗情報
+ */
+export interface KnowledgeChatProgress {
+  /** 現在のステップ番号 */
+  currentStep: number;
+  /** 総ステップ数 */
+  totalSteps: number;
+  /** 進捗率 */
+  progressPercent: number;
+  /** 完了したセクション */
+  completedSections: string[];
+  /** 収集済みフィールド数 */
+  collectedFieldsCount: number;
+  /** 総フィールド数 */
+  totalFieldsCount: number;
+}
+
+/**
+ * ナレッジチャットのモード
+ */
+export type KnowledgeChatMode = 'manual' | 'rag';
+
+/**
+ * アップロードされたファイル情報
+ */
+export interface UploadedKnowledgeFile {
+  /** ファイルID */
+  id: string;
+  /** ファイル名 */
+  name: string;
+  /** ファイルタイプ */
+  type: 'pdf' | 'txt';
+  /** ファイルサイズ（バイト） */
+  size: number;
+  /** 抽出されたテキスト */
+  content: string;
+  /** アップロード日時 */
+  uploadedAt: string;
+}
+
+/**
+ * RAG解析結果
+ */
+export interface RAGAnalysisResult {
+  /** 抽出されたデータ */
+  extractedData: CollectedKnowledgeData;
+  /** 不足している項目 */
+  missingFields: {
+    step: KnowledgeChatStep;
+    field: string;
+    fieldLabel: string;
+  }[];
+  /** 確認が必要な項目 */
+  needsConfirmation: {
+    step: KnowledgeChatStep;
+    field: string;
+    value: string;
+    reason: string;
+  }[];
+  /** 解析の信頼度（0-100） */
+  confidence: number;
+  /** 抽出済みフィールド数 */
+  extractedFields: number;
+  /** 全フィールド数 */
+  totalFields: number;
+}
