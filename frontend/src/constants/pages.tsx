@@ -64,7 +64,6 @@ export const PAGES: PageDefinition[] = [
     tabs: [
       { id: 'voice', label: '音声生成' },
       { id: 'avatar', label: 'アバター生成' },
-      { id: 'edit', label: '編集(Vrew)' },
       { id: 'quality', label: '品質向上' },
     ],
   },

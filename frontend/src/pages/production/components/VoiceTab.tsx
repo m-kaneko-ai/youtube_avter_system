@@ -103,7 +103,6 @@ export const VoiceTab = () => {
             </div>
             <div>
               <h3 className={cn('font-bold', themeClasses.text)}>音声モデル選択</h3>
-              <p className={cn('text-sm', themeClasses.textSecondary)}>MiniMax Audio</p>
             </div>
           </div>
           <button
