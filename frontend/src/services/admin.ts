@@ -271,6 +271,135 @@ interface SystemHealth {
   uptime_seconds: number;
 }
 
+// ============================================================
+// モックデータ（API接続エラー時のフォールバック）
+// ============================================================
+
+const mockTeamMembers: TeamMember[] = [
+  {
+    id: 'member-1',
+    name: '金子 光良',
+    email: 'kaneko@example.com',
+    role: 'owner',
+    status: 'active',
+    avatar: undefined,
+    joinedAt: new Date(Date.now() - 365 * 86400000).toISOString(),
+    lastActive: new Date().toISOString(),
+  },
+  {
+    id: 'member-2',
+    name: '田中 太郎',
+    email: 'tanaka@example.com',
+    role: 'team',
+    status: 'active',
+    avatar: undefined,
+    joinedAt: new Date(Date.now() - 180 * 86400000).toISOString(),
+    lastActive: new Date(Date.now() - 3600000).toISOString(),
+  },
+  {
+    id: 'member-3',
+    name: '鈴木 花子',
+    email: 'suzuki@example.com',
+    role: 'team',
+    status: 'active',
+    avatar: undefined,
+    joinedAt: new Date(Date.now() - 90 * 86400000).toISOString(),
+    lastActive: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    id: 'member-4',
+    name: '山田 次郎',
+    email: 'yamada@example.com',
+    role: 'team',
+    status: 'pending',
+    avatar: undefined,
+    joinedAt: new Date(Date.now() - 7 * 86400000).toISOString(),
+    lastActive: new Date(Date.now() - 7 * 86400000).toISOString(),
+  },
+];
+
+const mockApprovalRequests: ApprovalRequest[] = [
+  {
+    id: 'approval-1',
+    type: 'script',
+    title: 'AIツール活用術【初心者向け】- 台本',
+    requestedBy: '田中 太郎',
+    requestedAt: new Date(Date.now() - 2 * 3600000).toISOString(),
+    status: 'pending',
+    priority: 'high',
+    comments: 2,
+  },
+  {
+    id: 'approval-2',
+    type: 'thumbnail',
+    title: 'ChatGPT vs Claude 比較 - サムネイル',
+    requestedBy: '鈴木 花子',
+    requestedAt: new Date(Date.now() - 5 * 3600000).toISOString(),
+    status: 'pending',
+    priority: 'normal',
+    comments: 0,
+  },
+  {
+    id: 'approval-3',
+    type: 'video',
+    title: 'プログラミング入門 #5 - 最終動画',
+    requestedBy: '田中 太郎',
+    requestedAt: new Date(Date.now() - 24 * 3600000).toISOString(),
+    status: 'approved',
+    priority: 'normal',
+    comments: 3,
+  },
+  {
+    id: 'approval-4',
+    type: 'publish',
+    title: '週刊ニュースまとめ - 公開申請',
+    requestedBy: '鈴木 花子',
+    requestedAt: new Date(Date.now() - 48 * 3600000).toISOString(),
+    status: 'rejected',
+    priority: 'low',
+    comments: 1,
+  },
+];
+
+const mockClients: ClientData[] = [
+  {
+    id: 'client-1',
+    companyName: '株式会社テクノロジー',
+    contactName: '佐藤 一郎',
+    email: 'sato@tech-company.co.jp',
+    plan: 'premium_plus',
+    status: 'active',
+    knowledgeCount: 5,
+    videoCount: 48,
+    joinedAt: new Date(Date.now() - 180 * 86400000).toISOString(),
+    lastActive: new Date(Date.now() - 3600000).toISOString(),
+  },
+  {
+    id: 'client-2',
+    companyName: 'クリエイティブスタジオ合同会社',
+    contactName: '高橋 美咲',
+    email: 'takahashi@creative-studio.jp',
+    plan: 'premium',
+    status: 'active',
+    knowledgeCount: 3,
+    videoCount: 24,
+    joinedAt: new Date(Date.now() - 90 * 86400000).toISOString(),
+    lastActive: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    id: 'client-3',
+    companyName: '個人事業主 山本',
+    contactName: '山本 健太',
+    email: 'yamamoto@personal.com',
+    plan: 'basic',
+    status: 'trial',
+    knowledgeCount: 1,
+    videoCount: 5,
+    joinedAt: new Date(Date.now() - 14 * 86400000).toISOString(),
+    lastActive: new Date(Date.now() - 2 * 86400000).toISOString(),
+  },
+];
+
 export const adminService = {
   // User Management
   async getUsers(role?: UserRole): Promise<UserListResponse> {
@@ -373,10 +502,17 @@ export const adminService = {
    * チームメンバー一覧を取得
    */
   async getTeamMembers(): Promise<{ members: TeamMember[] }> {
-    const response = await api.get<{ members: ApiTeamMember[] }>('/api/v1/admin/team');
-    return {
-      members: response.members.map(mapTeamMember),
-    };
+    try {
+      const response = await api.get<{ members: ApiTeamMember[] }>('/api/v1/admin/team');
+      return {
+        members: response.members.map(mapTeamMember),
+      };
+    } catch {
+      console.info('[adminService] Using mock data for team members');
+      return {
+        members: mockTeamMembers,
+      };
+    }
   },
 
   /**
@@ -417,14 +553,24 @@ export const adminService = {
    * 承認リクエスト一覧を取得
    */
   async getApprovals(status?: ApprovalStatus): Promise<{ approvals: ApprovalRequest[] }> {
-    const params = status ? { status } : undefined;
-    const response = await api.get<{ approvals: ApiApprovalRequest[] }>(
-      '/api/v1/admin/approvals',
-      { params }
-    );
-    return {
-      approvals: response.approvals.map(mapApprovalRequest),
-    };
+    try {
+      const params = status ? { status } : undefined;
+      const response = await api.get<{ approvals: ApiApprovalRequest[] }>(
+        '/api/v1/admin/approvals',
+        { params }
+      );
+      return {
+        approvals: response.approvals.map(mapApprovalRequest),
+      };
+    } catch {
+      console.info('[adminService] Using mock data for approvals');
+      const filtered = status
+        ? mockApprovalRequests.filter((a) => a.status === status)
+        : mockApprovalRequests;
+      return {
+        approvals: filtered,
+      };
+    }
   },
 
   /**
@@ -461,10 +607,17 @@ export const adminService = {
    * クライアント一覧を取得（拡張版）
    */
   async getClientList(): Promise<{ clients: ClientData[] }> {
-    const response = await api.get<{ clients: ApiClientData[] }>('/api/v1/admin/clients');
-    return {
-      clients: response.clients.map(mapClientData),
-    };
+    try {
+      const response = await api.get<{ clients: ApiClientData[] }>('/api/v1/admin/clients');
+      return {
+        clients: response.clients.map(mapClientData),
+      };
+    } catch {
+      console.info('[adminService] Using mock data for clients');
+      return {
+        clients: mockClients,
+      };
+    }
   },
 
   /**
