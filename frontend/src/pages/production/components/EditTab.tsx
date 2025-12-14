@@ -2,7 +2,6 @@ import { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Scissors,
-  ExternalLink,
   FileVideo,
   Clock,
   Upload,
@@ -86,7 +85,7 @@ export const EditTab = () => {
 
   return (
     <div className="space-y-8">
-      {/* Vrew Integration Banner */}
+      {/* 素材ダウンロードセクション */}
       <div
         className={cn(
           'p-6 rounded-2xl bg-gradient-to-r',
@@ -98,24 +97,22 @@ export const EditTab = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className={cn('p-3 rounded-xl', isDarkMode ? 'bg-indigo-900/50' : 'bg-indigo-100')}>
-              <Scissors size={24} className="text-indigo-500" />
+              <Download size={24} className="text-indigo-500" />
             </div>
             <div>
-              <h3 className={cn('font-bold text-lg', themeClasses.text)}>Vrew連携</h3>
+              <h3 className={cn('font-bold text-lg', themeClasses.text)}>素材ダウンロード</h3>
               <p className={cn('text-sm', themeClasses.textSecondary)}>
-                AIによる自動字幕生成・編集をVrewで行います
+                生成した音声・動画素材をダウンロードしてPremiere Pro等で編集
               </p>
             </div>
           </div>
-          <a
-            href="https://vrew.voyagerx.com/"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={() => toast.info('全素材をZIPでダウンロードします')}
             className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-colors"
           >
-            <ExternalLink size={16} />
-            Vrewを開く
-          </a>
+            <Download size={16} />
+            全素材をダウンロード
+          </button>
         </div>
       </div>
 
