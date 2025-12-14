@@ -61,6 +61,7 @@ export const KnowledgeChatTab = () => {
 
   const [messageInput, setMessageInput] = useState('');
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [deepDiveCount, setDeepDiveCount] = useState(0); // 深掘り回数のトラッキング
   const [knowledgeName, setKnowledgeName] = useState('');
   const [showNameInput, setShowNameInput] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -176,6 +177,7 @@ export const KnowledgeChatTab = () => {
     initSession(undefined, knowledgeName);
     setShowNameInput(false);
     setQuestionIndex(0);
+    setDeepDiveCount(0);
   };
 
   // メッセージ送信
@@ -277,14 +279,15 @@ export const KnowledgeChatTab = () => {
         return;
       }
 
-      // AIレスポンス取得
-      const { assistantMessage, shouldMoveNext, extractedData } =
+      // AIレスポンス取得（深掘りカウント付き）
+      const { assistantMessage, shouldMoveNext, extractedData, newDeepDiveCount } =
         await knowledgeService.sendMessage(
           session.id,
           userContent,
           session.currentStep,
           session.collectedData,
-          questionIndex
+          questionIndex,
+          deepDiveCount
         );
 
       // 収集データを更新
@@ -299,9 +302,15 @@ export const KnowledgeChatTab = () => {
         step: assistantMessage.step,
       });
 
+      // 深掘りカウントを更新
+      setDeepDiveCount(newDeepDiveCount);
+
       // 質問インデックスを更新
       if (!shouldMoveNext) {
-        setQuestionIndex((prev) => prev + 1);
+        // 深掘りカウントが0にリセットされた場合のみ質問インデックスを進める
+        if (newDeepDiveCount === 0) {
+          setQuestionIndex((prev) => prev + 1);
+        }
       } else {
         handleNextStep();
       }
@@ -327,6 +336,7 @@ export const KnowledgeChatTab = () => {
       const nextStep = KNOWLEDGE_SECTIONS[currentIndex + 1].id;
       goToNextStep();
       setQuestionIndex(0);
+      setDeepDiveCount(0); // ステップ移動時に深掘りカウントをリセット
 
       const transitionMessage = knowledgeService.getStepTransitionMessage(nextStep);
       addMessage({
@@ -350,6 +360,7 @@ export const KnowledgeChatTab = () => {
     if (!session) return;
     goToPreviousStep();
     setQuestionIndex(0);
+    setDeepDiveCount(0);
   };
 
   // ステップをスキップ
@@ -385,6 +396,7 @@ export const KnowledgeChatTab = () => {
     setShowNameInput(true);
     setKnowledgeName('');
     setQuestionIndex(0);
+    setDeepDiveCount(0);
     setRagHearingStarted(false);
     setHearingComplete(false);
   };
@@ -446,6 +458,7 @@ export const KnowledgeChatTab = () => {
     if (!session) return;
     goToStep(step);
     setQuestionIndex(0);
+    setDeepDiveCount(0);
 
     const transitionMessage = knowledgeService.getStepTransitionMessage(step);
     addMessage({

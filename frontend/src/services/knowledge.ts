@@ -87,6 +87,150 @@ const STEP_KEY_MAP: Record<KnowledgeChatStep, keyof typeof FIELD_LABELS> = {
 };
 
 // ============================================================
+// ストーリーベース質問システム
+// ============================================================
+
+/**
+ * 回答の深さを判定
+ */
+type AnswerDepth = 'shallow' | 'moderate' | 'deep';
+
+/**
+ * 深掘り質問タイプ
+ */
+type DeepDiveType =
+  | 'episode'      // エピソードを引き出す
+  | 'emotion'      // 感情を引き出す
+  | 'reason'       // 理由を深掘り
+  | 'contrast'     // 対比で明確化
+  | 'specific'     // 具体化
+  | 'meaning';     // 意味・価値観を探る
+
+/**
+ * 深掘り質問テンプレート
+ */
+const DEEP_DIVE_QUESTIONS: Record<DeepDiveType, string[]> = {
+  episode: [
+    'それに関する具体的なエピソードを1つ教えてください。',
+    'それを強く感じた瞬間を思い出してください。何があったんですか？',
+    '最近それを感じた出来事はありますか？',
+  ],
+  emotion: [
+    'その時、どんな気持ちでしたか？',
+    'それを経験した時、心の中で何が起きていましたか？',
+    '今振り返ると、その経験をどう感じますか？',
+  ],
+  reason: [
+    'なぜそう思うのですか？',
+    'それが大切だと思う理由は何ですか？',
+    'その考えに至った背景を教えてください。',
+  ],
+  contrast: [
+    'それ以前と以後で、何が一番変わりましたか？',
+    '逆に、そうじゃない人はどんな状態ですか？',
+    'それがなかったら、今どうなっていたと思いますか？',
+  ],
+  specific: [
+    'もう少し具体的に教えてください。',
+    '例えばどんな感じですか？',
+    '数字や事例で表すと？',
+  ],
+  meaning: [
+    'それはあなたにとって何を意味しますか？',
+    'なぜそれが大切なんですか？（さらに深く）',
+    'それを通じて、最終的に何を実現したいですか？',
+  ],
+};
+
+/**
+ * 回答の深さを判定
+ */
+const assessAnswerDepth = (answer: string): AnswerDepth => {
+  const length = answer.length;
+  const hasEpisode = /(?:した時|した日|だった|ました|ていた|の時|の日|経験|出来事|エピソード)/i.test(answer);
+  const hasEmotion = /(?:嬉しい|悲しい|辛い|楽しい|悔しい|感動|気持ち|思い|感じ)/i.test(answer);
+  const hasSpecific = /(?:\d+|具体的|例えば|特に|実際)/i.test(answer);
+
+  const depthScore =
+    (length > 100 ? 2 : length > 50 ? 1 : 0) +
+    (hasEpisode ? 2 : 0) +
+    (hasEmotion ? 1 : 0) +
+    (hasSpecific ? 1 : 0);
+
+  if (depthScore >= 4) return 'deep';
+  if (depthScore >= 2) return 'moderate';
+  return 'shallow';
+};
+
+/**
+ * 回答に基づいて適切な深掘り質問を選択
+ */
+const selectDeepDiveQuestion = (
+  _answer: string, // 将来的にキーワード解析で使用予定
+  depth: AnswerDepth,
+  currentField: string
+): { question: string; type: DeepDiveType } | null => {
+  if (depth === 'deep') return null; // 十分な深さがある
+
+  // フィールドに応じた深掘りタイプを決定
+  const fieldDeepDiveMap: Record<string, DeepDiveType[]> = {
+    // ストーリー系はエピソード・感情を
+    beforeStory: ['episode', 'emotion'],
+    transformationStory: ['episode', 'emotion', 'meaning'],
+    afterStory: ['contrast', 'emotion'],
+    frustrations: ['episode', 'emotion'],
+    achievements: ['episode', 'specific'],
+    // 価値観系は理由・意味を
+    mission: ['reason', 'meaning'],
+    strengths: ['episode', 'reason'],
+    desires: ['meaning', 'reason'],
+    insights: ['reason', 'contrast'],
+    // 分析系は具体化・対比を
+    mainCompetitors: ['specific', 'contrast'],
+    differentiation: ['contrast', 'specific'],
+    commonSense: ['specific', 'contrast'],
+    destruction: ['reason', 'contrast'],
+  };
+
+  const preferredTypes = fieldDeepDiveMap[currentField] || ['specific', 'episode'];
+  const selectedType = preferredTypes[Math.floor(Math.random() * preferredTypes.length)];
+  const questions = DEEP_DIVE_QUESTIONS[selectedType];
+  const question = questions[Math.floor(Math.random() * questions.length)];
+
+  return { question, type: selectedType };
+};
+
+/**
+ * パーソナリティ引き出し用の特別質問
+ * YouTube動画で個性を引き出すための質問集
+ */
+export const PERSONALITY_QUESTIONS = {
+  // オリジンストーリー
+  origin: [
+    'このビジネスを始めた「本当のきっかけ」を教えてください。表向きの理由ではなく、心の奥にあった想いは？',
+    'もし過去の自分にメッセージを送れるとしたら、何と伝えますか？',
+  ],
+  // 価値観・信念
+  values: [
+    '仕事をする上で「これだけは絶対に譲れない」ことは何ですか？',
+    '業界で「許せない」と思うことはありますか？それはなぜ？',
+    '成功の定義は何ですか？お金以外で答えてください。',
+  ],
+  // 人間味・ギャップ
+  humanity: [
+    '意外だと言われる趣味や特技はありますか？',
+    '仕事で一番失敗したエピソードを教えてください。そこから何を学びましたか？',
+    'お客様に見せていない「素の自分」はどんな人ですか？',
+  ],
+  // コミュニケーションスタイル
+  style: [
+    '動画で視聴者に語りかける時、どんなトーンが自然ですか？（熱量高め/落ち着いた/淡々と など）',
+    'よく使う口癖や決めゼリフはありますか？',
+    '視聴者との距離感は？（友達感覚/先輩感覚/専門家として など）',
+  ],
+};
+
+// ============================================================
 // 質問テンプレート
 // ============================================================
 
@@ -94,6 +238,7 @@ interface QuestionTemplate {
   step: KnowledgeChatStep;
   initialQuestion: string;
   followUpQuestions: string[];
+  storyBasedQuestions: string[];  // ストーリーベースの深掘り質問
   dontKnowResponses: string[];
   summaryTemplate: (data: Record<string, string>) => string;
 }
@@ -113,6 +258,11 @@ const QUESTION_TEMPLATES: Record<KnowledgeChatStep, QuestionTemplate> = {
       '年商規模はどのくらいですか？（目安で構いません）',
       'ビジネスモデルは主にどのような形ですか？（コンサル、コーチング、講座販売、物販など）',
       '現在の主な集客方法は何ですか？',
+    ],
+    storyBasedQuestions: [
+      'このビジネスを始めた「本当のきっかけ」を教えてください。表向きの理由ではなく、心の奥にあった想いは何でしたか？',
+      '起業する前、どんな状況にいましたか？何が不満でしたか？',
+      'ビジネスを始めて一番辛かった時期はいつですか？どう乗り越えましたか？',
     ],
     dontKnowResponses: [
       'なるほど、まだ明確でない部分もありますよね。では、別の角度から聞かせてください。**お客様からどんなお仕事をしている人だと思われていますか？**',
@@ -145,6 +295,11 @@ const QUESTION_TEMPLATES: Record<KnowledgeChatStep, QuestionTemplate> = {
       'その方が本当に欲しいもの（表面的な欲求の奥にある本音）は何だと思いますか？',
       'その方が気づいていない「本当の課題」は何だと思いますか？（インサイト）',
     ],
+    storyBasedQuestions: [
+      'そのターゲットの方が、夜中に一人で検索している時、どんな言葉で検索していると思いますか？',
+      'そのターゲットの方が、あなたに出会う前日、どんな気持ちで過ごしていたと思いますか？',
+      'お客様から「〇〇さんに出会えてよかった」と言われた時のエピソードを教えてください。',
+    ],
     dontKnowResponses: [
       '分かりづらいですよね。では、**過去に一番成果が出たお客様**を1人思い浮かべてください。その方について教えてください。',
       'では角度を変えて、**あなたが「この人は助けられない」と感じるお客様**はどんな人ですか？その逆を考えてみましょう。',
@@ -173,6 +328,9 @@ const QUESTION_TEMPLATES: Record<KnowledgeChatStep, QuestionTemplate> = {
       'そのサブターゲットは、メインターゲットとどう違いますか？',
       'なぜその層もターゲットにしたいのですか？',
     ],
+    storyBasedQuestions: [
+      'サブターゲットで成功した印象的なお客様はいますか？その方のエピソードを教えてください。',
+    ],
     dontKnowResponses: [
       '特に明確でなければ、このステップはスキップして大丈夫です。次に進みましょうか？',
     ],
@@ -200,6 +358,11 @@ const QUESTION_TEMPLATES: Record<KnowledgeChatStep, QuestionTemplate> = {
       'お客様が競合に対して持っている「不満」や「物足りなさ」は何ですか？',
       'あなたと競合の決定的な違いは何ですか？',
     ],
+    storyBasedQuestions: [
+      '競合のサービスを受けて「失敗した」お客様が、あなたのところに来たエピソードはありますか？',
+      'お客様が「他と比べてここが違った」と言っていたことは？',
+      '業界で「許せない」と思う競合のやり方はありますか？それはなぜ？',
+    ],
     dontKnowResponses: [
       'お客様の立場で考えてみましょう。**お客様があなたに出会う前に、まず何を試しますか？**',
       '例えば、**お客様が「〇〇で検索する」としたら、何というキーワードで検索しますか？** その検索結果に出てくるものが競合です。',
@@ -214,9 +377,9 @@ const QUESTION_TEMPLATES: Record<KnowledgeChatStep, QuestionTemplate> = {
 
   company: {
     step: 'company',
-    initialQuestion: `**【STEP 5: 自社分析】**
+    initialQuestion: `**【STEP 5: 自社分析・パーソナリティ】**
 
-次に、**あなた自身・あなたの会社**について教えてください。
+次に、**あなた自身について深く**教えてください。
 
 **あなたの強みは何ですか？**
 - お客様によく褒められることは？
@@ -227,9 +390,17 @@ const QUESTION_TEMPLATES: Record<KnowledgeChatStep, QuestionTemplate> = {
       '印象的な成果事例を1つ教えてください。',
       'あなたの方法の特徴的な名前やフレームワークはありますか？',
     ],
+    storyBasedQuestions: [
+      '今のメソッドにたどり着くまでに、一番苦労したことは何ですか？どう乗り越えましたか？',
+      'お客様に「あなただから頼みたい」と言われたエピソードを教えてください。',
+      '仕事で一番失敗した経験は？そこから何を学びましたか？',
+      '仕事をする上で「これだけは絶対に譲れない」ことは何ですか？',
+      '意外だと言われる趣味や特技はありますか？',
+    ],
     dontKnowResponses: [
       'お客様に聞いてみてください。**お客様があなたを選んだ理由**は何だと言っていますか？',
       '逆に、**あなたが苦手なこと・やりたくないこと**は何ですか？その裏返しが強みかもしれません。',
+      '友人や家族に「あなたの良いところ」を聞いたら、何と言われると思いますか？',
     ],
     summaryTemplate: (data) =>
       `【自社分析まとめ】
@@ -251,6 +422,13 @@ const QUESTION_TEMPLATES: Record<KnowledgeChatStep, QuestionTemplate> = {
       'その常識に対して、あなたはどう「破壊」しますか？「実は〇〇なんです」という形で教えてください。',
       'お客様が「えっ！そうだったの？」と驚く瞬間（AHA体験）はどんな時ですか？',
       'この常識破壊を表現するキャッチーな言葉・ネーミングを考えてみましょう。',
+    ],
+    storyBasedQuestions: [
+      'あなたがその「常識」を信じていた時、何が起きましたか？どんな失敗をしましたか？',
+      'お客様が「え、そうだったの！？」と目を丸くした瞬間のエピソードを教えてください。',
+      'その常識を破壊した瞬間、お客様の反応はどうでしたか？',
+      '業界の誰もが当然だと思っていることで、あなたが「おかしい」と感じることは？',
+      'お客様に「これを知らなかったら損してた」と言われた経験はありますか？',
     ],
     dontKnowResponses: [
       'お客様からよく聞く「思い込み」や「勘違い」は何ですか？それが常識です。',
@@ -279,6 +457,14 @@ const QUESTION_TEMPLATES: Record<KnowledgeChatStep, QuestionTemplate> = {
       'お客様の典型的な「Before→After」ストーリーも教えてください。',
       'このストーリーを一言で表すと？（例：「〇〇から△△へ」）',
     ],
+    storyBasedQuestions: [
+      '一番辛かった時期を思い出してください。どん底の時、何を感じていましたか？',
+      '「もうダメだ」と思った瞬間から、どうやって這い上がりましたか？',
+      '変容のきっかけとなった出来事を、映画のワンシーンのように描写してください。',
+      '今の自分から、過去の自分にメッセージを送るとしたら何と言いますか？',
+      '一番大きな変化を遂げたお客様のストーリーを聞かせてください。何が変わりましたか？',
+      'あなたの人生を変えた「一言」や「出会い」はありますか？',
+    ],
     dontKnowResponses: [
       '難しければ、**一番印象的なお客様の変化**を思い出してください。その方はどう変わりましたか？',
     ],
@@ -302,6 +488,12 @@ const QUESTION_TEMPLATES: Record<KnowledgeChatStep, QuestionTemplate> = {
     followUpQuestions: [
       'カリキュラム・プログラムの構成を教えてください。',
       '提供物（動画、テンプレート、サポートなど）は何がありますか？',
+    ],
+    storyBasedQuestions: [
+      'お客様がこの価格を「安い」と感じた瞬間のエピソードはありますか？',
+      'カリキュラムの中で、お客様が一番感動するポイントはどこですか？',
+      'この商品を作った時、どんな想いを込めましたか？',
+      'お客様に「ここまでやってくれるの？」と驚かれた経験は？',
     ],
     dontKnowResponses: [
       'このステップは任意です。スキップして完了することもできます。',
@@ -351,15 +543,18 @@ const detectSkip = (message: string): boolean => {
 
 /**
  * AIレスポンスを生成
+ * 回答の深さに応じて深掘り質問やストーリーベースの質問を動的に選択
  */
 const generateAIResponse = (
   userMessage: string,
   currentStep: KnowledgeChatStep,
   collectedData: CollectedKnowledgeData,
-  questionIndex: number
-): { content: string; shouldMoveNext: boolean; extractedData: Record<string, string> } => {
+  questionIndex: number,
+  deepDiveCount: number = 0 // 深掘り回数のトラッキング
+): { content: string; shouldMoveNext: boolean; extractedData: Record<string, string>; newDeepDiveCount: number } => {
   const template = QUESTION_TEMPLATES[currentStep];
   const section = KNOWLEDGE_SECTIONS.find((s) => s.id === currentStep);
+  const MAX_DEEP_DIVE = 2; // 各質問での最大深掘り回数
 
   // スキップ検出
   if (detectSkip(userMessage) && !section?.isRequired) {
@@ -367,48 +562,91 @@ const generateAIResponse = (
       content: `了解しました。このステップはスキップして次に進みますね。`,
       shouldMoveNext: true,
       extractedData: {},
+      newDeepDiveCount: 0,
     };
   }
 
   // 「分からない」検出
   if (detectDontKnow(userMessage)) {
+    // ストーリーベースの質問で別角度からアプローチ
+    const storyQuestion = template.storyBasedQuestions[
+      Math.floor(Math.random() * template.storyBasedQuestions.length)
+    ];
     const dontKnowResponse =
       template.dontKnowResponses[
         Math.floor(Math.random() * template.dontKnowResponses.length)
       ];
+
+    // ストーリーベースの質問を優先
+    const response = deepDiveCount < MAX_DEEP_DIVE ? storyQuestion : dontKnowResponse;
+
     return {
-      content: dontKnowResponse,
+      content: response,
       shouldMoveNext: false,
       extractedData: {},
+      newDeepDiveCount: deepDiveCount + 1,
     };
   }
 
-  // フォローアップ質問がまだある場合
-  if (questionIndex < template.followUpQuestions.length) {
-    // ユーザーの回答から情報を抽出（簡易版）
-    const dataKey = section?.dataKeys[questionIndex] || '';
-    const extractedData: Record<string, string> = {};
-    if (dataKey) {
-      extractedData[dataKey] = userMessage;
-    }
-
-    return {
-      content: `なるほど、ありがとうございます！
-
-${template.followUpQuestions[questionIndex]}`,
-      shouldMoveNext: false,
-      extractedData,
-    };
-  }
-
-  // 全質問完了 → サマリー表示
+  // 回答の深さを判定
+  const answerDepth = assessAnswerDepth(userMessage);
   const dataKey = section?.dataKeys[questionIndex] || '';
   const extractedData: Record<string, string> = {};
   if (dataKey) {
     extractedData[dataKey] = userMessage;
   }
 
-  // コレクトされたデータでサマリー生成
+  // 浅い回答で、まだ深掘り回数に余裕がある場合
+  if (answerDepth === 'shallow' && deepDiveCount < MAX_DEEP_DIVE) {
+    const deepDive = selectDeepDiveQuestion(userMessage, answerDepth, dataKey);
+    if (deepDive) {
+      return {
+        content: `なるほど、ありがとうございます。もう少し聞かせてください。
+
+${deepDive.question}`,
+        shouldMoveNext: false,
+        extractedData,
+        newDeepDiveCount: deepDiveCount + 1,
+      };
+    }
+  }
+
+  // 中程度の回答で、ストーリーを引き出したい場合
+  if (answerDepth === 'moderate' && deepDiveCount < MAX_DEEP_DIVE && Math.random() > 0.5) {
+    const storyQuestion = template.storyBasedQuestions[
+      Math.floor(Math.random() * template.storyBasedQuestions.length)
+    ];
+    return {
+      content: `いい回答ですね！もう少し深掘りさせてください。
+
+${storyQuestion}`,
+      shouldMoveNext: false,
+      extractedData,
+      newDeepDiveCount: deepDiveCount + 1,
+    };
+  }
+
+  // フォローアップ質問がまだある場合
+  if (questionIndex < template.followUpQuestions.length) {
+    const acknowledgeMessages = [
+      'ありがとうございます！',
+      '素晴らしいですね！',
+      'なるほど、よく分かりました！',
+      '貴重なお話をありがとうございます！',
+    ];
+    const acknowledge = acknowledgeMessages[Math.floor(Math.random() * acknowledgeMessages.length)];
+
+    return {
+      content: `${acknowledge}
+
+${template.followUpQuestions[questionIndex]}`,
+      shouldMoveNext: false,
+      extractedData,
+      newDeepDiveCount: 0, // 次の質問に移るので深掘りカウントリセット
+    };
+  }
+
+  // 全質問完了 → サマリー表示
   const dataKeyMap: Record<KnowledgeChatStep, keyof CollectedKnowledgeData> = {
     business_info: 'businessInfo',
     main_target: 'mainTarget',
@@ -433,6 +671,7 @@ ${template.summaryTemplate(currentStepData)}
 問題なければ「次へ」と入力してください。修正があれば教えてください。`,
     shouldMoveNext: false,
     extractedData,
+    newDeepDiveCount: 0,
   };
 };
 
@@ -515,11 +754,13 @@ export const knowledgeService = {
     message: string,
     currentStep: KnowledgeChatStep,
     collectedData: CollectedKnowledgeData,
-    questionIndex: number
+    questionIndex: number,
+    deepDiveCount: number = 0
   ): Promise<{
     assistantMessage: KnowledgeChatMessage;
     shouldMoveNext: boolean;
     extractedData: Record<string, string>;
+    newDeepDiveCount: number;
   }> => {
     // TODO: バックエンド実装後は実際のAPIを呼び出す
     // return api.post('/api/v1/knowledge/chat/sessions/${sessionId}/messages', {
@@ -529,11 +770,12 @@ export const knowledgeService = {
     // モック: AIレスポンスを生成
     await new Promise((resolve) => setTimeout(resolve, 800)); // 擬似遅延
 
-    const { content, shouldMoveNext, extractedData } = generateAIResponse(
+    const { content, shouldMoveNext, extractedData, newDeepDiveCount } = generateAIResponse(
       message,
       currentStep,
       collectedData,
-      questionIndex
+      questionIndex,
+      deepDiveCount
     );
 
     const assistantMessage: KnowledgeChatMessage = {
@@ -544,7 +786,7 @@ export const knowledgeService = {
       timestamp: new Date().toISOString(),
     };
 
-    return { assistantMessage, shouldMoveNext, extractedData };
+    return { assistantMessage, shouldMoveNext, extractedData, newDeepDiveCount };
   },
 
   /**
@@ -800,14 +1042,17 @@ ${summaries}
 
   /**
    * RAGモードで不足項目をヒアリングするメッセージを生成
+   * ストーリーベースの質問で深いパーソナリティを引き出す
    */
   generateMissingFieldQuestion: (
     missingField: RAGAnalysisResult['missingFields'][0],
-    previousAnswer?: string
+    previousAnswer?: string,
+    useStoryBased: boolean = false
   ): KnowledgeChatMessage => {
     const section = KNOWLEDGE_SECTIONS.find((s) => s.id === missingField.step);
+    const template = QUESTION_TEMPLATES[missingField.step];
 
-    // フィールドに応じた質問を生成
+    // フィールドに応じた基本質問
     const questionMap: Record<string, string> = {
       industry: 'どんな業種・業態でビジネスをされていますか？',
       annualRevenue: '年商規模はどのくらいですか？（目安で構いません）',
@@ -842,11 +1087,78 @@ ${summaries}
       support: 'どんなサポートを提供していますか？',
     };
 
-    const question = questionMap[missingField.field] || `「${missingField.fieldLabel}」について教えてください。`;
+    // ストーリーベースの深掘り質問（フィールド別）
+    const storyBasedQuestionMap: Record<string, string[]> = {
+      industry: [
+        'この仕事を選んだきっかけのエピソードを教えてください。',
+        '最初のお客様との出会いはどんな感じでしたか？',
+      ],
+      mission: [
+        'このビジネスを始めた時の原体験を教えてください。',
+        'もし明日引退するなら、最後に何を伝えたいですか？',
+      ],
+      strengths: [
+        'お客様に「あなたじゃなきゃダメ」と言われたエピソードは？',
+        '同業者にできなくて、あなたにはできることは何ですか？',
+      ],
+      frustrations: [
+        'ターゲットの方が過去に「これはダメだった」と言っていた具体例は？',
+        '挫折して泣いていたお客様のエピソードを教えてください。',
+      ],
+      painPoints: [
+        'ターゲットの方が夜中に検索しているワードは何だと思いますか？',
+        '相談に来た時、一番よく聞く言葉は何ですか？',
+      ],
+      desires: [
+        'お客様が「本当はこうなりたい」と漏らした瞬間のエピソードは？',
+        'お客様が涙ながらに語った夢や希望は何でしたか？',
+      ],
+      beforeStory: [
+        'どん底だった時、一番辛かったことは何ですか？',
+        'その時期の自分を一言で表すと？',
+      ],
+      transformationStory: [
+        '変われたきっかけを映画のワンシーンのように描写してください。',
+        '「もうダメだ」から「いける！」に変わった瞬間は？',
+      ],
+      afterStory: [
+        '今の自分を過去の自分に見せたら、どんな反応をすると思いますか？',
+        '変容後、一番嬉しかった出来事は？',
+      ],
+      commonSense: [
+        '業界で「当たり前」と言われていることに「おかしい」と感じたエピソードは？',
+        'お客様が信じていた思い込みで、一番多いものは？',
+      ],
+      destruction: [
+        'その常識を打ち破った時のお客様の反応は？',
+        '「え、そうだったの！？」と言われた具体的なシーンを教えてください。',
+      ],
+    };
+
+    let question = questionMap[missingField.field] || `「${missingField.fieldLabel}」について教えてください。`;
+
+    // ストーリーベースモードの場合、または前回の回答がある場合は深掘り質問を使用
+    if (useStoryBased && storyBasedQuestionMap[missingField.field]) {
+      const storyQuestions = storyBasedQuestionMap[missingField.field];
+      question = storyQuestions[Math.floor(Math.random() * storyQuestions.length)];
+    } else if (previousAnswer && template?.storyBasedQuestions?.length > 0) {
+      // 前回回答があった場合、50%の確率でストーリーベースの質問を使用
+      if (Math.random() > 0.5) {
+        question = template.storyBasedQuestions[
+          Math.floor(Math.random() * template.storyBasedQuestions.length)
+        ];
+      }
+    }
 
     let content = '';
     if (previousAnswer) {
-      content = `ありがとうございます！では次の質問です。\n\n`;
+      const acknowledges = [
+        'ありがとうございます！',
+        '素晴らしいエピソードですね！',
+        '貴重なお話をありがとうございます！',
+        'なるほど、よく分かりました！',
+      ];
+      content = `${acknowledges[Math.floor(Math.random() * acknowledges.length)]}では次の質問です。\n\n`;
     }
 
     content += `**【${section?.title}】**\n\n${question}`;
