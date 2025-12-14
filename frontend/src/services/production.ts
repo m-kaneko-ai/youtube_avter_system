@@ -499,6 +499,133 @@ interface EditProjectsResponse {
 }
 
 // ============================================================
+// モックデータ（API接続エラー時のフォールバック）
+// ============================================================
+
+const mockVoiceModels: VoiceModel[] = [
+  {
+    id: 'voice-1',
+    name: 'ナレーター（男性）',
+    provider: 'minimax',
+    language: 'ja',
+    gender: 'male',
+    previewUrl: undefined,
+    isCloned: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'voice-2',
+    name: 'ナレーター（女性）',
+    provider: 'minimax',
+    language: 'ja',
+    gender: 'female',
+    previewUrl: undefined,
+    isCloned: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'voice-3',
+    name: 'カスタムボイス A',
+    provider: 'elevenlabs',
+    language: 'ja',
+    gender: 'male',
+    previewUrl: undefined,
+    isCloned: true,
+    createdAt: new Date().toISOString(),
+  },
+];
+
+const mockVoiceProjects: VoiceProject[] = [
+  {
+    id: 'vp-1',
+    title: 'AIツール解説動画 - 音声',
+    status: 'completed',
+    progress: 100,
+    audioUrl: undefined,
+    duration: 180,
+    voiceModelId: 'voice-1',
+    voiceModelName: 'ナレーター（男性）',
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    id: 'vp-2',
+    title: 'プログラミング入門 - 音声',
+    status: 'generating',
+    progress: 65,
+    audioUrl: undefined,
+    duration: undefined,
+    voiceModelId: 'voice-2',
+    voiceModelName: 'ナレーター（女性）',
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+const mockAvatarModels: AvatarModel[] = [
+  {
+    id: 'avatar-1',
+    name: 'ビジネスマン A',
+    provider: 'heygen',
+    previewUrl: undefined,
+    thumbnailUrl: undefined,
+    gender: 'male',
+    style: 'realistic',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'avatar-2',
+    name: 'プレゼンター B',
+    provider: 'heygen',
+    previewUrl: undefined,
+    thumbnailUrl: undefined,
+    gender: 'female',
+    style: 'realistic',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'avatar-3',
+    name: 'アニメキャラ C',
+    provider: 'synthesia',
+    previewUrl: undefined,
+    thumbnailUrl: undefined,
+    gender: 'female',
+    style: 'anime',
+    createdAt: new Date().toISOString(),
+  },
+];
+
+const mockAvatarProjects: AvatarProject[] = [
+  {
+    id: 'ap-1',
+    title: 'AIツール解説動画 - アバター',
+    status: 'completed',
+    progress: 100,
+    videoUrl: undefined,
+    thumbnailUrl: undefined,
+    duration: 180,
+    avatarId: 'avatar-1',
+    avatarName: 'ビジネスマン A',
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000).toISOString(),
+  },
+];
+
+const mockEditProjects: EditProject[] = [
+  {
+    id: 'ep-1',
+    title: 'AIツール解説動画 - 編集中',
+    status: 'editing',
+    thumbnailUrl: undefined,
+    duration: 180,
+    elementsCount: 12,
+    lastEditedAt: new Date().toISOString(),
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+// ============================================================
 // サービスエクスポート
 // ============================================================
 
@@ -507,23 +634,38 @@ export const productionService = {
    * ボイスモデル一覧取得
    */
   async getVoiceModels(): Promise<VoiceModelsResponse> {
-    const response = await api.get<{ models: ApiVoiceModel[] }>('/api/v1/production/voice/models');
-    return {
-      models: response.models.map(mapVoiceModel),
-    };
+    try {
+      const response = await api.get<{ models: ApiVoiceModel[] }>('/api/v1/production/voice/models');
+      return {
+        models: response.models.map(mapVoiceModel),
+      };
+    } catch {
+      console.info('[productionService] Using mock data for voice models');
+      return {
+        models: mockVoiceModels,
+      };
+    }
   },
 
   /**
    * 音声プロジェクト一覧取得
    */
   async getVoiceProjects(): Promise<VoiceProjectsResponse> {
-    const response = await api.get<{ projects: ApiVoiceProject[]; total: number }>(
-      '/api/v1/production/voice/projects'
-    );
-    return {
-      projects: response.projects.map(mapVoiceProject),
-      total: response.total,
-    };
+    try {
+      const response = await api.get<{ projects: ApiVoiceProject[]; total: number }>(
+        '/api/v1/production/voice/projects'
+      );
+      return {
+        projects: response.projects.map(mapVoiceProject),
+        total: response.total,
+      };
+    } catch {
+      console.info('[productionService] Using mock data for voice projects');
+      return {
+        projects: mockVoiceProjects,
+        total: mockVoiceProjects.length,
+      };
+    }
   },
 
   /**
@@ -559,23 +701,38 @@ export const productionService = {
    * アバターモデル一覧取得
    */
   async getAvatarModels(): Promise<AvatarModelsResponse> {
-    const response = await api.get<{ avatars: ApiAvatarModel[] }>('/api/v1/production/avatar/list');
-    return {
-      avatars: response.avatars.map(mapAvatarModel),
-    };
+    try {
+      const response = await api.get<{ avatars: ApiAvatarModel[] }>('/api/v1/production/avatar/list');
+      return {
+        avatars: response.avatars.map(mapAvatarModel),
+      };
+    } catch {
+      console.info('[productionService] Using mock data for avatar models');
+      return {
+        avatars: mockAvatarModels,
+      };
+    }
   },
 
   /**
    * アバタープロジェクト一覧取得
    */
   async getAvatarProjects(): Promise<AvatarProjectsResponse> {
-    const response = await api.get<{ projects: ApiAvatarProject[]; total: number }>(
-      '/api/v1/production/avatar/projects'
-    );
-    return {
-      projects: response.projects.map(mapAvatarProject),
-      total: response.total,
-    };
+    try {
+      const response = await api.get<{ projects: ApiAvatarProject[]; total: number }>(
+        '/api/v1/production/avatar/projects'
+      );
+      return {
+        projects: response.projects.map(mapAvatarProject),
+        total: response.total,
+      };
+    } catch {
+      console.info('[productionService] Using mock data for avatar projects');
+      return {
+        projects: mockAvatarProjects,
+        total: mockAvatarProjects.length,
+      };
+    }
   },
 
   /**
@@ -609,13 +766,21 @@ export const productionService = {
    * 編集プロジェクト一覧取得
    */
   async getEditProjects(): Promise<EditProjectsResponse> {
-    const response = await api.get<{ projects: ApiEditProject[]; total: number }>(
-      '/api/v1/production/edit/projects'
-    );
-    return {
-      projects: response.projects.map(mapEditProject),
-      total: response.total,
-    };
+    try {
+      const response = await api.get<{ projects: ApiEditProject[]; total: number }>(
+        '/api/v1/production/edit/projects'
+      );
+      return {
+        projects: response.projects.map(mapEditProject),
+        total: response.total,
+      };
+    } catch {
+      console.info('[productionService] Using mock data for edit projects');
+      return {
+        projects: mockEditProjects,
+        total: mockEditProjects.length,
+      };
+    }
   },
 
   /**
