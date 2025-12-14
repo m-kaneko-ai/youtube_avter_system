@@ -70,10 +70,9 @@ class ApiClient {
         error.message = response.statusText;
       }
 
-      // Handle 401 Unauthorized - Cookieは自動削除されるのでリダイレクトのみ
-      if (response.status === 401) {
-        window.location.href = '/login';
-      }
+      // Handle 401 Unauthorized
+      // デモログイン中はリダイレクトせず、エラーを投げてフォールバック処理を許可
+      // 各ページはエラー時にモックデータを表示するよう実装済み
 
       throw error;
     }
