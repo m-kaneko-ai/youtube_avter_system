@@ -15,6 +15,7 @@ import {
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { analyticsService } from '../../../services/analytics';
+import { toast } from '../../../components/common';
 
 type Period = '7days' | '30days' | '90days' | 'year';
 
@@ -104,10 +105,13 @@ export const RevenueTab = () => {
               </button>
             ))}
           </div>
-          <button className={cn(
-            'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors',
-            isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-slate-100 hover:bg-slate-200'
-          )}>
+          <button
+            onClick={() => toast.info('レポートをダウンロード中...')}
+            className={cn(
+              'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors',
+              isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-slate-100 hover:bg-slate-200'
+            )}
+          >
             <Download size={16} />
             エクスポート
           </button>
@@ -230,7 +234,10 @@ export const RevenueTab = () => {
               <p className={cn('text-sm mt-1', themeClasses.textSecondary)}>2024年12月25日</p>
             </div>
 
-            <button className="w-full px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl text-sm font-bold transition-all">
+            <button
+              onClick={() => toast.info('収益レポートをダウンロード中...')}
+              className="w-full px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl text-sm font-bold transition-all"
+            >
               収益レポートをダウンロード
             </button>
           </div>

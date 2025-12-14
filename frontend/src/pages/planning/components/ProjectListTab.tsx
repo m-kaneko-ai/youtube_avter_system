@@ -1,21 +1,28 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Search, MoreHorizontal, Loader2, AlertCircle } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Search, Loader2, AlertCircle, Edit, Trash2, Eye } from 'lucide-react';
 import { useThemeStore } from '../../../stores/themeStore';
 import { cn } from '../../../utils/cn';
 import { planningService } from '../../../services/planning';
-import type { VideoType, ProjectStatus } from '../../../types';
+import { DropdownMenu, type DropdownMenuItem } from '../../../components/common';
+import { Modal } from '../../../components/common';
+import { toast } from '../../../components/common';
+import type { VideoType, ProjectStatus, PlanningProject } from '../../../types';
 
 export const ProjectListTab = () => {
   const { mode, getThemeClasses } = useThemeStore();
   const isDarkMode = mode === 'dark';
   const themeClasses = getThemeClasses();
+  const queryClient = useQueryClient();
 
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'all'>('all');
   const [videoTypeFilter, setVideoTypeFilter] = useState<VideoType | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const pageSize = 10;
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<PlanningProject | null>(null);
 
   // API: GET /api/v1/planning/projects
   const {
@@ -102,6 +109,56 @@ export const ProjectListTab = () => {
   const handleNextPage = () => {
     if (page * pageSize < total) setPage(page + 1);
   };
+
+  // 削除ミューテーション
+  const deleteProjectMutation = useMutation({
+    mutationFn: (projectId: string) => planningService.deleteProject(projectId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['planning', 'projects'] });
+      toast.success('企画を削除しました');
+    },
+    onError: () => {
+      toast.error('企画の削除に失敗しました');
+    },
+  });
+
+  const handleEdit = (project: PlanningProject) => {
+    setSelectedProject(project);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDelete = (project: PlanningProject) => {
+    if (window.confirm(`「${project.title}」を削除してもよろしいですか？`)) {
+      deleteProjectMutation.mutate(project.id);
+    }
+  };
+
+  const handleViewDetail = (project: PlanningProject) => {
+    setSelectedProject(project);
+    setIsDetailModalOpen(true);
+  };
+
+  const getDropdownMenuItems = (project: PlanningProject): DropdownMenuItem[] => [
+    {
+      id: 'edit',
+      label: '編集',
+      icon: <Edit size={16} />,
+      onClick: () => handleEdit(project),
+    },
+    {
+      id: 'detail',
+      label: '詳細を見る',
+      icon: <Eye size={16} />,
+      onClick: () => handleViewDetail(project),
+    },
+    {
+      id: 'delete',
+      label: '削除',
+      icon: <Trash2 size={16} />,
+      onClick: () => handleDelete(project),
+      variant: 'danger' as const,
+    },
+  ];
 
   // エラー表示
   if (error) {
@@ -262,16 +319,7 @@ export const ProjectListTab = () => {
                   {project.scheduledDate || '-'}
                 </td>
                 <td className="py-4 px-4">
-                  <button
-                    className={cn(
-                      'p-2 rounded-lg transition-colors',
-                      isDarkMode
-                        ? 'text-slate-400 hover:bg-slate-700'
-                        : 'text-slate-600 hover:bg-slate-100'
-                    )}
-                  >
-                    <MoreHorizontal className="w-5 h-5" />
-                  </button>
+                  <DropdownMenu items={getDropdownMenuItems(project)} />
                 </td>
               </tr>
             ))}
@@ -323,6 +371,207 @@ export const ProjectListTab = () => {
           </button>
         </div>
       </div>
+
+      {/* 編集モーダル */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title="企画を編集"
+        size="lg"
+        footer={
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => setIsEditModalOpen(false)}
+              className={cn(
+                'px-4 py-2 rounded-xl font-medium transition-colors',
+                isDarkMode
+                  ? 'bg-slate-700 text-slate-200 hover:bg-slate-600'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              )}
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={() => {
+                toast.success('企画を更新しました');
+                setIsEditModalOpen(false);
+              }}
+              className="px-4 py-2 rounded-xl font-medium bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg transition-all"
+            >
+              保存
+            </button>
+          </div>
+        }
+      >
+        {selectedProject && (
+          <div className="space-y-4">
+            <div>
+              <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+                タイトル
+              </label>
+              <input
+                type="text"
+                defaultValue={selectedProject.title}
+                className={cn(
+                  'w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500',
+                  isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-slate-200'
+                    : 'bg-white border-slate-200 text-slate-700'
+                )}
+              />
+            </div>
+            <div>
+              <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+                説明
+              </label>
+              <textarea
+                defaultValue={selectedProject.description}
+                rows={3}
+                className={cn(
+                  'w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500',
+                  isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-slate-200'
+                    : 'bg-white border-slate-200 text-slate-700'
+                )}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+                  種別
+                </label>
+                <select
+                  defaultValue={selectedProject.videoType}
+                  className={cn(
+                    'w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500',
+                    isDarkMode
+                      ? 'bg-slate-700 border-slate-600 text-slate-200'
+                      : 'bg-white border-slate-200 text-slate-700'
+                  )}
+                >
+                  <option value="short">ショート</option>
+                  <option value="long">長尺</option>
+                </select>
+              </div>
+              <div>
+                <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+                  ステータス
+                </label>
+                <select
+                  defaultValue={selectedProject.status}
+                  className={cn(
+                    'w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500',
+                    isDarkMode
+                      ? 'bg-slate-700 border-slate-600 text-slate-200'
+                      : 'bg-white border-slate-200 text-slate-700'
+                  )}
+                >
+                  <option value="planning">企画中</option>
+                  <option value="production">制作中</option>
+                  <option value="scheduled">予定</option>
+                  <option value="published">公開済み</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+                公開予定日
+              </label>
+              <input
+                type="date"
+                defaultValue={selectedProject.scheduledDate}
+                className={cn(
+                  'w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500',
+                  isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-slate-200'
+                    : 'bg-white border-slate-200 text-slate-700'
+                )}
+              />
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* 詳細モーダル */}
+      <Modal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        title="企画詳細"
+        size="lg"
+      >
+        {selectedProject && (
+          <div className="space-y-4">
+            <div>
+              <h4 className={cn('text-sm font-medium mb-1', themeClasses.textSecondary)}>
+                タイトル
+              </h4>
+              <p className={cn('text-base', themeClasses.text)}>{selectedProject.title}</p>
+            </div>
+            {selectedProject.description && (
+              <div>
+                <h4 className={cn('text-sm font-medium mb-1', themeClasses.textSecondary)}>
+                  説明
+                </h4>
+                <p className={cn('text-base', themeClasses.text)}>{selectedProject.description}</p>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h4 className={cn('text-sm font-medium mb-1', themeClasses.textSecondary)}>
+                  種別
+                </h4>
+                <span
+                  className={cn(
+                    'inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium',
+                    getVideoTypeStyle(selectedProject.videoType)
+                  )}
+                >
+                  {selectedProject.videoType === 'short' ? '📹 ショート' : '🎬 長尺'}
+                </span>
+              </div>
+              <div>
+                <h4 className={cn('text-sm font-medium mb-1', themeClasses.textSecondary)}>
+                  ステータス
+                </h4>
+                <span
+                  className={cn(
+                    'inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium',
+                    getStatusStyle(selectedProject.status)
+                  )}
+                >
+                  {getStatusLabel(selectedProject.status)}
+                </span>
+              </div>
+            </div>
+            {selectedProject.scheduledDate && (
+              <div>
+                <h4 className={cn('text-sm font-medium mb-1', themeClasses.textSecondary)}>
+                  公開予定日
+                </h4>
+                <p className={cn('text-base', themeClasses.text)}>{selectedProject.scheduledDate}</p>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h4 className={cn('text-sm font-medium mb-1', themeClasses.textSecondary)}>
+                  作成日
+                </h4>
+                <p className={cn('text-sm', themeClasses.text)}>
+                  {new Date(selectedProject.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+              <div>
+                <h4 className={cn('text-sm font-medium mb-1', themeClasses.textSecondary)}>
+                  更新日
+                </h4>
+                <p className={cn('text-sm', themeClasses.text)}>
+                  {new Date(selectedProject.updatedAt).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

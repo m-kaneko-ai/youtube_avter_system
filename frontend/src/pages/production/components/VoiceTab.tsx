@@ -17,6 +17,7 @@ import {
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { productionService, type VoiceProject } from '../../../services/production';
+import { Modal, toast } from '../../../components/common';
 
 type VoiceStatus = VoiceProject['status'];
 
@@ -47,6 +48,7 @@ export const VoiceTab = () => {
     data: projectsData,
     isLoading: isLoadingProjects,
     error: projectsError,
+    refetch,
   } = useQuery({
     queryKey: ['production', 'voice', 'projects'],
     queryFn: () => productionService.getVoiceProjects(),
@@ -57,6 +59,7 @@ export const VoiceTab = () => {
 
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   // Set initial selected model when data loads
   if (voiceModels.length > 0 && !selectedModel) {
@@ -65,6 +68,22 @@ export const VoiceTab = () => {
 
   const handlePlay = (id: string) => {
     setPlayingId(playingId === id ? null : id);
+  };
+
+  const handleSettingsClick = () => {
+    setIsSettingsModalOpen(true);
+  };
+
+  const handleNewGeneration = () => {
+    toast.info('生成を開始しました');
+  };
+
+  const handleDownload = (_id: string) => {
+    toast.info('ダウンロードを開始しました');
+  };
+
+  const handleRefresh = () => {
+    refetch();
   };
 
   return (
@@ -88,6 +107,7 @@ export const VoiceTab = () => {
             </div>
           </div>
           <button
+            onClick={handleSettingsClick}
             className={cn(
               'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors',
               isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
@@ -143,7 +163,10 @@ export const VoiceTab = () => {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className={cn('font-bold text-lg', themeClasses.text)}>生成キュー</h3>
-          <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-purple-500/20 transition-all">
+          <button
+            onClick={handleNewGeneration}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-purple-500/20 transition-all"
+          >
             <Sparkles size={16} />
             新規生成
           </button>
@@ -215,10 +238,16 @@ export const VoiceTab = () => {
                   <div className="flex items-center gap-2">
                     {project.status === 'completed' && (
                       <>
-                        <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}>
+                        <button
+                          onClick={() => handleDownload(project.id)}
+                          className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}
+                        >
                           <Download size={18} className={themeClasses.textSecondary} />
                         </button>
-                        <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}>
+                        <button
+                          onClick={handleRefresh}
+                          className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}
+                        >
                           <RefreshCw size={18} className={themeClasses.textSecondary} />
                         </button>
                       </>
@@ -245,6 +274,93 @@ export const VoiceTab = () => {
           </div>
         )}
       </div>
+
+      {/* Settings Modal */}
+      <Modal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        title="音声生成詳細設定"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              音声速度
+            </label>
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              defaultValue="1"
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-slate-500 mt-1">
+              <span>0.5x</span>
+              <span>1.0x</span>
+              <span>2.0x</span>
+            </div>
+          </div>
+
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              音声ピッチ
+            </label>
+            <input
+              type="range"
+              min="-12"
+              max="12"
+              step="1"
+              defaultValue="0"
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-slate-500 mt-1">
+              <span>-12</span>
+              <span>0</span>
+              <span>+12</span>
+            </div>
+          </div>
+
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              音量調整
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              defaultValue="80"
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-slate-500 mt-1">
+              <span>0%</span>
+              <span>50%</span>
+              <span>100%</span>
+            </div>
+          </div>
+
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              感情表現
+            </label>
+            <select
+              className={cn(
+                'w-full px-3 py-2 rounded-lg border',
+                isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white'
+                  : 'bg-white border-slate-300 text-slate-900'
+              )}
+            >
+              <option value="neutral">ニュートラル</option>
+              <option value="happy">明るい</option>
+              <option value="sad">悲しい</option>
+              <option value="angry">怒り</option>
+              <option value="excited">興奮</option>
+            </select>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

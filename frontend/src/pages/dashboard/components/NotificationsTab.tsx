@@ -12,13 +12,14 @@ import {
   Settings,
   Check,
   Trash2,
-  MoreHorizontal,
   Loader2,
   AlertCircle,
+  Eye,
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { dashboardService } from '../../../services';
+import { DropdownMenu, toast } from '../../../components/common';
 import type { NotificationType } from '../../../services/dashboard';
 
 const TYPE_CONFIG: Record<
@@ -116,7 +117,20 @@ export const NotificationsTab = () => {
   };
 
   const handleDelete = (id: string) => {
-    deleteMutation.mutate(id);
+    deleteMutation.mutate(id, {
+      onSuccess: () => {
+        toast.success('通知を削除しました');
+      },
+      onError: () => {
+        toast.error('通知の削除に失敗しました');
+      },
+    });
+  };
+
+  const handleViewDetails = () => {
+    // For now, just show info toast
+    // In the future, this could open a modal with notification details or navigate to relevant page
+    toast.info('詳細表示機能は開発中です');
   };
 
   const notifications = data?.notifications ?? [];
@@ -294,30 +308,26 @@ export const NotificationsTab = () => {
                       <Check size={16} />
                     </button>
                   )}
-                  <button
-                    onClick={() => handleDelete(notification.id)}
-                    disabled={deleteMutation.isPending}
-                    className={cn(
-                      'p-2 rounded-lg transition-colors',
-                      isDarkMode
-                        ? 'hover:bg-red-900/30 text-slate-400 hover:text-red-400'
-                        : 'hover:bg-red-50 text-slate-500 hover:text-red-500',
-                      deleteMutation.isPending && 'opacity-50'
-                    )}
-                    title="削除"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                  <button
-                    className={cn(
-                      'p-2 rounded-lg transition-colors',
-                      isDarkMode
-                        ? 'hover:bg-slate-700 text-slate-400'
-                        : 'hover:bg-slate-100 text-slate-500'
-                    )}
-                  >
-                    <MoreHorizontal size={16} />
-                  </button>
+                  <DropdownMenu
+                    items={[
+                      {
+                        id: 'view',
+                        label: '詳細を見る',
+                        icon: <Eye size={16} />,
+                        onClick: handleViewDetails,
+                      },
+                      {
+                        id: 'delete',
+                        label: '削除',
+                        icon: <Trash2 size={16} />,
+                        onClick: () => handleDelete(notification.id),
+                        variant: 'danger',
+                        disabled: deleteMutation.isPending,
+                      },
+                    ]}
+                    trigger="horizontal"
+                    align="right"
+                  />
                 </div>
               </div>
             </div>

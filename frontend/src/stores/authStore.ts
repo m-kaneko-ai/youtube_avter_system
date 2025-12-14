@@ -58,6 +58,18 @@ export const useAuthStore = create<AuthStore>()(
                 updatedAt: new Date().toISOString(),
               },
             },
+            'client@example.com': {
+              password: 'client123',
+              user: {
+                id: '3',
+                email: 'client@example.com',
+                name: 'Client User',
+                role: 'client_premium',
+                avatarUrl: undefined,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+            },
           };
 
           await new Promise((resolve) => setTimeout(resolve, 300));

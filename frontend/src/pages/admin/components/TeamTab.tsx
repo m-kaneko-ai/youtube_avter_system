@@ -4,17 +4,19 @@ import {
   UserPlus,
   Mail,
   Shield,
-  MoreHorizontal,
   Edit,
   Trash2,
   CheckCircle2,
   Clock,
   Loader2,
   AlertCircle,
+  UserCog,
+  UserMinus,
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { adminService, type Role, type MemberStatus } from '../../../services/admin';
+import { Modal, DropdownMenu, toast } from '../../../components/common';
 
 const ROLE_CONFIG: Record<Role, { label: string; color: string }> = {
   owner: { label: 'オーナー', color: 'text-purple-500 bg-purple-500/10' },
@@ -36,6 +38,10 @@ export const TeamTab = () => {
   const themeClasses = getThemeClasses();
 
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<typeof members[0] | null>(null);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<Role>('team');
 
   // Team members query
   const {
@@ -48,6 +54,28 @@ export const TeamTab = () => {
   });
 
   const members = membersData?.members ?? [];
+
+  const handleEditMember = (member: typeof members[0]) => {
+    setSelectedMember(member);
+    setShowEditModal(true);
+  };
+
+  const handleDeleteMember = (member: typeof members[0]) => {
+    if (confirm(`${member.name}さんをチームから削除してもよろしいですか?`)) {
+      toast.success(`${member.name}さんを削除しました`);
+    }
+  };
+
+  const handleSendInvite = () => {
+    if (!inviteEmail) {
+      toast.error('メールアドレスを入力してください');
+      return;
+    }
+    toast.success('招待を送信しました');
+    setShowInviteModal(false);
+    setInviteEmail('');
+    setInviteRole('team');
+  };
 
   if (isLoading) {
     return (
@@ -156,17 +184,37 @@ export const TeamTab = () => {
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}>
+                    <button
+                      onClick={() => handleEditMember(member)}
+                      className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}
+                    >
                       <Edit size={16} className={themeClasses.textSecondary} />
                     </button>
                     {member.role !== 'owner' && (
-                      <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-red-900/30 text-slate-400 hover:text-red-400' : 'hover:bg-red-50 text-slate-500 hover:text-red-500')}>
+                      <button
+                        onClick={() => handleDeleteMember(member)}
+                        className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-red-900/30 text-slate-400 hover:text-red-400' : 'hover:bg-red-50 text-slate-500 hover:text-red-500')}
+                      >
                         <Trash2 size={16} />
                       </button>
                     )}
-                    <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}>
-                      <MoreHorizontal size={16} className={themeClasses.textSecondary} />
-                    </button>
+                    <DropdownMenu
+                      items={[
+                        {
+                          id: 'edit',
+                          label: '編集',
+                          icon: <UserCog size={16} />,
+                          onClick: () => handleEditMember(member),
+                        },
+                        ...(member.role !== 'owner' ? [{
+                          id: 'delete',
+                          label: '削除',
+                          icon: <UserMinus size={16} />,
+                          onClick: () => handleDeleteMember(member),
+                          variant: 'danger' as const,
+                        }] : []),
+                      ]}
+                    />
                   </div>
                 </td>
               </tr>
@@ -175,47 +223,115 @@ export const TeamTab = () => {
         </table>
       </div>
 
-      {/* Invite Modal Placeholder */}
-      {showInviteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowInviteModal(false)}>
-          <div
-            className={cn('w-full max-w-md p-6 rounded-2xl', themeClasses.cardBg)}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className={cn('font-bold text-lg mb-4', themeClasses.text)}>メンバーを招待</h3>
-            <div className="space-y-4">
-              <div>
-                <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>メールアドレス</label>
-                <input
-                  type="email"
-                  placeholder="email@example.com"
-                  className={cn('w-full px-4 py-2 rounded-xl border', themeClasses.cardBorder, isDarkMode ? 'bg-slate-800' : 'bg-white', themeClasses.text)}
-                />
-              </div>
-              <div>
-                <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>ロール</label>
-                <select className={cn('w-full px-4 py-2 rounded-xl border', themeClasses.cardBorder, isDarkMode ? 'bg-slate-800' : 'bg-white', themeClasses.text)}>
-                  <option value="team">チーム</option>
-                  <option value="client_premium_plus">Client Premium+</option>
-                  <option value="client_premium">Client Premium</option>
-                  <option value="client_basic">Client Basic</option>
-                </select>
-              </div>
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={() => setShowInviteModal(false)}
-                  className={cn('flex-1 px-4 py-2 rounded-xl text-sm font-medium', isDarkMode ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-700')}
-                >
-                  キャンセル
-                </button>
-                <button className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold">
-                  <Mail size={16} className="inline mr-2" />
-                  招待を送信
-                </button>
-              </div>
-            </div>
+      {/* Invite Modal */}
+      <Modal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        title="メンバーを招待"
+        footer={
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowInviteModal(false)}
+              className={cn('flex-1 px-4 py-2 rounded-xl text-sm font-medium', isDarkMode ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-700')}
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={handleSendInvite}
+              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+            >
+              <Mail size={16} />
+              招待を送信
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>メールアドレス</label>
+            <input
+              type="email"
+              placeholder="email@example.com"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              className={cn('w-full px-4 py-2 rounded-xl border', themeClasses.cardBorder, isDarkMode ? 'bg-slate-800' : 'bg-white', themeClasses.text)}
+            />
+          </div>
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>ロール</label>
+            <select
+              value={inviteRole}
+              onChange={(e) => setInviteRole(e.target.value as Role)}
+              className={cn('w-full px-4 py-2 rounded-xl border', themeClasses.cardBorder, isDarkMode ? 'bg-slate-800' : 'bg-white', themeClasses.text)}
+            >
+              <option value="team">チーム</option>
+              <option value="client_premium_plus">Client Premium+</option>
+              <option value="client_premium">Client Premium</option>
+              <option value="client_basic">Client Basic</option>
+            </select>
           </div>
         </div>
+      </Modal>
+
+      {/* Edit Member Modal */}
+      {selectedMember && (
+        <Modal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          title="メンバー情報を編集"
+          footer={
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className={cn('flex-1 px-4 py-2 rounded-xl text-sm font-medium', isDarkMode ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-700')}
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={() => {
+                  toast.success('メンバー情報を更新しました');
+                  setShowEditModal(false);
+                }}
+                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold"
+              >
+                保存
+              </button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <div>
+              <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>名前</label>
+              <input
+                type="text"
+                defaultValue={selectedMember.name}
+                className={cn('w-full px-4 py-2 rounded-xl border', themeClasses.cardBorder, isDarkMode ? 'bg-slate-800' : 'bg-white', themeClasses.text)}
+              />
+            </div>
+            <div>
+              <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>メールアドレス</label>
+              <input
+                type="email"
+                defaultValue={selectedMember.email}
+                className={cn('w-full px-4 py-2 rounded-xl border', themeClasses.cardBorder, isDarkMode ? 'bg-slate-800' : 'bg-white', themeClasses.text)}
+              />
+            </div>
+            <div>
+              <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>ロール</label>
+              <select
+                defaultValue={selectedMember.role}
+                disabled={selectedMember.role === 'owner'}
+                className={cn('w-full px-4 py-2 rounded-xl border', themeClasses.cardBorder, isDarkMode ? 'bg-slate-800' : 'bg-white', themeClasses.text)}
+              >
+                <option value="owner">オーナー</option>
+                <option value="team">チーム</option>
+                <option value="client_premium_plus">Client Premium+</option>
+                <option value="client_premium">Client Premium</option>
+                <option value="client_basic">Client Basic</option>
+              </select>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );

@@ -13,10 +13,12 @@ import {
   Trash2,
   Plus,
   Loader2,
+  Info,
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { publishService, type PublishStatus } from '../../../services/publish';
+import { Modal, toast } from '../../../components/common';
 
 type ScheduleStatus = PublishStatus;
 
@@ -36,6 +38,13 @@ export const SchedulerTab = () => {
   const themeClasses = getThemeClasses();
 
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [scheduleForm, setScheduleForm] = useState({
+    title: '',
+    scheduledDate: '',
+    scheduledTime: '',
+  });
 
   // Scheduled videos query
   const {
@@ -65,6 +74,33 @@ export const SchedulerTab = () => {
   const getVideosForDate = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return videos.filter((v) => v.scheduledAt.startsWith(dateStr));
+  };
+
+  const handleScheduleSubmit = () => {
+    toast.success(`「${scheduleForm.title}」を${scheduleForm.scheduledDate} ${scheduleForm.scheduledTime}に予約しました`);
+    setIsScheduleModalOpen(false);
+    setScheduleForm({ title: '', scheduledDate: '', scheduledTime: '' });
+  };
+
+  const handleEditClick = (video: typeof videos[0]) => {
+    setScheduleForm({
+      title: video.title,
+      scheduledDate: video.scheduledAt.split(' ')[0],
+      scheduledTime: video.scheduledAt.split(' ')[1] || '',
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSubmit = () => {
+    toast.success(`「${scheduleForm.title}」の予約を更新しました`);
+    setIsEditModalOpen(false);
+    setScheduleForm({ title: '', scheduledDate: '', scheduledTime: '' });
+  };
+
+  const handleDeleteClick = (video: typeof videos[0]) => {
+    if (window.confirm(`「${video.title}」の予約を削除してもよろしいですか？`)) {
+      toast.success(`「${video.title}」の予約を削除しました`);
+    }
   };
 
   if (isLoading) {
@@ -122,7 +158,10 @@ export const SchedulerTab = () => {
             </button>
           </div>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-red-500/20 transition-all">
+        <button
+          onClick={() => setIsScheduleModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-red-500/20 transition-all"
+        >
           <Plus size={16} />
           投稿をスケジュール
         </button>
@@ -270,10 +309,16 @@ export const SchedulerTab = () => {
                     {STATUS_CONFIG[video.status].icon}
                     {STATUS_CONFIG[video.status].label}
                   </span>
-                  <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}>
+                  <button
+                    onClick={() => handleEditClick(video)}
+                    className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}
+                  >
                     <Edit size={16} className={themeClasses.textSecondary} />
                   </button>
-                  <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-red-900/30 text-slate-400 hover:text-red-400' : 'hover:bg-red-50 text-slate-500 hover:text-red-500')}>
+                  <button
+                    onClick={() => handleDeleteClick(video)}
+                    className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-red-900/30 text-slate-400 hover:text-red-400' : 'hover:bg-red-50 text-slate-500 hover:text-red-500')}
+                  >
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -281,6 +326,174 @@ export const SchedulerTab = () => {
             ))}
         </div>
       </div>
+
+      {/* Schedule Modal */}
+      <Modal
+        isOpen={isScheduleModalOpen}
+        onClose={() => setIsScheduleModalOpen(false)}
+        title="投稿をスケジュール"
+        size="md"
+        footer={
+          <div className="flex items-center gap-3 justify-end">
+            <button
+              onClick={() => setIsScheduleModalOpen(false)}
+              className={cn(
+                'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+              )}
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={handleScheduleSubmit}
+              disabled={!scheduleForm.title || !scheduleForm.scheduledDate || !scheduleForm.scheduledTime}
+              className="px-4 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-lg text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              予約する
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              動画タイトル
+            </label>
+            <input
+              type="text"
+              value={scheduleForm.title}
+              onChange={(e) => setScheduleForm({ ...scheduleForm, title: e.target.value })}
+              placeholder="動画のタイトルを入力"
+              className={cn(
+                'w-full px-4 py-2 rounded-lg border transition-colors',
+                isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
+                  : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'
+              )}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+                日付
+              </label>
+              <input
+                type="date"
+                value={scheduleForm.scheduledDate}
+                onChange={(e) => setScheduleForm({ ...scheduleForm, scheduledDate: e.target.value })}
+                className={cn(
+                  'w-full px-4 py-2 rounded-lg border transition-colors',
+                  isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-white'
+                    : 'bg-white border-slate-200 text-slate-900'
+                )}
+              />
+            </div>
+            <div>
+              <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+                時刻
+              </label>
+              <input
+                type="time"
+                value={scheduleForm.scheduledTime}
+                onChange={(e) => setScheduleForm({ ...scheduleForm, scheduledTime: e.target.value })}
+                className={cn(
+                  'w-full px-4 py-2 rounded-lg border transition-colors',
+                  isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-white'
+                    : 'bg-white border-slate-200 text-slate-900'
+                )}
+              />
+            </div>
+          </div>
+          <div className={cn('p-3 rounded-lg text-sm', isDarkMode ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-50 text-blue-700')}>
+            <Info size={16} className="inline mr-2" />
+            予約投稿は指定された日時に自動的に公開されます
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title="予約を編集"
+        size="md"
+        footer={
+          <div className="flex items-center gap-3 justify-end">
+            <button
+              onClick={() => setIsEditModalOpen(false)}
+              className={cn(
+                'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+              )}
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={handleEditSubmit}
+              disabled={!scheduleForm.title || !scheduleForm.scheduledDate || !scheduleForm.scheduledTime}
+              className="px-4 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-lg text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              更新する
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              動画タイトル
+            </label>
+            <input
+              type="text"
+              value={scheduleForm.title}
+              onChange={(e) => setScheduleForm({ ...scheduleForm, title: e.target.value })}
+              placeholder="動画のタイトルを入力"
+              className={cn(
+                'w-full px-4 py-2 rounded-lg border transition-colors',
+                isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
+                  : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'
+              )}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+                日付
+              </label>
+              <input
+                type="date"
+                value={scheduleForm.scheduledDate}
+                onChange={(e) => setScheduleForm({ ...scheduleForm, scheduledDate: e.target.value })}
+                className={cn(
+                  'w-full px-4 py-2 rounded-lg border transition-colors',
+                  isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-white'
+                    : 'bg-white border-slate-200 text-slate-900'
+                )}
+              />
+            </div>
+            <div>
+              <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+                時刻
+              </label>
+              <input
+                type="time"
+                value={scheduleForm.scheduledTime}
+                onChange={(e) => setScheduleForm({ ...scheduleForm, scheduledTime: e.target.value })}
+                className={cn(
+                  'w-full px-4 py-2 rounded-lg border transition-colors',
+                  isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-white'
+                    : 'bg-white border-slate-200 text-slate-900'
+                )}
+              />
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout, PublicLayout } from './components/layout';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
+import { ToastContainer } from './components/common/ToastContainer';
 import {
   LoginPage,
   DashboardPage,
@@ -28,6 +29,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ToastContainer />
       <Routes>
         {/* Public Routes */}
         <Route element={<PublicLayout />}>

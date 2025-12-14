@@ -11,12 +11,16 @@ import {
   Eye,
   MessageSquare,
   ChevronRight,
+  ChevronDown,
   Loader2,
   AlertCircle,
+  User,
+  Calendar,
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { adminService, type ApprovalStatus, type ApprovalType } from '../../../services/admin';
+import { Modal, toast } from '../../../components/common';
 
 const TYPE_CONFIG: Record<ApprovalType, { label: string; icon: React.ReactNode; color: string }> = {
   script: { label: '台本', icon: <FileText size={16} />, color: 'text-blue-500 bg-blue-500/10' },
@@ -43,6 +47,9 @@ export const ApprovalTab = () => {
   const themeClasses = getThemeClasses();
 
   const [filter, setFilter] = useState<'all' | ApprovalStatus>('all');
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedApproval, setSelectedApproval] = useState<typeof approvals[0] | null>(null);
 
   // Approvals query
   const {
@@ -57,6 +64,33 @@ export const ApprovalTab = () => {
   const approvals = approvalsData?.approvals ?? [];
   const filteredApprovals = filter === 'all' ? approvals : approvals.filter((a) => a.status === filter);
   const pendingCount = approvals.filter((a) => a.status === 'pending').length;
+
+  const toggleExpand = (id: string) => {
+    const newExpanded = new Set(expandedItems);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedItems(newExpanded);
+  };
+
+  const handleViewDetail = (approval: typeof approvals[0]) => {
+    setSelectedApproval(approval);
+    setShowDetailModal(true);
+  };
+
+  const handleApprove = (approval: typeof approvals[0]) => {
+    if (confirm(`「${approval.title}」を承認してもよろしいですか?`)) {
+      toast.success('承認しました');
+    }
+  };
+
+  const handleReject = (approval: typeof approvals[0]) => {
+    if (confirm(`「${approval.title}」を却下してもよろしいですか?`)) {
+      toast.success('却下しました');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -165,23 +199,103 @@ export const ApprovalTab = () => {
 
                 {approval.status === 'pending' && (
                   <div className="flex items-center gap-2">
-                    <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}>
+                    <button
+                      onClick={() => handleViewDetail(approval)}
+                      className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}
+                      title="確認"
+                    >
                       <Eye size={18} className={themeClasses.textSecondary} />
                     </button>
-                    <button className="p-2 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors">
+                    <button
+                      onClick={() => handleApprove(approval)}
+                      className="p-2 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors"
+                      title="承認"
+                    >
                       <CheckCircle2 size={18} />
                     </button>
-                    <button className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors">
+                    <button
+                      onClick={() => handleReject(approval)}
+                      className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+                      title="却下"
+                    >
                       <XCircle size={18} />
                     </button>
                   </div>
                 )}
 
-                <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}>
-                  <ChevronRight size={18} className={themeClasses.textSecondary} />
+                <button
+                  onClick={() => toggleExpand(approval.id)}
+                  className={cn('p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}
+                >
+                  {expandedItems.has(approval.id) ? (
+                    <ChevronDown size={18} className={themeClasses.textSecondary} />
+                  ) : (
+                    <ChevronRight size={18} className={themeClasses.textSecondary} />
+                  )}
                 </button>
               </div>
             </div>
+
+            {/* Expanded Details */}
+            {expandedItems.has(approval.id) && (
+              <div className={cn('mt-4 pt-4 border-t', isDarkMode ? 'border-slate-700' : 'border-slate-200')}>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className={cn('text-sm font-medium mb-1', themeClasses.textSecondary)}>申請者</p>
+                    <div className="flex items-center gap-2">
+                      <User size={16} className={themeClasses.textSecondary} />
+                      <span className={cn('text-sm', themeClasses.text)}>{approval.requestedBy}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className={cn('text-sm font-medium mb-1', themeClasses.textSecondary)}>申請日時</p>
+                    <div className="flex items-center gap-2">
+                      <Calendar size={16} className={themeClasses.textSecondary} />
+                      <span className={cn('text-sm', themeClasses.text)}>{approval.requestedAt}</span>
+                    </div>
+                  </div>
+                  <div className="col-span-2">
+                    <p className={cn('text-sm font-medium mb-1', themeClasses.textSecondary)}>説明</p>
+                    <p className={cn('text-sm', themeClasses.text)}>
+                      この{TYPE_CONFIG[approval.type].label}の承認をお願いします。内容を確認の上、承認または却下してください。
+                    </p>
+                  </div>
+                  {approval.comments && (
+                    <div className="col-span-2">
+                      <p className={cn('text-sm font-medium mb-1', themeClasses.textSecondary)}>コメント</p>
+                      <div className={cn('p-3 rounded-lg text-sm', isDarkMode ? 'bg-slate-800' : 'bg-slate-50')}>
+                        <MessageSquare size={14} className="inline mr-2" />
+                        {approval.comments}件のコメント
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={() => handleViewDetail(approval)}
+                    className={cn('flex-1 px-4 py-2 rounded-xl text-sm font-medium transition-colors', isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700')}
+                  >
+                    詳細を確認
+                  </button>
+                  {approval.status === 'pending' && (
+                    <>
+                      <button
+                        onClick={() => handleApprove(approval)}
+                        className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-bold"
+                      >
+                        承認
+                      </button>
+                      <button
+                        onClick={() => handleReject(approval)}
+                        className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold"
+                      >
+                        却下
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         ))}
 
@@ -191,6 +305,121 @@ export const ApprovalTab = () => {
           </div>
         )}
       </div>
+
+      {/* Detail Modal */}
+      {selectedApproval && (
+        <Modal
+          isOpen={showDetailModal}
+          onClose={() => {
+            setShowDetailModal(false);
+            setSelectedApproval(null);
+          }}
+          title={selectedApproval.title}
+          size="lg"
+          footer={
+            selectedApproval.status === 'pending' ? (
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    setSelectedApproval(null);
+                  }}
+                  className={cn('flex-1 px-4 py-2 rounded-xl text-sm font-medium', isDarkMode ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-700')}
+                >
+                  閉じる
+                </button>
+                <button
+                  onClick={() => {
+                    handleReject(selectedApproval);
+                    setShowDetailModal(false);
+                    setSelectedApproval(null);
+                  }}
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold"
+                >
+                  却下
+                </button>
+                <button
+                  onClick={() => {
+                    handleApprove(selectedApproval);
+                    setShowDetailModal(false);
+                    setSelectedApproval(null);
+                  }}
+                  className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-bold"
+                >
+                  承認
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setSelectedApproval(null);
+                }}
+                className={cn('w-full px-4 py-2 rounded-xl text-sm font-medium', isDarkMode ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-700')}
+              >
+                閉じる
+              </button>
+            )
+          }
+        >
+          <div className="space-y-4">
+            {/* Type & Status */}
+            <div className="flex items-center gap-2">
+              <span className={cn('inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium', TYPE_CONFIG[selectedApproval.type].color)}>
+                {TYPE_CONFIG[selectedApproval.type].icon}
+                {TYPE_CONFIG[selectedApproval.type].label}
+              </span>
+              <span className={cn('inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium', STATUS_CONFIG[selectedApproval.status].color)}>
+                {STATUS_CONFIG[selectedApproval.status].icon}
+                {STATUS_CONFIG[selectedApproval.status].label}
+              </span>
+            </div>
+
+            {/* Details */}
+            <div className={cn('p-4 rounded-xl', isDarkMode ? 'bg-slate-800' : 'bg-slate-50')}>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className={cn('text-sm font-medium mb-1', themeClasses.textSecondary)}>申請者</p>
+                  <p className={cn('text-sm', themeClasses.text)}>{selectedApproval.requestedBy}</p>
+                </div>
+                <div>
+                  <p className={cn('text-sm font-medium mb-1', themeClasses.textSecondary)}>申請日時</p>
+                  <p className={cn('text-sm', themeClasses.text)}>{selectedApproval.requestedAt}</p>
+                </div>
+                <div>
+                  <p className={cn('text-sm font-medium mb-1', themeClasses.textSecondary)}>優先度</p>
+                  <div className="flex items-center gap-2">
+                    <div className={cn('w-2 h-2 rounded-full', PRIORITY_CONFIG[selectedApproval.priority].color)} />
+                    <span className={cn('text-sm', themeClasses.text)}>{PRIORITY_CONFIG[selectedApproval.priority].label}</span>
+                  </div>
+                </div>
+                {selectedApproval.comments && (
+                  <div>
+                    <p className={cn('text-sm font-medium mb-1', themeClasses.textSecondary)}>コメント数</p>
+                    <p className={cn('text-sm', themeClasses.text)}>{selectedApproval.comments}件</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Content Preview */}
+            <div>
+              <p className={cn('text-sm font-medium mb-2', themeClasses.text)}>プレビュー</p>
+              <div className={cn('p-6 rounded-xl border-2 border-dashed text-center', isDarkMode ? 'border-slate-700 bg-slate-800/50' : 'border-slate-200 bg-slate-50')}>
+                <div className={cn('mb-2', TYPE_CONFIG[selectedApproval.type].color)}>
+                  {TYPE_CONFIG[selectedApproval.type].icon}
+                </div>
+                <p className={cn('text-sm', themeClasses.textSecondary)}>
+                  {selectedApproval.type === 'script' && '台本のプレビューがここに表示されます'}
+                  {selectedApproval.type === 'thumbnail' && 'サムネイルのプレビューがここに表示されます'}
+                  {selectedApproval.type === 'video' && '動画のプレビューがここに表示されます'}
+                  {selectedApproval.type === 'publish' && '公開設定のプレビューがここに表示されます'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

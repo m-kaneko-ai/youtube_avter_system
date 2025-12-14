@@ -1,8 +1,12 @@
+import { useState } from 'react';
 import { CreditCard } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { useThemeStore } from '../../stores/themeStore';
 import { useNavigationStore } from '../../stores/navigationStore';
+import { Modal } from '../../components/common';
 import { RevenueTab, KnowledgeTab, TemplateTab, SeriesTab } from './components';
+
+type Period = '7days' | '30days' | '90days';
 
 export const AnalyticsPage = () => {
   const { mode, getThemeClasses } = useThemeStore();
@@ -10,6 +14,9 @@ export const AnalyticsPage = () => {
   const isDarkMode = mode === 'dark';
   const themeClasses = getThemeClasses();
   const activeTab = getActiveTab('analytics');
+
+  const [period, setPeriod] = useState<Period>('30days');
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   // Render tab content based on active tab
   if (activeTab === 'revenue') {
@@ -50,12 +57,17 @@ export const AnalyticsPage = () => {
               isDarkMode ? 'bg-slate-800' : 'bg-slate-100'
             )}
           >
-            {['7日間', '30日間', '90日間'].map((t, i) => (
+            {[
+              { id: '7days' as Period, label: '7日間' },
+              { id: '30days' as Period, label: '30日間' },
+              { id: '90days' as Period, label: '90日間' },
+            ].map((p) => (
               <button
-                key={i}
+                key={p.id}
+                onClick={() => setPeriod(p.id)}
                 className={cn(
                   'px-4 py-2 rounded-lg text-sm font-bold transition-all',
-                  i === 1
+                  period === p.id
                     ? cn(themeClasses.cardBg, 'shadow-sm', themeClasses.text)
                     : cn(
                         isDarkMode
@@ -64,7 +76,7 @@ export const AnalyticsPage = () => {
                       )
                 )}
               >
-                {t}
+                {p.label}
               </button>
             ))}
           </div>
@@ -160,12 +172,60 @@ export const AnalyticsPage = () => {
                 <span className="font-bold">¥410,500</span>
               </div>
             </div>
-            <button className="w-full bg-white text-indigo-600 font-bold py-3 rounded-xl hover:bg-indigo-50 transition-colors">
+            <button
+              onClick={() => setIsReportModalOpen(true)}
+              className="w-full bg-white text-indigo-600 font-bold py-3 rounded-xl hover:bg-indigo-50 transition-colors"
+            >
               詳細レポートを見る
             </button>
           </div>
         </div>
       </div>
+
+      {/* Report Modal */}
+      <Modal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        title="詳細レポート"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <div className={cn('p-4 rounded-xl', isDarkMode ? 'bg-slate-700' : 'bg-slate-50')}>
+            <h4 className={cn('font-bold mb-2', themeClasses.text)}>収益サマリー</h4>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className={themeClasses.textSecondary}>RPM (1,000回再生あたりの収益)</span>
+                <span className={cn('font-bold', themeClasses.text)}>¥320</span>
+              </div>
+              <div className="flex justify-between">
+                <span className={themeClasses.textSecondary}>再生ベース収益</span>
+                <span className={cn('font-bold', themeClasses.text)}>¥410,500</span>
+              </div>
+              <div className="flex justify-between">
+                <span className={themeClasses.textSecondary}>推定総収益</span>
+                <span className={cn('font-bold text-lg', themeClasses.text)}>¥452,000</span>
+              </div>
+            </div>
+          </div>
+          <div className={cn('p-4 rounded-xl', isDarkMode ? 'bg-slate-700' : 'bg-slate-50')}>
+            <h4 className={cn('font-bold mb-2', themeClasses.text)}>パフォーマンス指標</h4>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className={themeClasses.textSecondary}>総再生回数</span>
+                <span className={cn('font-bold', themeClasses.text)}>1,412,500回</span>
+              </div>
+              <div className="flex justify-between">
+                <span className={themeClasses.textSecondary}>平均視聴維持率</span>
+                <span className={cn('font-bold', themeClasses.text)}>42.3%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className={themeClasses.textSecondary}>エンゲージメント率</span>
+                <span className={cn('font-bold', themeClasses.text)}>8.7%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
 import { useThemeStore } from '../../../stores/themeStore';
 import { cn } from '../../../utils/cn';
 import { planningService } from '../../../services/planning';
+import { Modal } from '../../../components/common';
 import type { CalendarView, CalendarEvent } from '../../../types';
 
 export const CalendarTab = () => {
@@ -14,6 +15,9 @@ export const CalendarTab = () => {
   const [view, setView] = useState<CalendarView>('month');
   const [currentYear, setCurrentYear] = useState(2025);
   const [currentMonth, setCurrentMonth] = useState(12);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedEvents, setSelectedEvents] = useState<CalendarEvent[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string>('');
 
   // API: GET /api/v1/planning/calendar
   const {
@@ -131,6 +135,15 @@ export const CalendarTab = () => {
     const today = new Date();
     setCurrentYear(today.getFullYear());
     setCurrentMonth(today.getMonth() + 1);
+  };
+
+  const handleDayClick = (day: number) => {
+    const dayEvents = getEventsForDay(day);
+    if (dayEvents.length > 0) {
+      setSelectedEvents(dayEvents);
+      setSelectedDate(`${currentYear}年${currentMonth}月${day}日`);
+      setIsDetailModalOpen(true);
+    }
   };
 
   const calendarDays = generateCalendarDays();
@@ -292,6 +305,7 @@ export const CalendarTab = () => {
             return (
               <div
                 key={day}
+                onClick={() => handleDayClick(day)}
                 className={cn(
                   'border rounded-xl p-3 min-h-28 cursor-pointer transition-colors',
                   isTodayDate
@@ -386,6 +400,58 @@ export const CalendarTab = () => {
           </div>
         </div>
       </div>
+
+      {/* イベント詳細モーダル */}
+      <Modal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        title={`${selectedDate}の予定`}
+        size="lg"
+      >
+        <div className="space-y-3">
+          {selectedEvents.map((event) => (
+            <div
+              key={event.id}
+              className={cn(
+                'border rounded-xl p-4',
+                isDarkMode
+                  ? 'border-slate-700 bg-slate-800/50'
+                  : 'border-slate-200 bg-white'
+              )}
+            >
+              <div className="flex items-start justify-between mb-2">
+                <h4 className={cn('font-bold text-base', themeClasses.text)}>
+                  {event.title}
+                </h4>
+                <span
+                  className={cn(
+                    'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium',
+                    event.videoType === 'short'
+                      ? isDarkMode
+                        ? 'bg-blue-900/40 text-blue-300'
+                        : 'bg-blue-50 text-blue-700'
+                      : isDarkMode
+                      ? 'bg-purple-900/40 text-purple-300'
+                      : 'bg-purple-50 text-purple-700'
+                  )}
+                >
+                  {event.videoType === 'short' ? '📹 ショート' : '🎬 長尺'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span
+                  className={cn(
+                    'inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium',
+                    getStatusStyle(event.status)
+                  )}
+                >
+                  {getStatusLabel(event.status)}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Modal>
     </div>
   );
 };

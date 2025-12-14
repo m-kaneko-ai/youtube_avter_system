@@ -5,6 +5,7 @@ import { useThemeStore } from '../../stores/themeStore';
 import { useNavigationStore } from '../../stores/navigationStore';
 import { TitleTab } from './components/TitleTab';
 import { SEOTab } from './components/SEOTab';
+import { toast } from '../../components/common';
 
 export const ScriptPage = () => {
   const { mode, getThemeClasses } = useThemeStore();
@@ -16,6 +17,43 @@ export const ScriptPage = () => {
   // 現在選択中の台本・動画ID（実際にはURLパラメータやストアから取得）
   const [currentScriptId] = useState<string>('script-001');
   const [currentVideoId] = useState<string>('video-001');
+
+  // ハンドラー関数
+  const handleGenerateIdea = () => {
+    toast.info('アイデアを生成中です...');
+  };
+
+  const handleRewriteGemini = () => {
+    toast.info('Geminiで台本を書き直しています...');
+  };
+
+  const handleRewriteClaude = () => {
+    toast.info('Claudeで台本を書き直しています...');
+  };
+
+  const handleAdoptGemini = () => {
+    toast.success('Geminiの台本を採用しました');
+  };
+
+  const handleAdoptClaude = () => {
+    toast.success('Claudeの台本を採用しました');
+  };
+
+  const handleEditThumbnail = () => {
+    toast.info('サムネイルを編集します');
+  };
+
+  const handleShareThumbnail = () => {
+    toast.info('サムネイルを共有します');
+  };
+
+  const handleSelectThumbnail = (index: number) => {
+    toast.success(`案 ${index} のサムネイルを選択しました`);
+  };
+
+  const handleGenerateVariation = () => {
+    toast.info('新しいバリエーションを生成中です...');
+  };
 
   if (activeTab === 'script') {
     return (
@@ -41,7 +79,10 @@ export const ScriptPage = () => {
                 themeClasses.text
               )}
             />
-            <button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-blue-500/20 transition-all transform active:scale-95">
+            <button
+              onClick={handleGenerateIdea}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-blue-500/20 transition-all transform active:scale-95"
+            >
               <Sparkles size={16} /> アイデアを生成
             </button>
           </div>
@@ -127,6 +168,7 @@ export const ScriptPage = () => {
                 )}
               >
                 <button
+                  onClick={handleRewriteGemini}
                   className={cn(
                     'px-4 py-2 text-sm rounded-lg transition-colors',
                     isDarkMode ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-500 hover:bg-slate-100'
@@ -134,7 +176,10 @@ export const ScriptPage = () => {
                 >
                   書き直し
                 </button>
-                <button className="px-6 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all">
+                <button
+                  onClick={handleAdoptGemini}
+                  className="px-6 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all"
+                >
                   これを採用
                 </button>
               </div>
@@ -208,6 +253,7 @@ export const ScriptPage = () => {
                 )}
               >
                 <button
+                  onClick={handleRewriteClaude}
                   className={cn(
                     'px-4 py-2 text-sm rounded-lg transition-colors',
                     isDarkMode ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-500 hover:bg-slate-100'
@@ -216,6 +262,7 @@ export const ScriptPage = () => {
                   書き直し
                 </button>
                 <button
+                  onClick={handleAdoptClaude}
                   className={cn(
                     'px-6 py-2 text-white text-sm font-bold rounded-lg shadow-lg transition-all',
                     isDarkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-slate-900 hover:bg-slate-800'
@@ -255,10 +302,22 @@ export const ScriptPage = () => {
                   <Image size={48} className={isDarkMode ? 'text-slate-600' : 'text-slate-300'} />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-4">
-                  <button className="text-white hover:text-blue-300 transition-colors">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditThumbnail();
+                    }}
+                    className="text-white hover:text-blue-300 transition-colors"
+                  >
                     <Edit3 size={18} />
                   </button>
-                  <button className="text-white hover:text-blue-300 transition-colors">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleShareThumbnail();
+                    }}
+                    className="text-white hover:text-blue-300 transition-colors"
+                  >
                     <Share2 size={18} />
                   </button>
                 </div>
@@ -282,12 +341,18 @@ export const ScriptPage = () => {
                     </div>
                     <span className={cn('font-bold', themeClasses.text)}>8.{i}%</span>
                   </div>
-                  <button className="text-blue-500 font-bold text-sm hover:underline">選択する</button>
+                  <button
+                    onClick={() => handleSelectThumbnail(i)}
+                    className="text-blue-500 font-bold text-sm hover:underline"
+                  >
+                    選択する
+                  </button>
                 </div>
               </div>
             </div>
           ))}
           <div
+            onClick={handleGenerateVariation}
             className={cn(
               'border-2 border-dashed rounded-3xl flex flex-col items-center justify-center min-h-[300px] transition-all cursor-pointer',
               isDarkMode

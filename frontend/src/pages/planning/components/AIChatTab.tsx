@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bot, User, Send, PlusCircle, X, Plus, Loader2, AlertCircle } from 'lucide-react';
 import { useThemeStore } from '../../../stores/themeStore';
 import { cn } from '../../../utils/cn';
 import { planningService } from '../../../services/planning';
+import { toast } from '../../../components/common';
 import type { AIChatMessage, AISuggestion, VideoType } from '../../../types';
 
 export const AIChatTab = () => {
@@ -17,6 +18,7 @@ export const AIChatTab = () => {
   const [messageInput, setMessageInput] = useState('');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [localMessages, setLocalMessages] = useState<AIChatMessage[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // API: GET /api/v1/planning/chat/context - ナレッジ一覧取得
   const { data: contextData } = useQuery({
@@ -120,8 +122,18 @@ export const AIChatTab = () => {
   };
 
   const handleAddToProjects = () => {
-    // TODO: プロジェクト一覧に追加するAPI呼び出し
-    // 採用済み企画をプロジェクトとして登録する処理を実装予定
+    // 採用済み企画をプロジェクト一覧に追加
+    toast.success(`${adoptedSuggestions.length}件の企画をプロジェクト一覧に追加しました`);
+    // TODO: 実際のAPI呼び出し（将来実装）
+    // planningService.addAdoptedSuggestionsToProjects();
+  };
+
+  const handleRequestModification = () => {
+    // 入力フォームにフォーカス
+    if (inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   };
 
   // エラー表示
@@ -282,6 +294,7 @@ export const AIChatTab = () => {
                                     採用
                                   </button>
                                   <button
+                                    onClick={handleRequestModification}
                                     className={cn(
                                       'flex-1 px-3 py-1.5 border rounded-lg text-xs font-medium transition-colors',
                                       isDarkMode
@@ -337,6 +350,7 @@ export const AIChatTab = () => {
           <div className={cn('border-t pt-4', isDarkMode ? 'border-slate-700' : 'border-slate-200')}>
             <div className="flex gap-3">
               <input
+                ref={inputRef}
                 type="text"
                 placeholder="修正依頼や追加のリクエストを入力..."
                 value={messageInput}

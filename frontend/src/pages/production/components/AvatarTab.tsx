@@ -18,6 +18,7 @@ import {
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { productionService, type AvatarProject } from '../../../services/production';
+import { Modal, toast } from '../../../components/common';
 
 type AvatarStatus = AvatarProject['status'];
 
@@ -50,6 +51,7 @@ export const AvatarTab = () => {
     data: projectsData,
     isLoading: isLoadingProjects,
     error: projectsError,
+    refetch,
   } = useQuery({
     queryKey: ['production', 'avatar', 'projects'],
     queryFn: () => productionService.getAvatarProjects(),
@@ -61,6 +63,7 @@ export const AvatarTab = () => {
   const [selectedAvatar, setSelectedAvatar] = useState<string>('');
   const [selectedBackground, setSelectedBackground] = useState<string>(BACKGROUNDS[0]);
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   // Set initial selected avatar when data loads
   if (avatarModels.length > 0 && !selectedAvatar) {
@@ -69,6 +72,22 @@ export const AvatarTab = () => {
 
   const handlePlay = (id: string) => {
     setPlayingId(playingId === id ? null : id);
+  };
+
+  const handleSettingsClick = () => {
+    setIsSettingsModalOpen(true);
+  };
+
+  const handleNewGeneration = () => {
+    toast.info('生成を開始しました');
+  };
+
+  const handleDownload = (_id: string) => {
+    toast.info('ダウンロードを開始しました');
+  };
+
+  const handleRefresh = () => {
+    refetch();
   };
 
   return (
@@ -178,11 +197,17 @@ export const AvatarTab = () => {
         <div className="flex items-center justify-between mb-4">
           <h3 className={cn('font-bold text-lg', themeClasses.text)}>動画生成キュー</h3>
           <div className="flex items-center gap-3">
-            <button className={cn('flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors', isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700')}>
+            <button
+              onClick={handleSettingsClick}
+              className={cn('flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors', isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700')}
+            >
               <Settings size={16} />
               詳細設定
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-pink-500/20 transition-all">
+            <button
+              onClick={handleNewGeneration}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-pink-500/20 transition-all"
+            >
               <Sparkles size={16} />
               新規生成
             </button>
@@ -267,10 +292,16 @@ export const AvatarTab = () => {
                   <div className="flex items-center gap-2">
                     {project.status === 'completed' && (
                       <>
-                        <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}>
+                        <button
+                          onClick={() => handleDownload(project.id)}
+                          className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}
+                        >
                           <Download size={18} className={themeClasses.textSecondary} />
                         </button>
-                        <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}>
+                        <button
+                          onClick={handleRefresh}
+                          className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}
+                        >
                           <RefreshCw size={18} className={themeClasses.textSecondary} />
                         </button>
                       </>
@@ -282,6 +313,107 @@ export const AvatarTab = () => {
           </div>
         )}
       </div>
+
+      {/* Settings Modal */}
+      <Modal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        title="アバター動画詳細設定"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              動画解像度
+            </label>
+            <select
+              className={cn(
+                'w-full px-3 py-2 rounded-lg border',
+                isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white'
+                  : 'bg-white border-slate-300 text-slate-900'
+              )}
+            >
+              <option value="1080p">1080p (フルHD)</option>
+              <option value="720p">720p (HD)</option>
+              <option value="4k">4K (UHD)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              フレームレート
+            </label>
+            <select
+              className={cn(
+                'w-full px-3 py-2 rounded-lg border',
+                isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white'
+                  : 'bg-white border-slate-300 text-slate-900'
+              )}
+            >
+              <option value="24">24 fps</option>
+              <option value="30">30 fps</option>
+              <option value="60">60 fps</option>
+            </select>
+          </div>
+
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              アバター表情の強度
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="5"
+              defaultValue="70"
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-slate-500 mt-1">
+              <span>控えめ</span>
+              <span>標準</span>
+              <span>豊か</span>
+            </div>
+          </div>
+
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              カメラアングル
+            </label>
+            <select
+              className={cn(
+                'w-full px-3 py-2 rounded-lg border',
+                isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white'
+                  : 'bg-white border-slate-300 text-slate-900'
+              )}
+            >
+              <option value="center">センター</option>
+              <option value="closeup">クローズアップ</option>
+              <option value="wide">ワイド</option>
+            </select>
+          </div>
+
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              リップシンク精度
+            </label>
+            <select
+              className={cn(
+                'w-full px-3 py-2 rounded-lg border',
+                isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white'
+                  : 'bg-white border-slate-300 text-slate-900'
+              )}
+            >
+              <option value="standard">標準</option>
+              <option value="high">高精度</option>
+              <option value="ultra">最高精度</option>
+            </select>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

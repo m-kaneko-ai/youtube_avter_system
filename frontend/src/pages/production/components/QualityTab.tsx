@@ -16,6 +16,7 @@ import {
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { productionService, type QualityIssue } from '../../../services/production';
+import { toast } from '../../../components/common';
 
 const ENHANCEMENT_FEATURES = [
   { id: '1', name: 'ノイズ除去', description: 'AIで背景ノイズを自動除去', icon: <Volume2 size={20} />, color: 'text-blue-500 bg-blue-500/10' },
@@ -38,10 +39,26 @@ export const QualityTab = ({ videoId = 'current' }: QualityTabProps) => {
     data: video,
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ['production', 'quality', 'video', videoId],
     queryFn: () => productionService.getVideoForReview(videoId),
   });
+
+  const handleQualityCheck = () => {
+    toast.info('品質チェックを実行しています...');
+    setTimeout(() => {
+      refetch();
+    }, 500);
+  };
+
+  const handlePreview = () => {
+    toast.info('プレビューを開きます');
+  };
+
+  const handleEnhancement = (featureName: string) => {
+    toast.info(`${featureName}を適用しています...`);
+  };
 
   const getSeverityIcon = (severity: QualityIssue['severity']) => {
     switch (severity) {
@@ -117,11 +134,17 @@ export const QualityTab = ({ videoId = 'current' }: QualityTabProps) => {
               <p className={cn('text-sm mb-4', themeClasses.textSecondary)}>長さ: {video.duration}</p>
 
               <div className="flex items-center gap-4">
-                <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">
+                <button
+                  onClick={handleQualityCheck}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all"
+                >
                   <Sparkles size={16} />
                   品質チェック実行
                 </button>
-                <button className={cn('flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors', isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700')}>
+                <button
+                  onClick={handlePreview}
+                  className={cn('flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors', isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700')}
+                >
                   <Play size={16} />
                   プレビュー
                 </button>
@@ -217,6 +240,7 @@ export const QualityTab = ({ videoId = 'current' }: QualityTabProps) => {
           {ENHANCEMENT_FEATURES.map((feature) => (
             <button
               key={feature.id}
+              onClick={() => handleEnhancement(feature.name)}
               className={cn(
                 'p-5 rounded-2xl border text-left transition-all hover:shadow-md group',
                 themeClasses.cardBg,

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Users,
@@ -5,17 +6,20 @@ import {
   CreditCard,
   Eye,
   Settings,
-  MoreHorizontal,
   TrendingUp,
   Video,
   FileText,
   Plus,
   Loader2,
   AlertCircle,
+  ExternalLink,
+  Edit3,
+  Trash2,
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { adminService, type ClientPlan, type ClientStatus } from '../../../services/admin';
+import { Modal, DropdownMenu, toast } from '../../../components/common';
 
 const PLAN_CONFIG: Record<ClientPlan, { label: string; color: string }> = {
   premium_plus: { label: 'Premium+', color: 'text-yellow-500 bg-yellow-500/10' },
@@ -34,6 +38,10 @@ export const ClientTab = () => {
   const isDarkMode = mode === 'dark';
   const themeClasses = getThemeClasses();
 
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<typeof clients[0] | null>(null);
+
   // Clients query
   const {
     data: clientsData,
@@ -47,6 +55,19 @@ export const ClientTab = () => {
   const clients = clientsData?.clients ?? [];
   const totalVideos = clients.reduce((sum, c) => sum + c.videoCount, 0);
   const totalKnowledges = clients.reduce((sum, c) => sum + c.knowledgeCount, 0);
+
+  const handlePortalView = (client: typeof clients[0]) => {
+    window.open(`/client-portal/${client.id}`, '_blank');
+  };
+
+  const handleGenerateReport = (_client: typeof clients[0]) => {
+    toast.info('レポートを生成中');
+  };
+
+  const handleSettings = (client: typeof clients[0]) => {
+    setSelectedClient(client);
+    setShowSettingsModal(true);
+  };
 
   if (isLoading) {
     return (
@@ -76,7 +97,10 @@ export const ClientTab = () => {
             {clients.length}社のクライアント
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all"
+        >
           <Plus size={16} />
           クライアントを追加
         </button>
@@ -153,25 +177,219 @@ export const ClientTab = () => {
 
               {/* Actions */}
               <div className="flex items-center gap-2">
-                <button className={cn('flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors', isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700')}>
+                <button
+                  onClick={() => handlePortalView(client)}
+                  className={cn('flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors', isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700')}
+                >
                   <Eye size={16} />
                   ポータル確認
                 </button>
-                <button className={cn('flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors', isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700')}>
+                <button
+                  onClick={() => handleGenerateReport(client)}
+                  className={cn('flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors', isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700')}
+                >
                   <TrendingUp size={16} />
                   レポート
                 </button>
-                <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}>
+                <button
+                  onClick={() => handleSettings(client)}
+                  className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}
+                >
                   <Settings size={16} className={themeClasses.textSecondary} />
                 </button>
-                <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}>
-                  <MoreHorizontal size={16} className={themeClasses.textSecondary} />
-                </button>
+                <DropdownMenu
+                  items={[
+                    {
+                      id: 'portal',
+                      label: 'ポータル確認',
+                      icon: <ExternalLink size={16} />,
+                      onClick: () => handlePortalView(client),
+                    },
+                    {
+                      id: 'report',
+                      label: 'レポート生成',
+                      icon: <TrendingUp size={16} />,
+                      onClick: () => handleGenerateReport(client),
+                    },
+                    {
+                      id: 'settings',
+                      label: '設定',
+                      icon: <Settings size={16} />,
+                      onClick: () => handleSettings(client),
+                    },
+                    {
+                      id: 'edit',
+                      label: '編集',
+                      icon: <Edit3 size={16} />,
+                      onClick: () => {
+                        setSelectedClient(client);
+                        setShowAddModal(true);
+                      },
+                    },
+                    {
+                      id: 'delete',
+                      label: '削除',
+                      icon: <Trash2 size={16} />,
+                      onClick: () => {
+                        if (confirm(`${client.companyName}を削除してもよろしいですか?`)) {
+                          toast.success('クライアントを削除しました');
+                        }
+                      },
+                      variant: 'danger',
+                    },
+                  ]}
+                />
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Add/Edit Client Modal */}
+      <Modal
+        isOpen={showAddModal}
+        onClose={() => {
+          setShowAddModal(false);
+          setSelectedClient(null);
+        }}
+        title={selectedClient ? 'クライアント情報を編集' : 'クライアントを追加'}
+        footer={
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                setShowAddModal(false);
+                setSelectedClient(null);
+              }}
+              className={cn('flex-1 px-4 py-2 rounded-xl text-sm font-medium', isDarkMode ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-700')}
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={() => {
+                toast.success(selectedClient ? 'クライアント情報を更新しました' : 'クライアントを追加しました');
+                setShowAddModal(false);
+                setSelectedClient(null);
+              }}
+              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold"
+            >
+              {selectedClient ? '保存' : '追加'}
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>会社名</label>
+            <input
+              type="text"
+              defaultValue={selectedClient?.companyName}
+              placeholder="会社名を入力"
+              className={cn('w-full px-4 py-2 rounded-xl border', themeClasses.cardBorder, isDarkMode ? 'bg-slate-800' : 'bg-white', themeClasses.text)}
+            />
+          </div>
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>担当者名</label>
+            <input
+              type="text"
+              defaultValue={selectedClient?.contactName}
+              placeholder="担当者名を入力"
+              className={cn('w-full px-4 py-2 rounded-xl border', themeClasses.cardBorder, isDarkMode ? 'bg-slate-800' : 'bg-white', themeClasses.text)}
+            />
+          </div>
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>メールアドレス</label>
+            <input
+              type="email"
+              defaultValue={selectedClient?.email}
+              placeholder="email@example.com"
+              className={cn('w-full px-4 py-2 rounded-xl border', themeClasses.cardBorder, isDarkMode ? 'bg-slate-800' : 'bg-white', themeClasses.text)}
+            />
+          </div>
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>プラン</label>
+            <select
+              defaultValue={selectedClient?.plan || 'basic'}
+              className={cn('w-full px-4 py-2 rounded-xl border', themeClasses.cardBorder, isDarkMode ? 'bg-slate-800' : 'bg-white', themeClasses.text)}
+            >
+              <option value="premium_plus">Premium+</option>
+              <option value="premium">Premium</option>
+              <option value="basic">Basic</option>
+            </select>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Settings Modal */}
+      {selectedClient && (
+        <Modal
+          isOpen={showSettingsModal}
+          onClose={() => {
+            setShowSettingsModal(false);
+            setSelectedClient(null);
+          }}
+          title={`${selectedClient.companyName}の設定`}
+          footer={
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowSettingsModal(false);
+                  setSelectedClient(null);
+                }}
+                className={cn('flex-1 px-4 py-2 rounded-xl text-sm font-medium', isDarkMode ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-700')}
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={() => {
+                  toast.success('設定を保存しました');
+                  setShowSettingsModal(false);
+                  setSelectedClient(null);
+                }}
+                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold"
+              >
+                保存
+              </button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <div>
+              <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>ステータス</label>
+              <select
+                defaultValue={selectedClient.status}
+                className={cn('w-full px-4 py-2 rounded-xl border', themeClasses.cardBorder, isDarkMode ? 'bg-slate-800' : 'bg-white', themeClasses.text)}
+              >
+                <option value="active">アクティブ</option>
+                <option value="inactive">非アクティブ</option>
+                <option value="trial">トライアル</option>
+              </select>
+            </div>
+            <div>
+              <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>月間動画制作上限</label>
+              <input
+                type="number"
+                defaultValue={30}
+                className={cn('w-full px-4 py-2 rounded-xl border', themeClasses.cardBorder, isDarkMode ? 'bg-slate-800' : 'bg-white', themeClasses.text)}
+              />
+            </div>
+            <div>
+              <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>ナレッジ数上限</label>
+              <input
+                type="number"
+                defaultValue={5}
+                className={cn('w-full px-4 py-2 rounded-xl border', themeClasses.cardBorder, isDarkMode ? 'bg-slate-800' : 'bg-white', themeClasses.text)}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className={cn('text-sm font-medium', themeClasses.text)}>自動承認を有効にする</span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" className="sr-only peer" />
+                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

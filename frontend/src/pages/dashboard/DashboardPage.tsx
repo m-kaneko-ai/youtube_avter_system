@@ -8,6 +8,7 @@ import {
   Search,
   Video,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { cn } from '../../utils/cn';
 import { useThemeStore } from '../../stores/themeStore';
 import { useNavigationStore } from '../../stores/navigationStore';
@@ -15,6 +16,7 @@ import { TasksTab } from './components/TasksTab';
 import { NotificationsTab } from './components/NotificationsTab';
 
 export const DashboardPage = () => {
+  const navigate = useNavigate();
   const { mode, getThemeClasses } = useThemeStore();
   const { getActiveTab } = useNavigationStore();
   const isDarkMode = mode === 'dark';
@@ -204,7 +206,10 @@ export const DashboardPage = () => {
                 <Sparkles size={20} className="text-yellow-500" />
                 今週のトレンドインサイト
               </h3>
-              <button className="text-sm text-blue-500 font-medium hover:underline">
+              <button
+                onClick={() => navigate('/planning')}
+                className="text-sm text-blue-500 font-medium hover:underline"
+              >
                 すべて見る
               </button>
             </div>
@@ -291,6 +296,7 @@ export const DashboardPage = () => {
             </h3>
             <div className="flex-1 grid grid-cols-2 gap-4">
               <button
+                onClick={() => navigate('/script')}
                 className={cn(
                   'flex flex-col items-center justify-center gap-3 p-4 rounded-2xl transition-all duration-300 hover:scale-105',
                   isDarkMode
@@ -302,6 +308,7 @@ export const DashboardPage = () => {
                 <span className="font-bold text-sm">台本作成</span>
               </button>
               <button
+                onClick={() => navigate('/script?tab=thumbnail')}
                 className={cn(
                   'flex flex-col items-center justify-center gap-3 p-4 rounded-2xl transition-all duration-300 hover:scale-105',
                   isDarkMode
@@ -313,6 +320,7 @@ export const DashboardPage = () => {
                 <span className="font-bold text-sm">サムネ生成</span>
               </button>
               <button
+                onClick={() => navigate('/research')}
                 className={cn(
                   'flex flex-col items-center justify-center gap-3 p-4 rounded-2xl transition-all duration-300 hover:scale-105',
                   isDarkMode
@@ -324,6 +332,7 @@ export const DashboardPage = () => {
                 <span className="font-bold text-sm">リサーチ</span>
               </button>
               <button
+                onClick={() => navigate('/production')}
                 className={cn(
                   'flex flex-col items-center justify-center gap-3 p-4 rounded-2xl transition-all duration-300 hover:scale-105',
                   isDarkMode

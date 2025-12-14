@@ -1,21 +1,27 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { TrendingUp, Newspaper, BookOpen, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { researchService } from '../../../services/research';
+import { toast } from '../../../components/common';
+import type { TrendKeyword, BookRanking } from '../../../types';
 
 export const TrendTab = () => {
   const { mode, getThemeClasses } = useThemeStore();
   const isDarkMode = mode === 'dark';
   const themeClasses = getThemeClasses();
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedPeriod, setSelectedPeriod] = useState('7d');
 
   // API: GET /api/v1/research/trends/keywords
   const {
     data: keywordData,
     isLoading: isLoadingKeywords,
     error: keywordError,
+    refetch: refetchKeywords,
   } = useQuery({
-    queryKey: ['research', 'trends', 'keywords'],
+    queryKey: ['research', 'trends', 'keywords', selectedCategory, selectedPeriod],
     queryFn: () => researchService.getTrendingKeywords(),
   });
 
@@ -24,8 +30,9 @@ export const TrendTab = () => {
     data: newsData,
     isLoading: isLoadingNews,
     error: newsError,
+    refetch: refetchNews,
   } = useQuery({
-    queryKey: ['research', 'trends', 'news'],
+    queryKey: ['research', 'trends', 'news', selectedCategory, selectedPeriod],
     queryFn: () => researchService.getTrendingNews(),
   });
 
@@ -34,8 +41,9 @@ export const TrendTab = () => {
     data: bookData,
     isLoading: isLoadingBooks,
     error: bookError,
+    refetch: refetchBooks,
   } = useQuery({
-    queryKey: ['research', 'trends', 'books'],
+    queryKey: ['research', 'trends', 'books', selectedCategory],
     queryFn: () => researchService.getBookRankings(),
   });
 
@@ -69,6 +77,34 @@ export const TrendTab = () => {
     );
   };
 
+  const handleRefresh = async () => {
+    toast.info('データを更新しています...');
+    try {
+      await Promise.all([refetchKeywords(), refetchNews(), refetchBooks()]);
+      toast.success('データを更新しました');
+    } catch {
+      toast.error('更新に失敗しました');
+    }
+  };
+
+  const handleKeywordClick = (keyword: TrendKeyword) => {
+    // 検索実行（Google検索を新しいタブで開く）
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(keyword.keyword)}`;
+    window.open(searchUrl, '_blank', 'noopener,noreferrer');
+    toast.success(`「${keyword.keyword}」を検索します`);
+  };
+
+  const handleNewsClick = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleBookClick = (book: BookRanking) => {
+    // Amazon書籍ページを開く（実際のURLがある場合はそれを使用）
+    const amazonUrl = `https://www.amazon.co.jp/s?k=${encodeURIComponent(book.title)}`;
+    window.open(amazonUrl, '_blank', 'noopener,noreferrer');
+    toast.success(`「${book.title}」の詳細を表示します`);
+  };
+
   // エラー表示
   if (error) {
     return (
@@ -95,31 +131,38 @@ export const TrendTab = () => {
       >
         <div className="flex gap-4">
           <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
             className={cn(
               'rounded-xl px-4 py-3 border-none focus:ring-2 focus:ring-blue-500/50 focus:outline-none',
               themeClasses.inputBg,
               themeClasses.text
             )}
           >
-            <option>カテゴリ: 全て</option>
-            <option>ビジネス</option>
-            <option>テクノロジー</option>
-            <option>マーケティング</option>
-            <option>キャリア</option>
+            <option value="all">カテゴリ: 全て</option>
+            <option value="business">ビジネス</option>
+            <option value="technology">テクノロジー</option>
+            <option value="marketing">マーケティング</option>
+            <option value="career">キャリア</option>
           </select>
           <select
+            value={selectedPeriod}
+            onChange={(e) => setSelectedPeriod(e.target.value)}
             className={cn(
               'rounded-xl px-4 py-3 border-none focus:ring-2 focus:ring-blue-500/50 focus:outline-none',
               themeClasses.inputBg,
               themeClasses.text
             )}
           >
-            <option>期間: 7日間</option>
-            <option>24時間</option>
-            <option>30日間</option>
-            <option>90日間</option>
+            <option value="24h">期間: 24時間</option>
+            <option value="7d">期間: 7日間</option>
+            <option value="30d">期間: 30日間</option>
+            <option value="90d">期間: 90日間</option>
           </select>
-          <button className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all">
+          <button
+            onClick={handleRefresh}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all"
+          >
             更新
           </button>
         </div>
@@ -155,6 +198,7 @@ export const TrendTab = () => {
           {trendKeywords.map((keyword) => (
             <div
               key={keyword.id}
+              onClick={() => handleKeywordClick(keyword)}
               className={cn(
                 'p-4 rounded-xl border cursor-pointer transition-all',
                 themeClasses.cardBorder,
@@ -210,6 +254,7 @@ export const TrendTab = () => {
           {trendNews.map((news) => (
             <div
               key={news.id}
+              onClick={() => handleNewsClick(news.url)}
               className={cn(
                 'p-4 rounded-xl border cursor-pointer transition-colors',
                 themeClasses.cardBorder,
@@ -270,8 +315,9 @@ export const TrendTab = () => {
           {bookRankings.map((book) => (
             <div
               key={book.id}
+              onClick={() => handleBookClick(book)}
               className={cn(
-                'flex items-center gap-4 p-3 rounded-lg transition-colors',
+                'flex items-center gap-4 p-3 rounded-lg transition-colors cursor-pointer',
                 themeClasses.hoverBg
               )}
             >

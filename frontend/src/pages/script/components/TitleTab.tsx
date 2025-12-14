@@ -14,6 +14,7 @@ import {
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { scriptService, type TitleSuggestion } from '../../../services/script';
+import { toast } from '../../../components/common';
 
 interface TitleTabProps {
   scriptId: string;
@@ -94,6 +95,13 @@ export const TitleTab = ({ scriptId, videoId }: TitleTabProps) => {
 
   const handleRegenerate = () => {
     generateMutation.mutate();
+  };
+
+  const handleConfirmTitle = () => {
+    const titleToConfirm = customTitle || selectedTitle?.title;
+    if (titleToConfirm) {
+      toast.success(`タイトルを確定しました: ${titleToConfirm.substring(0, 30)}...`);
+    }
   };
 
   const selectedTitle = suggestions.find((s) => s.isSelected);
@@ -368,6 +376,7 @@ export const TitleTab = ({ scriptId, videoId }: TitleTabProps) => {
         {/* Action Button */}
         <div className="flex justify-end">
           <button
+            onClick={handleConfirmTitle}
             disabled={!selectedTitle && !customTitle}
             className={cn(
               'px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all',

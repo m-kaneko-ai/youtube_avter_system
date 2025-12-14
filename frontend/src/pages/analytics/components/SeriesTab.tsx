@@ -9,7 +9,6 @@ import {
   BarChart3,
   Play,
   Clock,
-  MoreHorizontal,
   Settings,
   Loader2,
   AlertCircle,
@@ -17,6 +16,7 @@ import {
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { analyticsService, type Series } from '../../../services/analytics';
+import { Modal, DropdownMenu, toast } from '../../../components/common';
 
 type SeriesStatus = Series['status'];
 
@@ -32,6 +32,9 @@ export const SeriesTab = () => {
   const themeClasses = getThemeClasses();
 
   const [statusFilter, setStatusFilter] = useState<'all' | SeriesStatus>('all');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newSeriesName, setNewSeriesName] = useState('');
+  const [newSeriesDesc, setNewSeriesDesc] = useState('');
 
   // Series query
   const {
@@ -51,6 +54,17 @@ export const SeriesTab = () => {
 
   const totalVideos = seriesList.reduce((sum, s) => sum + s.videoCount, 0);
   const totalViews = seriesList.reduce((sum, s) => sum + s.totalViews, 0);
+
+  const handleCreateSeries = () => {
+    if (!newSeriesName.trim()) {
+      toast.error('シリーズ名を入力してください');
+      return;
+    }
+    toast.success('シリーズを作成しました');
+    setIsCreateModalOpen(false);
+    setNewSeriesName('');
+    setNewSeriesDesc('');
+  };
 
   if (isLoading) {
     return (
@@ -80,7 +94,10 @@ export const SeriesTab = () => {
             コンテンツシリーズの一元管理
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all"
+        >
           <Plus size={16} />
           新規シリーズ作成
         </button>
@@ -189,19 +206,43 @@ export const SeriesTab = () => {
 
               {/* Actions */}
               <div className="flex items-center gap-2">
-                <button className={cn(
-                  'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors',
-                  isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200'
-                )}>
+                <button
+                  onClick={() => toast.success('動画追加モーダルを開きます')}
+                  className={cn(
+                    'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors',
+                    isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200'
+                  )}
+                >
                   <Plus size={16} />
                   動画追加
                 </button>
-                <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}>
-                  <Settings size={18} className={themeClasses.textSecondary} />
-                </button>
-                <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}>
-                  <MoreHorizontal size={18} className={themeClasses.textSecondary} />
-                </button>
+                <DropdownMenu
+                  items={[
+                    {
+                      id: 'settings',
+                      label: 'シリーズ設定',
+                      icon: <Settings size={16} />,
+                      onClick: () => toast.info('シリーズ設定を開きます'),
+                    },
+                    {
+                      id: 'edit',
+                      label: '編集',
+                      icon: <Settings size={16} />,
+                      onClick: () => toast.info('編集モードに切り替えます'),
+                    },
+                    {
+                      id: 'pause',
+                      label: '休止',
+                      onClick: () => toast.warning('シリーズを休止しました'),
+                    },
+                    {
+                      id: 'delete',
+                      label: '削除',
+                      variant: 'danger',
+                      onClick: () => toast.error('シリーズを削除しました'),
+                    },
+                  ]}
+                />
               </div>
             </div>
 
@@ -231,6 +272,70 @@ export const SeriesTab = () => {
           該当するシリーズがありません
         </div>
       )}
+
+      {/* Create Series Modal */}
+      <Modal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        title="新規シリーズ作成"
+        size="md"
+        footer={
+          <div className="flex gap-3">
+            <button
+              onClick={() => setIsCreateModalOpen(false)}
+              className={cn(
+                'flex-1 px-4 py-2 rounded-xl font-medium transition-colors',
+                isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200'
+              )}
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={handleCreateSeries}
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-medium transition-all"
+            >
+              作成
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              シリーズ名 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={newSeriesName}
+              onChange={(e) => setNewSeriesName(e.target.value)}
+              placeholder="例: AI解説シリーズ"
+              className={cn(
+                'w-full px-4 py-2 rounded-xl border',
+                themeClasses.cardBg,
+                themeClasses.cardBorder,
+                themeClasses.text
+              )}
+            />
+          </div>
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              説明
+            </label>
+            <textarea
+              value={newSeriesDesc}
+              onChange={(e) => setNewSeriesDesc(e.target.value)}
+              placeholder="シリーズの説明を入力してください"
+              rows={4}
+              className={cn(
+                'w-full px-4 py-2 rounded-xl border resize-none',
+                themeClasses.cardBg,
+                themeClasses.cardBorder,
+                themeClasses.text
+              )}
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

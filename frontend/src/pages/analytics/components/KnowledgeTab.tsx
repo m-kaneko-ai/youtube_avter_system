@@ -15,6 +15,7 @@ import {
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { analyticsService, type KnowledgeItem } from '../../../services/analytics';
+import { Modal, toast } from '../../../components/common';
 
 type KnowledgeType = 'all' | KnowledgeItem['type'];
 
@@ -32,6 +33,12 @@ export const KnowledgeTab = () => {
 
   const [filter, setFilter] = useState<KnowledgeType>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedKnowledge, setSelectedKnowledge] = useState<KnowledgeItem | null>(null);
+  const [newKnowledgeTitle, setNewKnowledgeTitle] = useState('');
+  const [newKnowledgeContent, setNewKnowledgeContent] = useState('');
+  const [newKnowledgeType, setNewKnowledgeType] = useState<KnowledgeItem['type']>('success');
 
   // Knowledge query
   const {
@@ -50,6 +57,23 @@ export const KnowledgeTab = () => {
     if (searchQuery && !k.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
+
+  const handleAddKnowledge = () => {
+    if (!newKnowledgeTitle.trim() || !newKnowledgeContent.trim()) {
+      toast.error('タイトルと内容を入力してください');
+      return;
+    }
+    toast.success('ナレッジを追加しました');
+    setIsAddModalOpen(false);
+    setNewKnowledgeTitle('');
+    setNewKnowledgeContent('');
+    setNewKnowledgeType('success');
+  };
+
+  const handleKnowledgeClick = (knowledge: KnowledgeItem) => {
+    setSelectedKnowledge(knowledge);
+    setIsDetailModalOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -79,7 +103,10 @@ export const KnowledgeTab = () => {
             チャンネル成長のための知見を蓄積
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all"
+        >
           <Plus size={16} />
           ナレッジを追加
         </button>
@@ -153,6 +180,7 @@ export const KnowledgeTab = () => {
         {filteredKnowledge.map((knowledge) => (
           <div
             key={knowledge.id}
+            onClick={() => handleKnowledgeClick(knowledge)}
             className={cn(
               'p-5 rounded-2xl border transition-all hover:shadow-md cursor-pointer',
               themeClasses.cardBg,
@@ -215,6 +243,145 @@ export const KnowledgeTab = () => {
           </div>
         )}
       </div>
+
+      {/* Add Knowledge Modal */}
+      <Modal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        title="ナレッジを追加"
+        size="md"
+        footer={
+          <div className="flex gap-3">
+            <button
+              onClick={() => setIsAddModalOpen(false)}
+              className={cn(
+                'flex-1 px-4 py-2 rounded-xl font-medium transition-colors',
+                isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200'
+              )}
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={handleAddKnowledge}
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-medium transition-all"
+            >
+              追加
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              タイプ <span className="text-red-500">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {(Object.keys(TYPE_CONFIG) as KnowledgeItem['type'][]).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setNewKnowledgeType(type)}
+                  className={cn(
+                    'p-3 rounded-xl text-sm font-medium transition-all flex items-center gap-2',
+                    newKnowledgeType === type
+                      ? TYPE_CONFIG[type].color
+                      : cn(isDarkMode ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-600')
+                  )}
+                >
+                  {TYPE_CONFIG[type].icon}
+                  {TYPE_CONFIG[type].label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              タイトル <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={newKnowledgeTitle}
+              onChange={(e) => setNewKnowledgeTitle(e.target.value)}
+              placeholder="例: サムネイルのクリック率を2倍にした方法"
+              className={cn(
+                'w-full px-4 py-2 rounded-xl border',
+                themeClasses.cardBg,
+                themeClasses.cardBorder,
+                themeClasses.text
+              )}
+            />
+          </div>
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              内容 <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={newKnowledgeContent}
+              onChange={(e) => setNewKnowledgeContent(e.target.value)}
+              placeholder="具体的な内容を記述してください"
+              rows={6}
+              className={cn(
+                'w-full px-4 py-2 rounded-xl border resize-none',
+                themeClasses.cardBg,
+                themeClasses.cardBorder,
+                themeClasses.text
+              )}
+            />
+          </div>
+        </div>
+      </Modal>
+
+      {/* Detail Modal */}
+      {selectedKnowledge && (
+        <Modal
+          isOpen={isDetailModalOpen}
+          onClose={() => setIsDetailModalOpen(false)}
+          title={selectedKnowledge.title}
+          size="lg"
+        >
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <span className={cn('px-3 py-1 rounded-lg text-sm font-medium', TYPE_CONFIG[selectedKnowledge.type].color)}>
+                {TYPE_CONFIG[selectedKnowledge.type].icon}
+                <span className="ml-1">{TYPE_CONFIG[selectedKnowledge.type].label}</span>
+              </span>
+              <span className={cn('text-sm', themeClasses.textSecondary)}>
+                {selectedKnowledge.createdAt}
+              </span>
+            </div>
+            <div className={cn('p-4 rounded-xl', isDarkMode ? 'bg-slate-700' : 'bg-slate-50')}>
+              <p className={cn('whitespace-pre-wrap', themeClasses.text)}>
+                {selectedKnowledge.content}
+              </p>
+            </div>
+            {selectedKnowledge.source && (
+              <div>
+                <h5 className={cn('text-sm font-medium mb-1', themeClasses.text)}>出典</h5>
+                <p className={cn('text-sm', themeClasses.textSecondary)}>
+                  {selectedKnowledge.source}
+                </p>
+              </div>
+            )}
+            {selectedKnowledge.tags.length > 0 && (
+              <div>
+                <h5 className={cn('text-sm font-medium mb-2', themeClasses.text)}>タグ</h5>
+                <div className="flex flex-wrap gap-2">
+                  {selectedKnowledge.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className={cn(
+                        'px-3 py-1 rounded-lg text-sm',
+                        isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'
+                      )}
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

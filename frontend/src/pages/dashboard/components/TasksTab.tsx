@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import {
   CheckCircle2,
   Circle,
@@ -63,7 +64,17 @@ const PRIORITY_CONFIG: Record<Task['priority'], { label: string; color: string }
   low: { label: '低', color: 'bg-slate-400' },
 };
 
+// Map task categories to navigation paths
+const CATEGORY_PATHS: Record<TaskCategory, string> = {
+  script: '/script',
+  thumbnail: '/script?tab=thumbnail',
+  video: '/production',
+  publish: '/publish',
+  review: '/planning',
+};
+
 export const TasksTab = () => {
+  const navigate = useNavigate();
   const { mode, getThemeClasses } = useThemeStore();
   const isDarkMode = mode === 'dark';
   const themeClasses = getThemeClasses();
@@ -89,6 +100,11 @@ export const TasksTab = () => {
   const handleToggleComplete = (task: Task) => {
     const newStatus: TaskStatus = task.status === 'completed' ? 'pending' : 'completed';
     updateStatusMutation.mutate({ taskId: task.id, status: newStatus });
+  };
+
+  const handleNavigateToTask = (task: Task) => {
+    const path = CATEGORY_PATHS[task.category];
+    navigate(path);
   };
 
   const tasks = data?.tasks ?? [];
@@ -307,12 +323,14 @@ export const TasksTab = () => {
                     {task.dueTime}
                   </div>
                   <button
+                    onClick={() => handleNavigateToTask(task)}
                     className={cn(
                       'p-2 rounded-lg transition-colors',
                       isDarkMode
                         ? 'hover:bg-slate-700 text-slate-400'
                         : 'hover:bg-slate-100 text-slate-500'
                     )}
+                    title="タスクを開く"
                   >
                     <ChevronRight size={18} />
                   </button>

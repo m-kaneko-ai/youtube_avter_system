@@ -3,15 +3,21 @@ import { useQuery } from '@tanstack/react-query';
 import { UserPlus, Users, Flame, Search, TrendingUp, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
+import { useNavigationStore } from '../../../stores/navigationStore';
 import { researchService } from '../../../services/research';
+import { Modal, toast } from '../../../components/common';
+import type { Competitor, PopularVideo } from '../../../types';
 
 export const CompetitorTab = () => {
   const { mode, getThemeClasses } = useThemeStore();
+  const { setActiveTab } = useNavigationStore();
   const isDarkMode = mode === 'dark';
   const themeClasses = getThemeClasses();
   const [searchQuery, setSearchQuery] = useState('');
   const [validationError, setValidationError] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedCompetitor, setSelectedCompetitor] = useState<Competitor | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // API: GET /api/v1/research/competitors
   const {
@@ -95,6 +101,17 @@ export const CompetitorTab = () => {
       // ローディング終了
       setIsSearching(false);
     }
+  };
+
+  const handleCompetitorDetailClick = (competitor: Competitor) => {
+    setSelectedCompetitor(competitor);
+    setIsModalOpen(true);
+  };
+
+  const handleVideoAnalysisClick = (video: PopularVideo) => {
+    // コメント分析タブへ遷移
+    setActiveTab('research', 'comments');
+    toast.success(`「${video.title}」のコメント分析を開始します`);
   };
 
   // エラー表示
@@ -239,6 +256,7 @@ export const CompetitorTab = () => {
                 </div>
               </div>
               <button
+                onClick={() => handleCompetitorDetailClick(competitor)}
                 className={cn(
                   'px-4 py-2 rounded-lg font-medium transition-colors',
                   isDarkMode
@@ -312,6 +330,7 @@ export const CompetitorTab = () => {
                 </p>
               </div>
               <button
+                onClick={() => handleVideoAnalysisClick(video)}
                 className={cn(
                   'px-3 py-1.5 text-sm rounded-lg transition-colors',
                   isDarkMode
@@ -326,6 +345,96 @@ export const CompetitorTab = () => {
         </div>
         )}
       </div>
+
+      {/* 競合チャンネル詳細モーダル */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="チャンネル詳細"
+        size="lg"
+      >
+        {selectedCompetitor && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <img
+                src={selectedCompetitor.thumbnailUrl}
+                alt={selectedCompetitor.name}
+                className="w-24 h-24 rounded-xl"
+              />
+              <div>
+                <h3 className={cn('text-lg font-bold', themeClasses.text)}>
+                  {selectedCompetitor.name}
+                </h3>
+                <p className={cn('text-sm mt-1', themeClasses.textSecondary)}>
+                  チャンネルID: {selectedCompetitor.channelId}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div
+                className={cn(
+                  'p-4 rounded-xl border',
+                  themeClasses.cardBorder,
+                  themeClasses.inputBg
+                )}
+              >
+                <p className={cn('text-sm', themeClasses.textSecondary)}>登録者数</p>
+                <p className={cn('text-2xl font-bold mt-1', themeClasses.text)}>
+                  {formatNumber(selectedCompetitor.subscriberCount)}
+                </p>
+              </div>
+              <div
+                className={cn(
+                  'p-4 rounded-xl border',
+                  themeClasses.cardBorder,
+                  themeClasses.inputBg
+                )}
+              >
+                <p className={cn('text-sm', themeClasses.textSecondary)}>動画本数</p>
+                <p className={cn('text-2xl font-bold mt-1', themeClasses.text)}>
+                  {selectedCompetitor.videoCount}
+                </p>
+              </div>
+              <div
+                className={cn(
+                  'p-4 rounded-xl border',
+                  themeClasses.cardBorder,
+                  themeClasses.inputBg
+                )}
+              >
+                <p className={cn('text-sm', themeClasses.textSecondary)}>平均視聴回数</p>
+                <p className={cn('text-2xl font-bold mt-1', themeClasses.text)}>
+                  {formatNumber(selectedCompetitor.avgViews)}
+                </p>
+              </div>
+              <div
+                className={cn(
+                  'p-4 rounded-xl border',
+                  themeClasses.cardBorder,
+                  themeClasses.inputBg
+                )}
+              >
+                <p className={cn('text-sm', themeClasses.textSecondary)}>成長率（30日）</p>
+                <p className="text-2xl font-bold mt-1 text-green-600">
+                  +{selectedCompetitor.growthRate}%
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <a
+                href={`https://www.youtube.com/channel/${selectedCompetitor.channelId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all"
+              >
+                YouTubeで開く
+              </a>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Scissors,
@@ -17,6 +18,7 @@ import {
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { productionService, type EditProject } from '../../../services/production';
+import { toast } from '../../../components/common';
 
 type EditStatus = EditProject['status'];
 
@@ -32,18 +34,55 @@ export const EditTab = () => {
   const { mode, getThemeClasses } = useThemeStore();
   const isDarkMode = mode === 'dark';
   const themeClasses = getThemeClasses();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Edit projects query
   const {
     data: projectsData,
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ['production', 'edit', 'projects'],
     queryFn: () => productionService.getEditProjects(),
   });
 
   const projects = projectsData?.projects ?? [];
+
+  const handleSubtitleGenerate = () => {
+    toast.info('字幕生成を開始しました');
+  };
+
+  const handleBGMAdd = () => {
+    toast.info('BGM追加を開始しました');
+  };
+
+  const handleBRollInsert = () => {
+    toast.info('B-roll挿入を開始しました');
+  };
+
+  const handleImportVideo = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      toast.info(`${file.name} をインポートしています...`);
+    }
+  };
+
+  const handleEdit = (_projectId: string) => {
+    toast.info('編集画面を開きます');
+  };
+
+  const handleDownload = (_projectId: string) => {
+    toast.info('ダウンロードを開始しました');
+  };
+
+  const handleRefresh = () => {
+    refetch();
+  };
 
   return (
     <div className="space-y-8">
@@ -83,6 +122,7 @@ export const EditTab = () => {
       {/* Quick Actions */}
       <div className="grid grid-cols-3 gap-4">
         <button
+          onClick={handleSubtitleGenerate}
           className={cn(
             'p-5 rounded-2xl border text-left transition-all hover:shadow-md',
             themeClasses.cardBg,
@@ -96,6 +136,7 @@ export const EditTab = () => {
           </p>
         </button>
         <button
+          onClick={handleBGMAdd}
           className={cn(
             'p-5 rounded-2xl border text-left transition-all hover:shadow-md',
             themeClasses.cardBg,
@@ -109,6 +150,7 @@ export const EditTab = () => {
           </p>
         </button>
         <button
+          onClick={handleBRollInsert}
           className={cn(
             'p-5 rounded-2xl border text-left transition-all hover:shadow-md',
             themeClasses.cardBg,
@@ -128,6 +170,7 @@ export const EditTab = () => {
         <div className="flex items-center justify-between mb-4">
           <h3 className={cn('font-bold text-lg', themeClasses.text)}>編集プロジェクト</h3>
           <button
+            onClick={handleImportVideo}
             className={cn(
               'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors',
               isDarkMode
@@ -138,6 +181,13 @@ export const EditTab = () => {
             <Upload size={16} />
             動画をインポート
           </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="video/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
         </div>
 
         {isLoading ? (
@@ -205,6 +255,7 @@ export const EditTab = () => {
                   {/* Actions */}
                   <div className="flex items-center gap-2">
                     <button
+                      onClick={() => handleEdit(project.id)}
                       className={cn(
                         'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors',
                         isDarkMode
@@ -216,11 +267,17 @@ export const EditTab = () => {
                       編集
                     </button>
                     {project.status === 'exported' && (
-                      <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}>
+                      <button
+                        onClick={() => handleDownload(project.id)}
+                        className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}
+                      >
                         <Download size={18} className={themeClasses.textSecondary} />
                       </button>
                     )}
-                    <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}>
+                    <button
+                      onClick={handleRefresh}
+                      className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}
+                    >
                       <RefreshCw size={18} className={themeClasses.textSecondary} />
                     </button>
                   </div>

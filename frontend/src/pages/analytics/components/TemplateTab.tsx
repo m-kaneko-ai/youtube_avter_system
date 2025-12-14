@@ -18,6 +18,7 @@ import {
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { analyticsService, type Template } from '../../../services/analytics';
+import { Modal, toast } from '../../../components/common';
 
 type TemplateType = 'all' | Template['type'];
 
@@ -36,6 +37,10 @@ export const TemplateTab = () => {
   const [filter, setFilter] = useState<TemplateType>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showHighRatedOnly, setShowHighRatedOnly] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newTemplateName, setNewTemplateName] = useState('');
+  const [newTemplateDesc, setNewTemplateDesc] = useState('');
+  const [newTemplateType, setNewTemplateType] = useState<Template['type']>('script');
 
   // Templates query
   const {
@@ -55,6 +60,30 @@ export const TemplateTab = () => {
     if (searchQuery && !t.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
+
+  const handleCreateTemplate = () => {
+    if (!newTemplateName.trim() || !newTemplateDesc.trim()) {
+      toast.error('テンプレート名と説明を入力してください');
+      return;
+    }
+    toast.success('テンプレートを作成しました');
+    setIsCreateModalOpen(false);
+    setNewTemplateName('');
+    setNewTemplateDesc('');
+    setNewTemplateType('script');
+  };
+
+  const handleUseTemplate = (templateName: string) => {
+    toast.success(`${templateName} を使用します`);
+  };
+
+  const handleEditTemplate = (templateName: string) => {
+    toast.info(`${templateName} を編集します`);
+  };
+
+  const handleDeleteTemplate = (templateName: string) => {
+    toast.error(`${templateName} を削除しました`);
+  };
 
   if (isLoading) {
     return (
@@ -84,7 +113,10 @@ export const TemplateTab = () => {
             よく使うテンプレートを管理して効率化
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all"
+        >
           <Plus size={16} />
           テンプレート作成
         </button>
@@ -214,14 +246,23 @@ export const TemplateTab = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors">
+              <button
+                onClick={() => handleUseTemplate(template.name)}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+              >
                 <Copy size={14} />
                 使用する
               </button>
-              <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}>
+              <button
+                onClick={() => handleEditTemplate(template.name)}
+                className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}
+              >
                 <Edit size={16} className={themeClasses.textSecondary} />
               </button>
-              <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-red-900/30 text-slate-400 hover:text-red-400' : 'hover:bg-red-50 text-slate-500 hover:text-red-500')}>
+              <button
+                onClick={() => handleDeleteTemplate(template.name)}
+                className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-red-900/30 text-slate-400 hover:text-red-400' : 'hover:bg-red-50 text-slate-500 hover:text-red-500')}
+              >
                 <Trash2 size={16} />
               </button>
             </div>
@@ -234,6 +275,92 @@ export const TemplateTab = () => {
           該当するテンプレートがありません
         </div>
       )}
+
+      {/* Create Template Modal */}
+      <Modal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        title="テンプレート作成"
+        size="md"
+        footer={
+          <div className="flex gap-3">
+            <button
+              onClick={() => setIsCreateModalOpen(false)}
+              className={cn(
+                'flex-1 px-4 py-2 rounded-xl font-medium transition-colors',
+                isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200'
+              )}
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={handleCreateTemplate}
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-medium transition-all"
+            >
+              作成
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              テンプレートタイプ <span className="text-red-500">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {(Object.keys(TYPE_CONFIG) as Template['type'][]).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setNewTemplateType(type)}
+                  className={cn(
+                    'p-3 rounded-xl text-sm font-medium transition-all flex items-center gap-2',
+                    newTemplateType === type
+                      ? TYPE_CONFIG[type].color
+                      : cn(isDarkMode ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-600')
+                  )}
+                >
+                  {TYPE_CONFIG[type].icon}
+                  {TYPE_CONFIG[type].label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              テンプレート名 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={newTemplateName}
+              onChange={(e) => setNewTemplateName(e.target.value)}
+              placeholder="例: 解説動画用台本テンプレート"
+              className={cn(
+                'w-full px-4 py-2 rounded-xl border',
+                themeClasses.cardBg,
+                themeClasses.cardBorder,
+                themeClasses.text
+              )}
+            />
+          </div>
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              説明 <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={newTemplateDesc}
+              onChange={(e) => setNewTemplateDesc(e.target.value)}
+              placeholder="テンプレートの説明を入力してください"
+              rows={4}
+              className={cn(
+                'w-full px-4 py-2 rounded-xl border resize-none',
+                themeClasses.cardBg,
+                themeClasses.cardBorder,
+                themeClasses.text
+              )}
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

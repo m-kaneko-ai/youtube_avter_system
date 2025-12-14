@@ -16,6 +16,7 @@ import {
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { publishService } from '../../../services/publish';
+import { Modal, toast } from '../../../components/common';
 
 // Platform UI configuration
 const PLATFORM_CONFIG: Record<string, { name: string; icon: React.ReactNode; color: string }> = {
@@ -56,6 +57,15 @@ export const MultiPlatformTab = () => {
   const crossPosts = crossPostsData?.crossPosts ?? [];
 
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['youtube', 'tiktok']);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const [selectedPlatformForSettings, setSelectedPlatformForSettings] = useState<typeof platforms[0] | null>(null);
+  const [selectedPlatformForConnect, setSelectedPlatformForConnect] = useState<string>('');
+  const [autoConvertOptions, setAutoConvertOptions] = useState({
+    autoTrim: true,
+    autoSubtitle: true,
+    autoHashtag: false,
+  });
 
   // Transform platform connections to include UI config
   const platforms = useMemo(() => {
@@ -76,6 +86,37 @@ export const MultiPlatformTab = () => {
 
   const getPlatformIcon = (platformId: string) => {
     return PLATFORM_CONFIG[platformId]?.icon;
+  };
+
+  const handleSyncClick = (platform: typeof platforms[0]) => {
+    toast.info(`${platform.name}との同期を開始しました`);
+  };
+
+  const handleSettingsClick = (platform: typeof platforms[0]) => {
+    setSelectedPlatformForSettings(platform);
+    setIsSettingsModalOpen(true);
+  };
+
+  const handleUnlinkClick = (platform: typeof platforms[0]) => {
+    if (window.confirm(`${platform.name}との連携を解除してもよろしいですか？`)) {
+      toast.success(`${platform.name}との連携を解除しました`);
+    }
+  };
+
+  const handleConnectClick = (platformId: string) => {
+    setSelectedPlatformForConnect(platformId);
+    setIsConnectModalOpen(true);
+  };
+
+  const handleConnectSubmit = () => {
+    const platformName = PLATFORM_CONFIG[selectedPlatformForConnect]?.name || selectedPlatformForConnect;
+    toast.success(`${platformName}と連携しました`);
+    setIsConnectModalOpen(false);
+    setSelectedPlatformForConnect('');
+  };
+
+  const handleDetailClick = (_post: typeof crossPosts[0]) => {
+    toast.info('詳細を表示します');
   };
 
   const isLoading = isLoadingPlatforms || isLoadingCrossPosts;
@@ -153,21 +194,33 @@ export const MultiPlatformTab = () => {
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <button className={cn('flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors', isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700')}>
+                      <button
+                        onClick={() => handleSyncClick(platform)}
+                        className={cn('flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors', isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700')}
+                      >
                         <RefreshCw size={14} />
                         同期
                       </button>
-                      <button className={cn('flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors', isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700')}>
+                      <button
+                        onClick={() => handleSettingsClick(platform)}
+                        className={cn('flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors', isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700')}
+                      >
                         <Settings size={14} />
                         設定
                       </button>
-                      <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-red-900/30 text-slate-400 hover:text-red-400' : 'hover:bg-red-50 text-slate-500 hover:text-red-500')}>
+                      <button
+                        onClick={() => handleUnlinkClick(platform)}
+                        className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-red-900/30 text-slate-400 hover:text-red-400' : 'hover:bg-red-50 text-slate-500 hover:text-red-500')}
+                      >
                         <Unlink size={14} />
                       </button>
                     </div>
                   </>
                 ) : (
-                  <button className={cn('w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors mt-4', isDarkMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white')}>
+                  <button
+                    onClick={() => handleConnectClick(platform.platform)}
+                    className={cn('w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors mt-4', isDarkMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white')}
+                  >
                     <Link2 size={16} />
                     連携する
                   </button>
@@ -225,15 +278,30 @@ export const MultiPlatformTab = () => {
           <h4 className={cn('font-medium mb-2', themeClasses.text)}>自動変換オプション</h4>
           <div className="space-y-2">
             <label className="flex items-center gap-2">
-              <input type="checkbox" defaultChecked className="rounded" />
+              <input
+                type="checkbox"
+                checked={autoConvertOptions.autoTrim}
+                onChange={(e) => setAutoConvertOptions({ ...autoConvertOptions, autoTrim: e.target.checked })}
+                className="rounded"
+              />
               <span className={cn('text-sm', themeClasses.textSecondary)}>ショート動画形式に自動トリミング</span>
             </label>
             <label className="flex items-center gap-2">
-              <input type="checkbox" defaultChecked className="rounded" />
+              <input
+                type="checkbox"
+                checked={autoConvertOptions.autoSubtitle}
+                onChange={(e) => setAutoConvertOptions({ ...autoConvertOptions, autoSubtitle: e.target.checked })}
+                className="rounded"
+              />
               <span className={cn('text-sm', themeClasses.textSecondary)}>字幕を自動追加</span>
             </label>
             <label className="flex items-center gap-2">
-              <input type="checkbox" className="rounded" />
+              <input
+                type="checkbox"
+                checked={autoConvertOptions.autoHashtag}
+                onChange={(e) => setAutoConvertOptions({ ...autoConvertOptions, autoHashtag: e.target.checked })}
+                className="rounded"
+              />
               <span className={cn('text-sm', themeClasses.textSecondary)}>ハッシュタグを自動生成</span>
             </label>
           </div>
@@ -294,7 +362,10 @@ export const MultiPlatformTab = () => {
                       </div>
                     ))}
                   </div>
-                  <button className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}>
+                  <button
+                    onClick={() => handleDetailClick(post)}
+                    className={cn('p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100')}
+                  >
                     <ExternalLink size={16} className={themeClasses.textSecondary} />
                   </button>
                 </div>
@@ -303,6 +374,135 @@ export const MultiPlatformTab = () => {
           </div>
         )}
       </div>
+
+      {/* Settings Modal */}
+      <Modal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        title={`${selectedPlatformForSettings?.name || ''}設定`}
+        size="md"
+        footer={
+          <div className="flex items-center gap-3 justify-end">
+            <button
+              onClick={() => setIsSettingsModalOpen(false)}
+              className={cn(
+                'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+              )}
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={() => {
+                toast.success(`${selectedPlatformForSettings?.name}の設定を保存しました`);
+                setIsSettingsModalOpen(false);
+              }}
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-lg text-sm font-bold transition-all"
+            >
+              保存する
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              アカウント名
+            </label>
+            <input
+              type="text"
+              defaultValue={selectedPlatformForSettings?.accountName || ''}
+              className={cn(
+                'w-full px-4 py-2 rounded-lg border transition-colors',
+                isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
+                  : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'
+              )}
+            />
+          </div>
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              自動投稿を有効にする
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" defaultChecked className="rounded" />
+              <span className={cn('text-sm', themeClasses.textSecondary)}>
+                YouTubeの投稿を自動的にこのプラットフォームに展開する
+              </span>
+            </label>
+          </div>
+          <div>
+            <label className={cn('block text-sm font-medium mb-2', themeClasses.text)}>
+              投稿タイミング
+            </label>
+            <select
+              className={cn(
+                'w-full px-4 py-2 rounded-lg border transition-colors',
+                isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white'
+                  : 'bg-white border-slate-200 text-slate-900'
+              )}
+            >
+              <option>即時投稿</option>
+              <option>30分後</option>
+              <option>1時間後</option>
+              <option>3時間後</option>
+              <option>6時間後</option>
+            </select>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Connect Modal */}
+      <Modal
+        isOpen={isConnectModalOpen}
+        onClose={() => setIsConnectModalOpen(false)}
+        title={`${PLATFORM_CONFIG[selectedPlatformForConnect]?.name || ''}と連携`}
+        size="md"
+        footer={
+          <div className="flex items-center gap-3 justify-end">
+            <button
+              onClick={() => setIsConnectModalOpen(false)}
+              className={cn(
+                'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+              )}
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={handleConnectSubmit}
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-lg text-sm font-bold transition-all"
+            >
+              連携する
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div className={cn('p-4 rounded-xl text-center', isDarkMode ? 'bg-slate-800' : 'bg-slate-50')}>
+            <div className="flex justify-center mb-4">
+              <div className={cn('p-4 rounded-2xl', isDarkMode ? 'bg-slate-700' : 'bg-white')}>
+                <span className={PLATFORM_CONFIG[selectedPlatformForConnect]?.color}>
+                  {PLATFORM_CONFIG[selectedPlatformForConnect]?.icon}
+                </span>
+              </div>
+            </div>
+            <h4 className={cn('font-bold mb-2', themeClasses.text)}>
+              {PLATFORM_CONFIG[selectedPlatformForConnect]?.name}アカウントと連携
+            </h4>
+            <p className={cn('text-sm', themeClasses.textSecondary)}>
+              {PLATFORM_CONFIG[selectedPlatformForConnect]?.name}
+              アカウントへのアクセス権限を許可してください
+            </p>
+          </div>
+          <div className={cn('p-3 rounded-lg text-sm', isDarkMode ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-50 text-blue-700')}>
+            <AlertCircle size={16} className="inline mr-2" />
+            この操作により、{PLATFORM_CONFIG[selectedPlatformForConnect]?.name}
+            の認証ページに移動します
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
