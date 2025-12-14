@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>リサーチ - Creator Studio AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- サイドバー -->
+        <aside class="w-72 bg-white border-r border-slate-100 flex flex-col">
+            <!-- ロゴ -->
+            <div class="h-20 flex items-center px-6 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
+                        <i data-lucide="video" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <span class="font-bold text-xl text-slate-800">Creator Studio</span>
+                </div>
+            </div>
+
+            <!-- 新規プロジェクトボタン -->
+            <div class="p-4">
+                <button class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                    新規プロジェクト
+                </button>
+            </div>
+
+            <!-- ナビゲーションメニュー -->
+            <nav class="flex-1 px-4 py-2 overflow-y-auto">
+                <div class="space-y-1">
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors relative">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                        <span class="font-medium">ダッシュボード</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 text-blue-700 transition-colors relative">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                        <span class="font-medium">リサーチ</span>
+                        <div class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-500 rounded-l-full"></div>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors relative">
+                        <i data-lucide="lightbulb" class="w-5 h-5"></i>
+                        <span class="font-medium">企画・計画</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors relative">
+                        <i data-lucide="file-text" class="w-5 h-5"></i>
+                        <span class="font-medium">台本・メタデータ</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors relative">
+                        <i data-lucide="film" class="w-5 h-5"></i>
+                        <span class="font-medium">動画制作</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors relative">
+                        <i data-lucide="upload" class="w-5 h-5"></i>
+                        <span class="font-medium">公開・配信</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors relative">
+                        <i data-lucide="bar-chart" class="w-5 h-5"></i>
+                        <span class="font-medium">分析・ナレッジ</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors relative">
+                        <i data-lucide="settings" class="w-5 h-5"></i>
+                        <span class="font-medium">管理</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Pro Planカード -->
+            <div class="p-4">
+                <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-5 text-white">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i data-lucide="crown" class="w-5 h-5"></i>
+                        <span class="font-bold">Pro Plan</span>
+                    </div>
+                    <p class="text-sm text-indigo-100 mb-4">全機能を無制限に利用可能</p>
+                    <button class="w-full bg-white text-indigo-600 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-indigo-50 transition-colors">
+                        プランを管理
+                    </button>
+                </div>
+            </div>
+
+            <!-- ログアウト -->
+            <div class="p-4 border-t border-slate-100">
+                <button class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors w-full">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                    <span class="font-medium">ログアウト</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- メインコンテンツ -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <!-- ヘッダー -->
+            <header class="h-20 bg-white border-b border-slate-100 flex items-center justify-between px-8">
+                <div class="flex-1 max-w-md">
+                    <div class="relative">
+                        <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
+                        <input
+                            type="text"
+                            placeholder="検索..."
+                            class="w-full bg-slate-50 border-none rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:outline-none"
+                        >
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="relative p-2 hover:bg-slate-50 rounded-xl transition-colors">
+                        <i data-lucide="bell" class="w-6 h-6 text-slate-600"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    <div class="flex items-center gap-3 pl-4 border-l border-slate-200">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
+                            K
+                        </div>
+                        <div>
+                            <div class="font-semibold text-slate-800">金子 光義</div>
+                            <div class="text-xs text-slate-500">Owner</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- タブナビゲーション -->
+            <div class="bg-white border-b border-slate-100 px-8 py-6">
+                <div class="mb-6">
+                    <h1 class="text-3xl font-bold text-slate-800">リサーチ</h1>
+                    <p class="text-slate-500 mt-1">トレンドと競合の分析</p>
+                </div>
+                <div class="bg-slate-100/80 rounded-xl p-1 inline-flex gap-1">
+                    <button class="tab-button active px-6 py-2.5 rounded-xl font-medium transition-all bg-white shadow-sm text-slate-800" data-tab="competitors">
+                        競合リサーチ
+                    </button>
+                    <button class="tab-button px-6 py-2.5 rounded-xl font-medium transition-all text-slate-600 hover:text-slate-800" data-tab="trends">
+                        トレンド分析
+                    </button>
+                    <button class="tab-button px-6 py-2.5 rounded-xl font-medium transition-all text-slate-600 hover:text-slate-800" data-tab="comments">
+                        コメント分析
+                    </button>
+                </div>
+            </div>
+
+            <!-- コンテンツエリア -->
+            <div class="flex-1 overflow-y-auto p-8">
+                <!-- タブ1: 競合リサーチ -->
+                <div id="tab-competitors" class="tab-content">
+                    <div class="max-w-6xl mx-auto space-y-6">
+                        <!-- チャンネル検索 -->
+                        <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                            <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <i data-lucide="user-plus" class="w-6 h-6 text-blue-600"></i>
+                                競合チャンネルを追加
+                            </h2>
+                            <div class="flex gap-3">
+                                <input
+                                    type="text"
+                                    placeholder="チャンネルURLまたはチャンネル名を入力"
+                                    class="flex-1 bg-slate-50 rounded-xl px-4 py-3 border-none focus:ring-2 focus:ring-blue-500/50 focus:outline-none"
+                                >
+                                <button class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all flex items-center gap-2">
+                                    <i data-lucide="search" class="w-5 h-5"></i>
+                                    調査開始
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 登録済み競合チャンネル -->
+                        <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                            <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <i data-lucide="users" class="w-6 h-6 text-blue-600"></i>
+                                登録済み競合チャンネル
+                            </h2>
+                            <div class="space-y-4">
+                                <!-- チャンネル1 -->
+                                <div class="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors border border-slate-100">
+                                    <img src="https://via.placeholder.com/80" alt="Channel" class="w-20 h-20 rounded-xl">
+                                    <div class="flex-1">
+                                        <h3 class="font-bold text-slate-800">マーケティングチャンネルA</h3>
+                                        <p class="text-sm text-slate-500 mt-1">登録者 125万人 • 動画 342本</p>
+                                        <div class="flex gap-4 mt-2">
+                                            <span class="text-xs text-green-600 flex items-center gap-1">
+                                                <i data-lucide="trending-up" class="w-3 h-3"></i>
+                                                +12.5% (30日)
+                                            </span>
+                                            <span class="text-xs text-slate-500">平均視聴回数: 8.2万</span>
+                                        </div>
+                                    </div>
+                                    <button class="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium hover:bg-blue-100 transition-colors">
+                                        詳細を見る
+                                    </button>
+                                </div>
+
+                                <!-- チャンネル2 -->
+                                <div class="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors border border-slate-100">
+                                    <img src="https://via.placeholder.com/80" alt="Channel" class="w-20 h-20 rounded-xl">
+                                    <div class="flex-1">
+                                        <h3 class="font-bold text-slate-800">ビジネス解説チャンネル</h3>
+                                        <p class="text-sm text-slate-500 mt-1">登録者 89万人 • 動画 215本</p>
+                                        <div class="flex gap-4 mt-2">
+                                            <span class="text-xs text-green-600 flex items-center gap-1">
+                                                <i data-lucide="trending-up" class="w-3 h-3"></i>
+                                                +8.3% (30日)
+                                            </span>
+                                            <span class="text-xs text-slate-500">平均視聴回数: 5.1万</span>
+                                        </div>
+                                    </div>
+                                    <button class="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium hover:bg-blue-100 transition-colors">
+                                        詳細を見る
+                                    </button>
+                                </div>
+
+                                <!-- チャンネル3 -->
+                                <div class="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors border border-slate-100">
+                                    <img src="https://via.placeholder.com/80" alt="Channel" class="w-20 h-20 rounded-xl">
+                                    <div class="flex-1">
+                                        <h3 class="font-bold text-slate-800">起業家ストーリー</h3>
+                                        <p class="text-sm text-slate-500 mt-1">登録者 67万人 • 動画 178本</p>
+                                        <div class="flex gap-4 mt-2">
+                                            <span class="text-xs text-green-600 flex items-center gap-1">
+                                                <i data-lucide="trending-up" class="w-3 h-3"></i>
+                                                +15.2% (30日)
+                                            </span>
+                                            <span class="text-xs text-slate-500">平均視聴回数: 3.8万</span>
+                                        </div>
+                                    </div>
+                                    <button class="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium hover:bg-blue-100 transition-colors">
+                                        詳細を見る
+                                    </button>
+                                </div>
+
+                                <!-- チャンネル4 -->
+                                <div class="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors border border-slate-100">
+                                    <img src="https://via.placeholder.com/80" alt="Channel" class="w-20 h-20 rounded-xl">
+                                    <div class="flex-1">
+                                        <h3 class="font-bold text-slate-800">テック業界ニュース</h3>
+                                        <p class="text-sm text-slate-500 mt-1">登録者 52万人 • 動画 412本</p>
+                                        <div class="flex gap-4 mt-2">
+                                            <span class="text-xs text-green-600 flex items-center gap-1">
+                                                <i data-lucide="trending-up" class="w-3 h-3"></i>
+                                                +6.7% (30日)
+                                            </span>
+                                            <span class="text-xs text-slate-500">平均視聴回数: 2.9万</span>
+                                        </div>
+                                    </div>
+                                    <button class="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium hover:bg-blue-100 transition-colors">
+                                        詳細を見る
+                                    </button>
+                                </div>
+
+                                <!-- チャンネル5 -->
+                                <div class="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors border border-slate-100">
+                                    <img src="https://via.placeholder.com/80" alt="Channel" class="w-20 h-20 rounded-xl">
+                                    <div class="flex-1">
+                                        <h3 class="font-bold text-slate-800">キャリア戦略ラボ</h3>
+                                        <p class="text-sm text-slate-500 mt-1">登録者 43万人 • 動画 156本</p>
+                                        <div class="flex gap-4 mt-2">
+                                            <span class="text-xs text-green-600 flex items-center gap-1">
+                                                <i data-lucide="trending-up" class="w-3 h-3"></i>
+                                                +10.1% (30日)
+                                            </span>
+                                            <span class="text-xs text-slate-500">平均視聴回数: 2.2万</span>
+                                        </div>
+                                    </div>
+                                    <button class="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium hover:bg-blue-100 transition-colors">
+                                        詳細を見る
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 競合の人気動画TOP10 -->
+                        <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                            <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <i data-lucide="flame" class="w-6 h-6 text-orange-500"></i>
+                                競合の人気動画 TOP10
+                            </h2>
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                    <span class="font-bold text-2xl text-slate-300 w-8">1</span>
+                                    <img src="https://via.placeholder.com/120x68" alt="Video" class="w-32 h-18 rounded-lg object-cover">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-slate-800">【完全解説】マーケティング戦略の基本5ステップ</h4>
+                                        <p class="text-sm text-slate-500 mt-1">マーケティングチャンネルA • 128万回視聴 • 3日前</p>
+                                    </div>
+                                    <button class="px-3 py-1.5 text-sm bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors">
+                                        分析
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                    <span class="font-bold text-2xl text-slate-300 w-8">2</span>
+                                    <img src="https://via.placeholder.com/120x68" alt="Video" class="w-32 h-18 rounded-lg object-cover">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-slate-800">起業3年で年商10億円を達成した方法</h4>
+                                        <p class="text-sm text-slate-500 mt-1">起業家ストーリー • 95万回視聴 • 5日前</p>
+                                    </div>
+                                    <button class="px-3 py-1.5 text-sm bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors">
+                                        分析
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                    <span class="font-bold text-2xl text-slate-300 w-8">3</span>
+                                    <img src="https://via.placeholder.com/120x68" alt="Video" class="w-32 h-18 rounded-lg object-cover">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-slate-800">2024年注目のビジネストレンド10選</h4>
+                                        <p class="text-sm text-slate-500 mt-1">ビジネス解説チャンネル • 82万回視聴 • 1週間前</p>
+                                    </div>
+                                    <button class="px-3 py-1.5 text-sm bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors">
+                                        分析
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                    <span class="font-bold text-2xl text-slate-300 w-8">4</span>
+                                    <img src="https://via.placeholder.com/120x68" alt="Video" class="w-32 h-18 rounded-lg object-cover">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-slate-800">AI時代の転職戦略【2025年版】</h4>
+                                        <p class="text-sm text-slate-500 mt-1">キャリア戦略ラボ • 76万回視聴 • 4日前</p>
+                                    </div>
+                                    <button class="px-3 py-1.5 text-sm bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors">
+                                        分析
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                    <span class="font-bold text-2xl text-slate-300 w-8">5</span>
+                                    <img src="https://via.placeholder.com/120x68" alt="Video" class="w-32 h-18 rounded-lg object-cover">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-slate-800">最新テクノロジーニュースまとめ【12月版】</h4>
+                                        <p class="text-sm text-slate-500 mt-1">テック業界ニュース • 68万回視聴 • 2日前</p>
+                                    </div>
+                                    <button class="px-3 py-1.5 text-sm bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors">
+                                        分析
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                    <span class="font-bold text-2xl text-slate-300 w-8">6</span>
+                                    <img src="https://via.placeholder.com/120x68" alt="Video" class="w-32 h-18 rounded-lg object-cover">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-slate-800">SNSマーケティングで成功する3つの秘訣</h4>
+                                        <p class="text-sm text-slate-500 mt-1">マーケティングチャンネルA • 61万回視聴 • 1週間前</p>
+                                    </div>
+                                    <button class="px-3 py-1.5 text-sm bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors">
+                                        分析
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                    <span class="font-bold text-2xl text-slate-300 w-8">7</span>
+                                    <img src="https://via.placeholder.com/120x68" alt="Video" class="w-32 h-18 rounded-lg object-cover">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-slate-800">副業で月収50万円を実現する方法</h4>
+                                        <p class="text-sm text-slate-500 mt-1">ビジネス解説チャンネル • 58万回視聴 • 6日前</p>
+                                    </div>
+                                    <button class="px-3 py-1.5 text-sm bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors">
+                                        分析
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                    <span class="font-bold text-2xl text-slate-300 w-8">8</span>
+                                    <img src="https://via.placeholder.com/120x68" alt="Video" class="w-32 h-18 rounded-lg object-cover">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-slate-800">成功する起業家の朝のルーティン</h4>
+                                        <p class="text-sm text-slate-500 mt-1">起業家ストーリー • 54万回視聴 • 3日前</p>
+                                    </div>
+                                    <button class="px-3 py-1.5 text-sm bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors">
+                                        分析
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                    <span class="font-bold text-2xl text-slate-300 w-8">9</span>
+                                    <img src="https://via.placeholder.com/120x68" alt="Video" class="w-32 h-18 rounded-lg object-cover">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-slate-800">年収1000万円超えのキャリアパス設計術</h4>
+                                        <p class="text-sm text-slate-500 mt-1">キャリア戦略ラボ • 49万回視聴 • 5日前</p>
+                                    </div>
+                                    <button class="px-3 py-1.5 text-sm bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors">
+                                        分析
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                    <span class="font-bold text-2xl text-slate-300 w-8">10</span>
+                                    <img src="https://via.placeholder.com/120x68" alt="Video" class="w-32 h-18 rounded-lg object-cover">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-slate-800">ChatGPT活用で業務効率10倍にする方法</h4>
+                                        <p class="text-sm text-slate-500 mt-1">テック業界ニュース • 47万回視聴 • 4日前</p>
+                                    </div>
+                                    <button class="px-3 py-1.5 text-sm bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors">
+                                        分析
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- タブ2: トレンド分析 -->
+                <div id="tab-trends" class="tab-content hidden">
+                    <div class="max-w-6xl mx-auto space-y-6">
+                        <!-- フィルター -->
+                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                            <div class="flex gap-4">
+                                <select class="bg-slate-50 rounded-xl px-4 py-3 border-none focus:ring-2 focus:ring-blue-500/50 focus:outline-none">
+                                    <option>カテゴリ: 全て</option>
+                                    <option>ビジネス</option>
+                                    <option>テクノロジー</option>
+                                    <option>マーケティング</option>
+                                    <option>キャリア</option>
+                                </select>
+                                <select class="bg-slate-50 rounded-xl px-4 py-3 border-none focus:ring-2 focus:ring-blue-500/50 focus:outline-none">
+                                    <option>期間: 7日間</option>
+                                    <option>24時間</option>
+                                    <option>30日間</option>
+                                    <option>90日間</option>
+                                </select>
+                                <button class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all">
+                                    更新
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 急上昇キーワード -->
+                        <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                            <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <i data-lucide="trending-up" class="w-6 h-6 text-orange-500"></i>
+                                急上昇キーワード
+                            </h2>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="p-4 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all cursor-pointer">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="font-bold text-slate-800 flex items-center gap-2">
+                                            🔥 AIマーケティング
+                                        </span>
+                                        <span class="text-sm font-semibold text-green-600">+245%</span>
+                                    </div>
+                                    <p class="text-sm text-slate-500">検索数: 128,500</p>
+                                </div>
+
+                                <div class="p-4 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all cursor-pointer">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="font-bold text-slate-800 flex items-center gap-2">
+                                            🔥 副業 2025
+                                        </span>
+                                        <span class="text-sm font-semibold text-green-600">+198%</span>
+                                    </div>
+                                    <p class="text-sm text-slate-500">検索数: 95,200</p>
+                                </div>
+
+                                <div class="p-4 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all cursor-pointer">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="font-bold text-slate-800 flex items-center gap-2">
+                                            🔥 ChatGPT活用法
+                                        </span>
+                                        <span class="text-sm font-semibold text-green-600">+176%</span>
+                                    </div>
+                                    <p class="text-sm text-slate-500">検索数: 82,400</p>
+                                </div>
+
+                                <div class="p-4 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all cursor-pointer">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="font-bold text-slate-800 flex items-center gap-2">
+                                            🔥 リモートワーク転職
+                                        </span>
+                                        <span class="text-sm font-semibold text-green-600">+152%</span>
+                                    </div>
+                                    <p class="text-sm text-slate-500">検索数: 67,800</p>
+                                </div>
+
+                                <div class="p-4 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all cursor-pointer">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="font-bold text-slate-800 flex items-center gap-2">
+                                            🔥 SNS運用代行
+                                        </span>
+                                        <span class="text-sm font-semibold text-green-600">+134%</span>
+                                    </div>
+                                    <p class="text-sm text-slate-500">検索数: 54,300</p>
+                                </div>
+
+                                <div class="p-4 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all cursor-pointer">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="font-bold text-slate-800 flex items-center gap-2">
+                                            🔥 動画編集スキル
+                                        </span>
+                                        <span class="text-sm font-semibold text-green-600">+121%</span>
+                                    </div>
+                                    <p class="text-sm text-slate-500">検索数: 48,900</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 関連ニュース・話題 -->
+                        <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                            <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <i data-lucide="newspaper" class="w-6 h-6 text-blue-600"></i>
+                                関連ニュース・話題
+                            </h2>
+                            <div class="space-y-4">
+                                <div class="p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
+                                    <div class="flex gap-4">
+                                        <img src="https://via.placeholder.com/100" alt="News" class="w-24 h-24 rounded-lg object-cover">
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-slate-800 mb-1">AI活用でマーケティング業界が大きく変化</h3>
+                                            <p class="text-sm text-slate-500 mb-2">生成AIを活用したマーケティング手法が急速に普及。従来の手法との組み合わせが鍵に。</p>
+                                            <span class="text-xs text-slate-400">TechCrunch • 2時間前</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
+                                    <div class="flex gap-4">
+                                        <img src="https://via.placeholder.com/100" alt="News" class="w-24 h-24 rounded-lg object-cover">
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-slate-800 mb-1">副業解禁企業が過去最高を記録</h3>
+                                            <p class="text-sm text-slate-500 mb-2">2025年、副業を認める企業が全体の68%に。働き方の多様化が加速。</p>
+                                            <span class="text-xs text-slate-400">日本経済新聞 • 5時間前</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
+                                    <div class="flex gap-4">
+                                        <img src="https://via.placeholder.com/100" alt="News" class="w-24 h-24 rounded-lg object-cover">
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-slate-800 mb-1">動画コンテンツ市場が前年比150%成長</h3>
+                                            <p class="text-sm text-slate-500 mb-2">ショート動画を中心に市場が急拡大。企業のマーケティング予算も動画に集中。</p>
+                                            <span class="text-xs text-slate-400">MarkeZine • 1日前</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Amazon書籍ランキング -->
+                        <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                            <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <i data-lucide="book-open" class="w-6 h-6 text-orange-600"></i>
+                                Amazon書籍ランキング（ビジネス・マーケティング）
+                            </h2>
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                    <span class="font-bold text-xl text-slate-300 w-6">1</span>
+                                    <img src="https://via.placeholder.com/60x90" alt="Book" class="w-16 h-24 rounded object-cover">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-slate-800">AIマーケティング実践ガイド</h4>
+                                        <p class="text-sm text-slate-500 mt-1">★★★★★ 4.8 (2,345件)</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                    <span class="font-bold text-xl text-slate-300 w-6">2</span>
+                                    <img src="https://via.placeholder.com/60x90" alt="Book" class="w-16 h-24 rounded object-cover">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-slate-800">副業で月50万円稼ぐ方法</h4>
+                                        <p class="text-sm text-slate-500 mt-1">★★★★☆ 4.5 (1,892件)</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                    <span class="font-bold text-xl text-slate-300 w-6">3</span>
+                                    <img src="https://via.placeholder.com/60x90" alt="Book" class="w-16 h-24 rounded object-cover">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-slate-800">動画マーケティング完全マニュアル</h4>
+                                        <p class="text-sm text-slate-500 mt-1">★★★★★ 4.7 (1,543件)</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                    <span class="font-bold text-xl text-slate-300 w-6">4</span>
+                                    <img src="https://via.placeholder.com/60x90" alt="Book" class="w-16 h-24 rounded object-cover">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-slate-800">ChatGPT仕事術大全</h4>
+                                        <p class="text-sm text-slate-500 mt-1">★★★★☆ 4.6 (1,234件)</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                    <span class="font-bold text-xl text-slate-300 w-6">5</span>
+                                    <img src="https://via.placeholder.com/60x90" alt="Book" class="w-16 h-24 rounded object-cover">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-slate-800">SNS運用の教科書【2025年版】</h4>
+                                        <p class="text-sm text-slate-500 mt-1">★★★★★ 4.8 (987件)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- タブ3: コメント分析 -->
+                <div id="tab-comments" class="tab-content hidden">
+                    <div class="max-w-6xl mx-auto space-y-6">
+                        <!-- URL入力 -->
+                        <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                            <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <i data-lucide="message-square" class="w-6 h-6 text-blue-600"></i>
+                                YouTube動画のコメントを分析
+                            </h2>
+                            <div class="flex gap-3">
+                                <input
+                                    type="text"
+                                    placeholder="YouTube動画のURLを入力"
+                                    class="flex-1 bg-slate-50 rounded-xl px-4 py-3 border-none focus:ring-2 focus:ring-blue-500/50 focus:outline-none"
+                                    value="https://www.youtube.com/watch?v=example123"
+                                >
+                                <button class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all flex items-center gap-2">
+                                    <i data-lucide="play" class="w-5 h-5"></i>
+                                    分析開始
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 感情分析 -->
+                        <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                            <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <i data-lucide="smile" class="w-6 h-6 text-green-600"></i>
+                                コメント感情分析
+                            </h2>
+                            <div class="grid grid-cols-3 gap-6">
+                                <div class="text-center p-6 rounded-2xl bg-green-50 border border-green-100">
+                                    <div class="text-4xl font-bold text-green-600 mb-2">68%</div>
+                                    <div class="text-sm font-medium text-green-700 flex items-center justify-center gap-2">
+                                        <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+                                        ポジティブ
+                                    </div>
+                                    <div class="text-xs text-green-600 mt-1">1,256件</div>
+                                </div>
+                                <div class="text-center p-6 rounded-2xl bg-slate-50 border border-slate-100">
+                                    <div class="text-4xl font-bold text-slate-600 mb-2">25%</div>
+                                    <div class="text-sm font-medium text-slate-700 flex items-center justify-center gap-2">
+                                        <i data-lucide="minus" class="w-4 h-4"></i>
+                                        中立
+                                    </div>
+                                    <div class="text-xs text-slate-600 mt-1">462件</div>
+                                </div>
+                                <div class="text-center p-6 rounded-2xl bg-red-50 border border-red-100">
+                                    <div class="text-4xl font-bold text-red-600 mb-2">7%</div>
+                                    <div class="text-sm font-medium text-red-700 flex items-center justify-center gap-2">
+                                        <i data-lucide="thumbs-down" class="w-4 h-4"></i>
+                                        ネガティブ
+                                    </div>
+                                    <div class="text-xs text-red-600 mt-1">129件</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 頻出キーワード -->
+                        <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                            <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <i data-lucide="hash" class="w-6 h-6 text-indigo-600"></i>
+                                頻出キーワード
+                            </h2>
+                            <div class="flex flex-wrap gap-3">
+                                <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">マーケティング (342)</span>
+                                <span class="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">AI (289)</span>
+                                <span class="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">実践的 (234)</span>
+                                <span class="px-4 py-2 bg-pink-100 text-pink-700 rounded-full text-sm font-medium">わかりやすい (198)</span>
+                                <span class="px-4 py-2 bg-rose-100 text-rose-700 rounded-full text-sm font-medium">参考になる (176)</span>
+                                <span class="px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">初心者 (154)</span>
+                                <span class="px-4 py-2 bg-amber-100 text-amber-700 rounded-full text-sm font-medium">すぐ使える (143)</span>
+                                <span class="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">戦略 (128)</span>
+                                <span class="px-4 py-2 bg-lime-100 text-lime-700 rounded-full text-sm font-medium">成果 (112)</span>
+                                <span class="px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-medium">効果的 (98)</span>
+                                <span class="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">ツール (87)</span>
+                                <span class="px-4 py-2 bg-teal-100 text-teal-700 rounded-full text-sm font-medium">自動化 (76)</span>
+                            </div>
+                        </div>
+
+                        <!-- 注目コメント -->
+                        <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                            <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <i data-lucide="star" class="w-6 h-6 text-yellow-500"></i>
+                                注目コメント（高評価順）
+                            </h2>
+                            <div class="space-y-4">
+                                <div class="p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+                                    <div class="flex items-start gap-3">
+                                        <img src="https://via.placeholder.com/40" alt="User" class="w-10 h-10 rounded-full">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="font-semibold text-slate-800">山田太郎</span>
+                                                <span class="text-xs text-slate-400">3日前</span>
+                                            </div>
+                                            <p class="text-slate-700 mb-2">すごく実践的な内容でした！早速自社のマーケティングに活用してみます。AIツールの使い方が特に参考になりました。</p>
+                                            <div class="flex items-center gap-4 text-sm text-slate-500">
+                                                <span class="flex items-center gap-1">
+                                                    <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+                                                    1,245
+                                                </span>
+                                                <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">ポジティブ</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+                                    <div class="flex items-start gap-3">
+                                        <img src="https://via.placeholder.com/40" alt="User" class="w-10 h-10 rounded-full">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="font-semibold text-slate-800">佐藤花子</span>
+                                                <span class="text-xs text-slate-400">2日前</span>
+                                            </div>
+                                            <p class="text-slate-700 mb-2">初心者でもわかりやすい説明でした。特に具体例が豊富で理解しやすかったです。次の動画も楽しみにしています！</p>
+                                            <div class="flex items-center gap-4 text-sm text-slate-500">
+                                                <span class="flex items-center gap-1">
+                                                    <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+                                                    892
+                                                </span>
+                                                <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">ポジティブ</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+                                    <div class="flex items-start gap-3">
+                                        <img src="https://via.placeholder.com/40" alt="User" class="w-10 h-10 rounded-full">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="font-semibold text-slate-800">鈴木一郎</span>
+                                                <span class="text-xs text-slate-400">4日前</span>
+                                            </div>
+                                            <p class="text-slate-700 mb-2">この動画のおかげでマーケティング戦略が大きく改善しました。ROIが3倍になりました。本当にありがとうございます！</p>
+                                            <div class="flex items-center gap-4 text-sm text-slate-500">
+                                                <span class="flex items-center gap-1">
+                                                    <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+                                                    756
+                                                </span>
+                                                <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">ポジティブ</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+                                    <div class="flex items-start gap-3">
+                                        <img src="https://via.placeholder.com/40" alt="User" class="w-10 h-10 rounded-full">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="font-semibold text-slate-800">田中美咲</span>
+                                                <span class="text-xs text-slate-400">1日前</span>
+                                            </div>
+                                            <p class="text-slate-700 mb-2">すぐに実践できる内容ばかりで助かります。特にAIツールの選び方が参考になりました。チーム全員に共有します。</p>
+                                            <div class="flex items-center gap-4 text-sm text-slate-500">
+                                                <span class="flex items-center gap-1">
+                                                    <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+                                                    623
+                                                </span>
+                                                <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">ポジティブ</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+                                    <div class="flex items-start gap-3">
+                                        <img src="https://via.placeholder.com/40" alt="User" class="w-10 h-10 rounded-full">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="font-semibold text-slate-800">高橋健太</span>
+                                                <span class="text-xs text-slate-400">5日前</span>
+                                            </div>
+                                            <p class="text-slate-700 mb-2">動画の構成が素晴らしいです。要点がまとまっていて、時間を無駄にせず学べました。定期的に見返したい内容です。</p>
+                                            <div class="flex items-center gap-4 text-sm text-slate-500">
+                                                <span class="flex items-center gap-1">
+                                                    <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+                                                    541
+                                                </span>
+                                                <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">ポジティブ</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Lucide Icons初期化
+        lucide.createIcons();
+
+        // タブ切り替え
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.getAttribute('data-tab');
+
+                // 全タブボタンを非アクティブに
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('active', 'bg-white', 'shadow-sm', 'text-slate-800');
+                    btn.classList.add('text-slate-600', 'hover:text-slate-800');
+                });
+
+                // クリックされたタブボタンをアクティブに
+                button.classList.add('active', 'bg-white', 'shadow-sm', 'text-slate-800');
+                button.classList.remove('text-slate-600', 'hover:text-slate-800');
+
+                // 全タブコンテンツを非表示に
+                tabContents.forEach(content => {
+                    content.classList.add('hidden');
+                });
+
+                // 対応するタブコンテンツを表示
+                const targetContent = document.getElementById(`tab-${tabId}`);
+                if (targetContent) {
+                    targetContent.classList.remove('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1091,7 +1091,8 @@ ${summaries}
     useStoryBased: boolean = false
   ): KnowledgeChatMessage => {
     const section = KNOWLEDGE_SECTIONS.find((s) => s.id === missingField.step);
-    const template = QUESTION_TEMPLATES[missingField.step];
+    // Note: templateは将来のLLM連携時に使用予定
+    void QUESTION_TEMPLATES[missingField.step];
 
     // フィールドに応じた基本質問
     const questionMap: Record<string, string> = {
@@ -1176,37 +1177,18 @@ ${summaries}
       ],
     };
 
-    let question = questionMap[missingField.field] || `「${missingField.fieldLabel}」について教えてください。`;
+    // シンプルな質問を使用（ストーリーベースはシステムプロンプトで後で制御）
+    const question = questionMap[missingField.field] || `「${missingField.fieldLabel}」について教えてください。`;
 
-    // ストーリーベースモードの場合、または前回の回答がある場合は深掘り質問を使用
-    if (useStoryBased && storyBasedQuestionMap[missingField.field]) {
-      const storyQuestions = storyBasedQuestionMap[missingField.field];
-      question = storyQuestions[Math.floor(Math.random() * storyQuestions.length)];
-    } else if (previousAnswer && template?.storyBasedQuestions?.length > 0) {
-      // 前回回答があった場合、50%の確率でストーリーベースの質問を使用
-      if (Math.random() > 0.5) {
-        question = template.storyBasedQuestions[
-          Math.floor(Math.random() * template.storyBasedQuestions.length)
-        ];
-      }
-    }
+    // Note: useStoryBased と storyBasedQuestionMap は将来のLLM連携時に
+    // システムプロンプトで制御するため、現在は使用しない
+    void useStoryBased;
+    void storyBasedQuestionMap;
 
     let content = '';
     if (previousAnswer) {
-      // 前回の回答の深さを判定して共感メッセージを変える
-      const prevDepth = assessAnswerDepth(previousAnswer);
-      const acknowledges = prevDepth === 'deep' ? [
-        '素晴らしいエピソードをありがとうございます！とても伝わってきました。',
-        '心に響くお話ですね。これはコンテンツの強みになります！',
-        '具体的で分かりやすいです！この調子で進めていきましょう。',
-        '貴重な体験談をありがとうございます！',
-      ] : [
-        'ありがとうございます！',
-        'なるほど、分かりました！',
-        'いいですね！では次に進みましょう。',
-        '了解です！',
-      ];
-      content = `${acknowledges[Math.floor(Math.random() * acknowledges.length)]}では次の質問です。\n\n`;
+      // シンプルな応答（詳細な共感はシステムプロンプトで後で制御）
+      content = 'ありがとうございます。\n\n';
     }
 
     content += `**【${section?.title}】**\n\n${question}`;
