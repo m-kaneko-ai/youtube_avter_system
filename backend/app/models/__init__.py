@@ -76,6 +76,20 @@ from app.models.cta import (
     UTMDefaultSettings,
     CTAClickLog,
 )
+from app.models.engagement import (
+    VideoType,
+    EngagementStatus,
+    ShortToLongLink,
+    EngagementMetrics,
+    ShortVideoClip,
+)
+from app.models.series import (
+    SeriesStatus,
+    SeriesType,
+    Series,
+    SeriesVideoItem,
+    SeriesPerformanceLog,
+)
 
 __all__ = [
     "User",
@@ -138,4 +152,14 @@ __all__ = [
     "VideoCTAAssignment",
     "UTMDefaultSettings",
     "CTAClickLog",
+    "VideoType",
+    "EngagementStatus",
+    "ShortToLongLink",
+    "EngagementMetrics",
+    "ShortVideoClip",
+    "SeriesStatus",
+    "SeriesType",
+    "Series",
+    "SeriesVideoItem",
+    "SeriesPerformanceLog",
 ]

@@ -530,9 +530,139 @@ chat_sessions
 
 ---
 
+## 13. 🆕 機能拡張要件 - リスト獲得 & 学習システム
+
+### 13.1 拡張概要
+
+- **機能名**: リスト獲得 & YouTube成功学習システム
+- **目的**: 動画公開後の収益化フローを完成させ、継続的な改善サイクルを構築
+- **解決する課題**:
+  - リスト獲得機能が10%しか実装されていない
+  - 動画を作っても収益化に繋がらない
+  - 学習サイクルがない（オープンループ問題）
+- **期待効果**:
+  - リスト獲得率 1% → 2.5%（150%向上）
+  - 台本品質の継続的向上
+  - YouTube アルゴリズム最適化
+
+### 13.2 秘策一覧（7つの戦略機能）
+
+| 秘策 | 名称 | 概要 |
+|------|------|------|
+| 1 | パフォーマンス学習システム | クローズドループで継続改善 |
+| 2 | サブエージェント戦略 | 並列AIで調査・QA高速化 |
+| 3 | YouTubeアルゴリズム最適化 | リテンション分析・A/Bテスト |
+| 4 | コンテンツ複利戦略 | シリーズ管理・内部リンク |
+| 5 | コンテンツDNA抽出 | 成功パターンの再利用 |
+| 6 | 見落とされた機能 | コメント自動化・最適投稿時間 |
+| 7 | Central DB活用 | ナレッジ連携で台本品質向上 |
+
+### 13.3 CTA管理機能
+
+#### データモデル
+```typescript
+interface CTATemplate {
+  id: string;
+  name: string;
+  type: 'line' | 'email' | 'download' | 'discord' | 'webinar' | 'lp' | 'custom';
+  url: string;
+  utmParams?: { source?: string; medium?: string; campaign?: string };
+  shortUrl?: string;
+  displayText: string;
+  placement: 'description_top' | 'description_bottom' | 'pinned_comment';
+  isActive: boolean;
+  conversionCount: number;
+}
+```
+
+#### 機能一覧
+- CTAテンプレートCRUD（管理ページ新タブ）
+- 説明欄への自動挿入
+- UTMパラメータ自動生成
+- 短縮URL生成（TinyURL）
+- コンバージョン計測
+
+### 13.4 パフォーマンス学習DB
+
+#### クローズドループ
+```
+企画 → 制作 → 公開 → 分析 → 【学習】→ より良い企画
+```
+
+#### データモデル
+```typescript
+interface PerformancePattern {
+  id: string;
+  hookType: 'question' | 'shock' | 'story' | 'problem' | 'promise';
+  titlePattern: string;
+  avgCTR: number;
+  avgRetention: number;
+  avgListAcquisition: number;
+  sampleCount: number;
+}
+```
+
+### 13.5 コンテンツ複利戦略
+
+#### シリーズ管理
+```typescript
+interface ContentSeries {
+  id: string;
+  name: string;
+  videoIds: string[];
+  playlistUrl?: string;
+  internalLinkStrategy: 'first-last' | 'sequential' | 'related';
+}
+```
+
+#### ショート→長尺→リスト ファネル
+```
+ショート動画（認知獲得）
+    ↓ 「詳しくは長尺動画で」
+長尺動画（信頼構築）
+    ↓ 「無料PDFはLINEで」
+LINE登録（リスト獲得）
+```
+
+### 13.6 新規API エンドポイント
+
+| パス | 用途 |
+|------|------|
+| `/api/v1/cta` | CTA管理CRUD |
+| `/api/v1/learning` | パフォーマンスパターン |
+| `/api/v1/agents` | サブエージェントタスク |
+| `/api/v1/optimization` | リテンション・A/Bテスト |
+| `/api/v1/series` | シリーズ管理 |
+| `/api/v1/dna` | コンテンツDNA抽出 |
+| `/api/v1/engagement` | コメント・最適投稿時間 |
+
+### 13.7 新規DBテーブル
+
+1. `cta_templates` - CTAテンプレート
+2. `video_performance_patterns` - パフォーマンス学習
+3. `agent_tasks`, `agent_results` - サブエージェント
+4. `retention_curves`, `ab_tests` - 最適化
+5. `content_series` - シリーズ管理
+6. `content_dna` - DNA抽出
+7. `comment_reply_templates`, `optimal_times`, `end_screens` - エンゲージメント
+
+### 13.8 実装フェーズ
+
+| Phase | 内容 | 工数 |
+|-------|------|------|
+| 1 | CTA基盤 | 3日 |
+| 2 | 連携機能（ショート→長尺、シリーズ） | 2日 |
+| 3 | 学習システム（学習DB、DNA、Central DB） | 3日 |
+| 4 | アルゴリズム最適化（リテンション、A/B） | 4日 |
+| 5 | 自動化（エージェント、コメント） | 3日 |
+
+**合計: 約15日**
+
+---
+
 **作成日**: 2025-12-11
-**最終更新日**: 2025-12-14
-**バージョン**: 2.0
+**最終更新日**: 2025-12-15
+**バージョン**: 3.0
 **作成者**: Creator Studio AI 開発チーム
 
 **注**: 実装済み機能の詳細は docs/SCOPE_PROGRESS.md およびコードベースを参照してください。

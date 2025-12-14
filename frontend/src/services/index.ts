@@ -34,3 +34,19 @@ export type {
   CTAListResponse,
   CTAStats,
 } from './cta';
+export { engagementService } from './engagement';
+export type {
+  ShortToLongLink,
+  ShortToLongLinkListResponse,
+  EngagementSummary,
+  LinkPerformance,
+} from './engagement';
+export { seriesService } from './series';
+export type {
+  Series,
+  SeriesWithVideos,
+  SeriesVideoItem,
+  SeriesListResponse,
+  SeriesStats,
+  SeriesPerformance,
+} from './series';

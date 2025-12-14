@@ -43,7 +43,7 @@ from app.api.v1.endpoints import (
     auth, users, clients, master, knowledges, projects, videos,
     research, planning, scripts, metadata, thumbnails,
     audio, avatar, broll, publish, analytics, admin, dashboard, metrics,
-    cta
+    cta, engagement, series
 )
 
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
@@ -67,3 +67,5 @@ api_router.include_router(admin.router, prefix="/admin", tags=["Admin"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
 api_router.include_router(metrics.router, tags=["Metrics"])
 api_router.include_router(cta.router, prefix="/cta", tags=["CTA"])
+api_router.include_router(engagement.router, prefix="/engagement", tags=["Engagement"])
+api_router.include_router(series.router, prefix="/series", tags=["Series"])

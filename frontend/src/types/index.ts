@@ -901,3 +901,453 @@ export const CTA_PLACEMENT_CONFIG: Record<CTAPlacement, { label: string; icon: s
   description_bottom: { label: '説明欄下部', icon: 'arrow-down' },
   pinned_comment: { label: '固定コメント', icon: 'message-square' },
 };
+
+// =============================================
+// ショート→長尺連携用型定義
+// =============================================
+
+/**
+ * エンゲージメント連携ステータス
+ */
+export type EngagementStatus = 'draft' | 'active' | 'paused' | 'completed' | 'archived';
+
+/**
+ * 連携タイプ
+ */
+export type LinkType = 'description' | 'pinned_comment' | 'end_screen' | 'card';
+
+/**
+ * 動画サマリー（連携表示用）
+ */
+export interface VideoSummary {
+  /** 動画ID */
+  id: string;
+  /** タイトル */
+  title?: string;
+  /** YouTube URL */
+  youtubeUrl?: string;
+  /** ステータス */
+  status: string;
+}
+
+/**
+ * ショート→長尺連携
+ */
+export interface ShortToLongLink {
+  /** 連携ID */
+  id: string;
+  /** ショート動画ID */
+  shortVideoId: string;
+  /** 長尺動画ID */
+  longVideoId: string;
+  /** 連携タイプ */
+  linkType: string;
+  /** 誘導テキスト */
+  linkText?: string;
+  /** リンク配置位置 */
+  linkPosition?: string;
+  /** ステータス */
+  status: EngagementStatus;
+  /** 有効フラグ */
+  isActive: boolean;
+  /** ショート動画情報 */
+  shortVideo?: VideoSummary;
+  /** 長尺動画情報 */
+  longVideo?: VideoSummary;
+  /** 作成日時 */
+  createdAt: string;
+  /** 更新日時 */
+  updatedAt: string;
+}
+
+/**
+ * ショート→長尺連携作成リクエスト
+ */
+export interface ShortToLongLinkCreateRequest {
+  /** ショート動画ID */
+  shortVideoId: string;
+  /** 長尺動画ID */
+  longVideoId: string;
+  /** 連携タイプ */
+  linkType: string;
+  /** 誘導テキスト */
+  linkText?: string;
+  /** リンク配置位置 */
+  linkPosition?: string;
+  /** 有効フラグ */
+  isActive?: boolean;
+}
+
+/**
+ * ショート→長尺連携更新リクエスト
+ */
+export interface ShortToLongLinkUpdateRequest {
+  /** 連携タイプ */
+  linkType?: string;
+  /** 誘導テキスト */
+  linkText?: string;
+  /** リンク配置位置 */
+  linkPosition?: string;
+  /** ステータス */
+  status?: EngagementStatus;
+  /** 有効フラグ */
+  isActive?: boolean;
+}
+
+/**
+ * ショート→長尺連携一覧レスポンス
+ */
+export interface ShortToLongLinkListResponse {
+  /** 連携一覧 */
+  links: ShortToLongLink[];
+  /** 総数 */
+  total: number;
+}
+
+/**
+ * エンゲージメントサマリー
+ */
+export interface EngagementSummary {
+  /** 総連携数 */
+  totalLinks: number;
+  /** 有効な連携数 */
+  activeLinks: number;
+  /** 総クリック数 */
+  totalClicks: number;
+  /** 平均CTR */
+  avgCTR: number;
+  /** 総コンバージョン数 */
+  totalConversions: number;
+  /** 平均コンバージョン率 */
+  avgConversionRate: number;
+}
+
+/**
+ * 日別エンゲージメント統計
+ */
+export interface EngagementDailyStats {
+  /** 日付 */
+  date: string;
+  /** ショート再生数 */
+  shortViews: number;
+  /** 長尺再生数 */
+  longViews: number;
+  /** クリック数 */
+  clicks: number;
+  /** コンバージョン数 */
+  conversions: number;
+}
+
+/**
+ * 連携パフォーマンス
+ */
+export interface LinkPerformance {
+  /** 連携ID */
+  linkId: string;
+  /** ショート動画タイトル */
+  shortVideoTitle?: string;
+  /** 長尺動画タイトル */
+  longVideoTitle?: string;
+  /** ショート総再生数 */
+  totalShortViews: number;
+  /** 総クリック数 */
+  totalClicks: number;
+  /** CTR */
+  ctr: number;
+  /** 総コンバージョン数 */
+  totalConversions: number;
+  /** コンバージョン率 */
+  conversionRate: number;
+  /** 日別統計 */
+  dailyStats: EngagementDailyStats[];
+}
+
+// =============================================
+// シリーズ管理用型定義
+// =============================================
+
+/**
+ * シリーズステータス
+ */
+export type SeriesStatus = 'draft' | 'active' | 'paused' | 'completed' | 'archived';
+
+/**
+ * シリーズタイプ
+ */
+export type SeriesType = 'playlist' | 'topic' | 'tutorial' | 'seasonal' | 'campaign';
+
+/**
+ * 公開頻度
+ */
+export type ReleaseFrequency = 'daily' | 'weekly' | 'biweekly' | 'monthly';
+
+/**
+ * シリーズ
+ */
+export interface Series {
+  /** シリーズID */
+  id: string;
+  /** シリーズ名 */
+  name: string;
+  /** 説明 */
+  description?: string;
+  /** シリーズタイプ */
+  seriesType: SeriesType;
+  /** プロジェクトID */
+  projectId?: string;
+  /** ナレッジID */
+  knowledgeId?: string;
+  /** ステータス */
+  status: SeriesStatus;
+  /** YouTube再生リストID */
+  youtubePlaylistId?: string;
+  /** YouTube再生リストURL */
+  youtubePlaylistUrl?: string;
+  /** サムネイルURL */
+  thumbnailUrl?: string;
+  /** タグ */
+  tags?: string[];
+  /** 開始日 */
+  startDate?: string;
+  /** 終了日 */
+  endDate?: string;
+  /** 目標動画本数 */
+  targetVideoCount?: number;
+  /** 公開頻度 */
+  releaseFrequency?: string;
+  /** 総動画数 */
+  totalVideos: number;
+  /** 総再生回数 */
+  totalViews: number;
+  /** 総視聴時間（時間） */
+  totalWatchTimeHours?: number;
+  /** 平均視聴時間（秒） */
+  avgViewDurationSeconds?: number;
+  /** 作成日時 */
+  createdAt: string;
+  /** 更新日時 */
+  updatedAt: string;
+}
+
+/**
+ * シリーズ作成リクエスト
+ */
+export interface SeriesCreateRequest {
+  /** シリーズ名 */
+  name: string;
+  /** 説明 */
+  description?: string;
+  /** シリーズタイプ */
+  seriesType?: SeriesType;
+  /** プロジェクトID */
+  projectId?: string;
+  /** ナレッジID */
+  knowledgeId?: string;
+  /** YouTube再生リストID */
+  youtubePlaylistId?: string;
+  /** YouTube再生リストURL */
+  youtubePlaylistUrl?: string;
+  /** サムネイルURL */
+  thumbnailUrl?: string;
+  /** タグ */
+  tags?: string[];
+  /** 開始日 */
+  startDate?: string;
+  /** 終了日 */
+  endDate?: string;
+  /** 目標動画本数 */
+  targetVideoCount?: number;
+  /** 公開頻度 */
+  releaseFrequency?: string;
+}
+
+/**
+ * シリーズ更新リクエスト
+ */
+export interface SeriesUpdateRequest {
+  /** シリーズ名 */
+  name?: string;
+  /** 説明 */
+  description?: string;
+  /** シリーズタイプ */
+  seriesType?: SeriesType;
+  /** ステータス */
+  status?: SeriesStatus;
+  /** YouTube再生リストID */
+  youtubePlaylistId?: string;
+  /** YouTube再生リストURL */
+  youtubePlaylistUrl?: string;
+  /** サムネイルURL */
+  thumbnailUrl?: string;
+  /** タグ */
+  tags?: string[];
+  /** 開始日 */
+  startDate?: string;
+  /** 終了日 */
+  endDate?: string;
+  /** 目標動画本数 */
+  targetVideoCount?: number;
+  /** 公開頻度 */
+  releaseFrequency?: string;
+}
+
+/**
+ * シリーズ一覧レスポンス
+ */
+export interface SeriesListResponse {
+  /** シリーズ一覧 */
+  series: Series[];
+  /** 総数 */
+  total: number;
+}
+
+/**
+ * 動画情報（シリーズ表示用）
+ */
+export interface SeriesVideoInfo {
+  /** 動画ID */
+  id: string;
+  /** タイトル */
+  title?: string;
+  /** YouTube URL */
+  youtubeUrl?: string;
+  /** ステータス */
+  status: string;
+}
+
+/**
+ * シリーズ動画アイテム
+ */
+export interface SeriesVideoItem {
+  /** アイテムID */
+  id: string;
+  /** シリーズID */
+  seriesId: string;
+  /** 動画ID */
+  videoId: string;
+  /** 並び順 */
+  orderIndex: number;
+  /** エピソード番号 */
+  episodeNumber?: number;
+  /** エピソードタイトル */
+  episodeTitle?: string;
+  /** 公開済みフラグ */
+  isPublished: boolean;
+  /** 公開日時 */
+  publishedAt?: string;
+  /** 公開予定日時 */
+  scheduledAt?: string;
+  /** 再生回数 */
+  views: number;
+  /** いいね数 */
+  likes: number;
+  /** コメント数 */
+  comments: number;
+  /** 平均視聴時間（秒） */
+  avgViewDurationSeconds?: number;
+  /** リテンション率（%） */
+  retentionRate?: number;
+  /** 動画情報 */
+  video?: SeriesVideoInfo;
+  /** 追加日時 */
+  addedAt: string;
+  /** 更新日時 */
+  updatedAt: string;
+}
+
+/**
+ * シリーズ詳細（動画一覧含む）
+ */
+export interface SeriesWithVideos extends Series {
+  /** 動画アイテム一覧 */
+  videoItems: SeriesVideoItem[];
+}
+
+/**
+ * シリーズ動画追加リクエスト
+ */
+export interface SeriesVideoAddRequest {
+  /** 動画ID */
+  videoId: string;
+  /** 並び順 */
+  orderIndex?: number;
+  /** エピソード番号 */
+  episodeNumber?: number;
+  /** エピソードタイトル */
+  episodeTitle?: string;
+  /** 公開予定日時 */
+  scheduledAt?: string;
+}
+
+/**
+ * シリーズ統計
+ */
+export interface SeriesStats {
+  /** 総シリーズ数 */
+  totalSeries: number;
+  /** 有効なシリーズ数 */
+  activeSeries: number;
+  /** 総動画数 */
+  totalVideos: number;
+  /** 総再生回数 */
+  totalViews: number;
+  /** シリーズあたり平均動画数 */
+  avgVideosPerSeries: number;
+}
+
+/**
+ * シリーズ日別統計
+ */
+export interface SeriesDailyStats {
+  /** 日付 */
+  date: string;
+  /** 再生数 */
+  views: number;
+  /** 新規登録者数 */
+  newSubscribers: number;
+  /** 視聴時間（分） */
+  watchTimeMinutes: number;
+}
+
+/**
+ * シリーズパフォーマンス
+ */
+export interface SeriesPerformance {
+  /** シリーズID */
+  seriesId: string;
+  /** シリーズ名 */
+  seriesName: string;
+  /** 総動画数 */
+  totalVideos: number;
+  /** 総再生回数 */
+  totalViews: number;
+  /** 総視聴時間（時間） */
+  totalWatchTimeHours: number;
+  /** 平均視聴時間（秒） */
+  avgViewDurationSeconds: number;
+  /** 登録者増加数 */
+  subscriberGrowth: number;
+  /** 日別統計 */
+  dailyStats: SeriesDailyStats[];
+}
+
+/**
+ * シリーズタイプの設定情報
+ */
+export const SERIES_TYPE_CONFIG: Record<SeriesType, { label: string; icon: string; color: string }> = {
+  playlist: { label: '再生リスト', icon: 'list', color: 'blue' },
+  topic: { label: 'テーマ', icon: 'tag', color: 'green' },
+  tutorial: { label: 'チュートリアル', icon: 'book-open', color: 'purple' },
+  seasonal: { label: '季節限定', icon: 'calendar', color: 'orange' },
+  campaign: { label: 'キャンペーン', icon: 'megaphone', color: 'pink' },
+};
+
+/**
+ * 連携タイプの設定情報
+ */
+export const LINK_TYPE_CONFIG: Record<LinkType, { label: string; icon: string; description: string }> = {
+  description: { label: '説明欄', icon: 'file-text', description: '説明欄にリンクを追加' },
+  pinned_comment: { label: '固定コメント', icon: 'message-square', description: '固定コメントでリンク' },
+  end_screen: { label: '終了画面', icon: 'layout', description: '終了画面に誘導カード' },
+  card: { label: 'カード', icon: 'credit-card', description: '動画内カードでリンク' },
+};
