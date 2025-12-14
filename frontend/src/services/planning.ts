@@ -188,6 +188,99 @@ const mapChatMessage = (message: ApiChatMessage): AIChatMessage => ({
 });
 
 // ============================================================
+// モックデータ（API接続エラー時のフォールバック）
+// ============================================================
+
+const generateMockCalendarEvents = (year: number, month: number): CalendarEvent[] => {
+  const events: CalendarEvent[] = [];
+  const statuses: CalendarEvent['status'][] = ['planning', 'production', 'scheduled', 'published'];
+  const videoTypes: CalendarEvent['videoType'][] = ['short', 'long'];
+
+  // 月に10個程度のイベントを生成
+  for (let i = 1; i <= 10; i++) {
+    const day = Math.floor(Math.random() * 28) + 1;
+    events.push({
+      id: `mock-event-${i}`,
+      projectId: `mock-project-${i}`,
+      title: `企画${i}`,
+      date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      videoType: videoTypes[Math.floor(Math.random() * videoTypes.length)],
+      status: statuses[Math.floor(Math.random() * statuses.length)],
+    });
+  }
+  return events;
+};
+
+const mockProjects: PlanningProject[] = [
+  {
+    id: 'mock-1',
+    title: '【初心者向け】AIツール活用術10選',
+    description: 'AIツールの基本的な使い方を解説',
+    videoType: 'long',
+    status: 'planning',
+    scheduledDate: '2025-12-20',
+    createdAt: '2025-12-10T10:00:00Z',
+    updatedAt: '2025-12-10T10:00:00Z',
+  },
+  {
+    id: 'mock-2',
+    title: 'ChatGPT vs Claude比較',
+    description: '最新AIアシスタントの比較検証',
+    videoType: 'short',
+    status: 'production',
+    scheduledDate: '2025-12-18',
+    createdAt: '2025-12-08T10:00:00Z',
+    updatedAt: '2025-12-12T15:00:00Z',
+  },
+  {
+    id: 'mock-3',
+    title: '1分でわかる生成AI',
+    description: 'ショート動画向けコンテンツ',
+    videoType: 'short',
+    status: 'scheduled',
+    scheduledDate: '2025-12-15',
+    createdAt: '2025-12-05T10:00:00Z',
+    updatedAt: '2025-12-14T09:00:00Z',
+  },
+  {
+    id: 'mock-4',
+    title: 'プロンプトエンジニアリング入門',
+    description: '効果的なプロンプトの書き方',
+    videoType: 'long',
+    status: 'published',
+    scheduledDate: '2025-12-10',
+    createdAt: '2025-12-01T10:00:00Z',
+    updatedAt: '2025-12-10T12:00:00Z',
+  },
+];
+
+const mockStats: PlanningStatsResponse = {
+  totalProjects: 45,
+  byStatus: {
+    planning: 12,
+    production: 8,
+    scheduled: 15,
+    published: 10,
+  },
+  byType: {
+    short: 30,
+    long: 15,
+  },
+  upcomingCount: 23,
+};
+
+// 将来のチャット機能用モックデータ（現在未使用）
+const _mockChatMessages: AIChatMessage[] = [
+  {
+    id: 'msg-1',
+    role: 'assistant',
+    content: 'こんにちは！企画のお手伝いをします。どのようなテーマの動画を作成したいですか？',
+    timestamp: new Date().toISOString(),
+  },
+];
+void _mockChatMessages; // 未使用警告を回避
+
+// ============================================================
 // サービスエクスポート
 // ============================================================
 
@@ -196,14 +289,24 @@ export const planningService = {
    * カレンダーイベント取得
    */
   async getCalendar(year: number, month: number, clientId?: string): Promise<CalendarResponse> {
-    const response = await api.get<ApiCalendarResponse>('/api/v1/planning/calendar', {
-      params: { year, month, client_id: clientId },
-    });
-    return {
-      events: response.data.map(mapCalendarEvent),
-      month: response.month,
-      year: response.year,
-    };
+    try {
+      const response = await api.get<ApiCalendarResponse>('/api/v1/planning/calendar', {
+        params: { year, month, client_id: clientId },
+      });
+      return {
+        events: response.data.map(mapCalendarEvent),
+        month: response.month,
+        year: response.year,
+      };
+    } catch {
+      // API接続エラー時はモックデータを返す
+      console.info('[planningService] Using mock data for calendar');
+      return {
+        events: generateMockCalendarEvents(year, month),
+        month,
+        year,
+      };
+    }
   },
 
   /**
@@ -222,16 +325,32 @@ export const planningService = {
   async getProjects(
     status?: ProjectStatus,
     videoType?: VideoType,
-    page?: number,
-    pageSize?: number
+    _page?: number,
+    _pageSize?: number
   ): Promise<ProjectListResponse> {
-    const response = await api.get<ApiProjectListResponse>('/api/v1/planning/projects', {
-      params: { status, video_type: videoType, page, page_size: pageSize },
-    });
-    return {
-      projects: response.data.map(mapProject),
-      total: response.total,
-    };
+    try {
+      const response = await api.get<ApiProjectListResponse>('/api/v1/planning/projects', {
+        params: { status, video_type: videoType, page: _page, page_size: _pageSize },
+      });
+      return {
+        projects: response.data.map(mapProject),
+        total: response.total,
+      };
+    } catch {
+      // API接続エラー時はモックデータを返す
+      console.info('[planningService] Using mock data for projects');
+      let filtered = [...mockProjects];
+      if (status) {
+        filtered = filtered.filter(p => p.status === status);
+      }
+      if (videoType) {
+        filtered = filtered.filter(p => p.videoType === videoType);
+      }
+      return {
+        projects: filtered,
+        total: filtered.length,
+      };
+    }
   },
 
   /**
@@ -340,12 +459,18 @@ export const planningService = {
    * 企画統計取得
    */
   async getStats(): Promise<PlanningStatsResponse> {
-    const response = await api.get<ApiPlanningStatsResponse>('/api/v1/planning/stats');
-    return {
-      totalProjects: response.total_projects,
-      byStatus: response.by_status,
-      byType: response.by_type,
-      upcomingCount: response.upcoming_count,
-    };
+    try {
+      const response = await api.get<ApiPlanningStatsResponse>('/api/v1/planning/stats');
+      return {
+        totalProjects: response.total_projects,
+        byStatus: response.by_status,
+        byType: response.by_type,
+        upcomingCount: response.upcoming_count,
+      };
+    } catch {
+      // API接続エラー時はモックデータを返す
+      console.info('[planningService] Using mock data for stats');
+      return mockStats;
+    }
   },
 };

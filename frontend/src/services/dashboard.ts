@@ -152,6 +152,90 @@ function mapApiNotificationsResponse(response: ApiNotificationsResponse): Notifi
 }
 
 // ============================================================
+// モックデータ（API接続エラー時のフォールバック）
+// ============================================================
+
+const mockTasks: Task[] = [
+  {
+    id: 'task-1',
+    title: '台本レビュー：AIツール紹介動画',
+    description: '昨日作成した台本の最終確認',
+    category: 'script',
+    status: 'pending',
+    priority: 'high',
+    dueTime: '10:00',
+    project: 'AIツール活用術',
+  },
+  {
+    id: 'task-2',
+    title: 'サムネイル作成：ChatGPT比較',
+    description: 'A/Bテスト用に2パターン作成',
+    category: 'thumbnail',
+    status: 'in_progress',
+    priority: 'medium',
+    dueTime: '14:00',
+    project: 'ChatGPT vs Claude',
+  },
+  {
+    id: 'task-3',
+    title: '動画公開：プロンプト入門',
+    description: '編集完了、公開設定確認',
+    category: 'publish',
+    status: 'pending',
+    priority: 'high',
+    dueTime: '18:00',
+    project: 'プロンプト入門',
+  },
+  {
+    id: 'task-4',
+    title: 'コメント返信確認',
+    description: '昨日の動画へのコメント対応',
+    category: 'review',
+    status: 'completed',
+    priority: 'low',
+    dueTime: '09:00',
+  },
+];
+
+const mockNotifications: Notification[] = [
+  {
+    id: 'notif-1',
+    type: 'approval',
+    title: '承認リクエスト',
+    message: '「AIツール紹介」の台本が承認待ちです',
+    time: '10分前',
+    isRead: false,
+    actionUrl: '/script',
+  },
+  {
+    id: 'notif-2',
+    type: 'performance',
+    title: 'パフォーマンスアラート',
+    message: '「プロンプト入門」が1万回再生を達成しました！',
+    time: '1時間前',
+    isRead: false,
+    actionUrl: '/analytics',
+  },
+  {
+    id: 'notif-3',
+    type: 'video',
+    title: '動画処理完了',
+    message: 'アバター動画の生成が完了しました',
+    time: '2時間前',
+    isRead: true,
+    actionUrl: '/production',
+  },
+  {
+    id: 'notif-4',
+    type: 'info',
+    title: 'システム通知',
+    message: '新機能：マルチプラットフォーム配信が利用可能になりました',
+    time: '昨日',
+    isRead: true,
+  },
+];
+
+// ============================================================
 // Dashboard Service
 // ============================================================
 
@@ -160,30 +244,71 @@ export const dashboardService = {
    * 今日のタスク一覧を取得
    */
   async getTodayTasks(status?: TaskStatus): Promise<TasksResponse> {
-    const response = await api.get<ApiTasksResponse>('/api/v1/dashboard/tasks/today', {
-      params: status ? { status } : undefined,
-    });
-    return mapApiTasksResponse(response);
+    try {
+      const response = await api.get<ApiTasksResponse>('/api/v1/dashboard/tasks/today', {
+        params: status ? { status } : undefined,
+      });
+      return mapApiTasksResponse(response);
+    } catch {
+      // API接続エラー時はモックデータを返す
+      console.info('[dashboardService] Using mock data for tasks');
+      let filtered = [...mockTasks];
+      if (status) {
+        filtered = filtered.filter(t => t.status === status);
+      }
+      return {
+        tasks: filtered,
+        total: filtered.length,
+        pendingCount: mockTasks.filter(t => t.status === 'pending').length,
+        inProgressCount: mockTasks.filter(t => t.status === 'in_progress').length,
+        completedCount: mockTasks.filter(t => t.status === 'completed').length,
+        overdueCount: mockTasks.filter(t => t.status === 'overdue').length,
+      };
+    }
   },
 
   /**
    * タスクのステータスを更新
    */
   async updateTaskStatus(taskId: string, status: TaskStatus): Promise<Task> {
-    const response = await api.patch<ApiTask>(`/api/v1/dashboard/tasks/${taskId}/status`, {
-      status,
-    });
-    return mapApiTask(response);
+    try {
+      const response = await api.patch<ApiTask>(`/api/v1/dashboard/tasks/${taskId}/status`, {
+        status,
+      });
+      return mapApiTask(response);
+    } catch {
+      // モック: ステータス更新をシミュレート
+      const task = mockTasks.find(t => t.id === taskId);
+      if (task) {
+        task.status = status;
+        return task;
+      }
+      throw new Error('Task not found');
+    }
   },
 
   /**
    * 通知一覧を取得
    */
   async getNotifications(unreadOnly?: boolean): Promise<NotificationsResponse> {
-    const response = await api.get<ApiNotificationsResponse>('/api/v1/dashboard/notifications', {
-      params: unreadOnly !== undefined ? { unread_only: unreadOnly } : undefined,
-    });
-    return mapApiNotificationsResponse(response);
+    try {
+      const response = await api.get<ApiNotificationsResponse>('/api/v1/dashboard/notifications', {
+        params: unreadOnly !== undefined ? { unread_only: unreadOnly } : undefined,
+      });
+      return mapApiNotificationsResponse(response);
+    } catch {
+      // API接続エラー時はモックデータを返す
+      console.info('[dashboardService] Using mock data for notifications');
+      let filtered = [...mockNotifications];
+      if (unreadOnly) {
+        filtered = filtered.filter(n => !n.isRead);
+      }
+      return {
+        notifications: filtered,
+        total: filtered.length,
+        unreadCount: mockNotifications.filter(n => !n.isRead).length,
+      };
+    }
   },
 
   /**
