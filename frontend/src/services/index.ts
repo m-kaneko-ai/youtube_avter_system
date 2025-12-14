@@ -16,6 +16,7 @@ export { publishService } from './publish';
 export { analyticsService } from './analytics';
 export { adminService } from './admin';
 export { dashboardService } from './dashboard';
+export { ctaService } from './cta';
 export type {
   Task,
   TaskStatus,
@@ -26,3 +27,10 @@ export type {
   NotificationType,
   NotificationsResponse,
 } from './dashboard';
+export type {
+  CTATemplate,
+  CTACreateRequest,
+  CTAUpdateRequest,
+  CTAListResponse,
+  CTAStats,
+} from './cta';

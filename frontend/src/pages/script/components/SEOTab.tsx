@@ -16,10 +16,18 @@ import {
   FileText,
   Loader2,
   AlertCircle,
+  Link2,
+  MousePointerClick,
+  MessageSquare,
+  ArrowUpRight,
+  ArrowDownRight,
+  Eye,
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { scriptService, type Keyword } from '../../../services/script';
+import { ctaService } from '../../../services/cta';
+import type { CTATemplate } from '../../../types';
 
 interface SEOTabProps {
   scriptId: string;
@@ -53,6 +61,12 @@ export const SEOTab = ({ scriptId, videoId }: SEOTabProps) => {
   const [newHashtag, setNewHashtag] = useState('');
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
 
+  // CTA関連の状態
+  const [selectedTopCTA, setSelectedTopCTA] = useState<string | null>(null);
+  const [selectedBottomCTA, setSelectedBottomCTA] = useState<string | null>(null);
+  const [selectedPinnedCTA, setSelectedPinnedCTA] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+
   // API: GET /api/v1/scripts/:id/seo
   const {
     data: seoData,
@@ -64,6 +78,19 @@ export const SEOTab = ({ scriptId, videoId }: SEOTabProps) => {
     enabled: !!scriptId,
   });
 
+  // CTA一覧取得
+  const { data: ctaData } = useQuery({
+    queryKey: ['cta', 'list'],
+    queryFn: () => ctaService.getCTAList(),
+  });
+
+  // 動画のCTA割り当て取得
+  const { data: videoCtaAssignments } = useQuery({
+    queryKey: ['cta', 'video', videoId, 'assignments'],
+    queryFn: () => ctaService.getVideoCTAAssignments(videoId),
+    enabled: !!videoId,
+  });
+
   // ローカル状態の初期化
   useEffect(() => {
     if (seoData?.data) {
@@ -72,6 +99,15 @@ export const SEOTab = ({ scriptId, videoId }: SEOTabProps) => {
       setHashtags(seoData.data.hashtags);
     }
   }, [seoData]);
+
+  // CTA割り当ての初期化
+  useEffect(() => {
+    if (videoCtaAssignments) {
+      setSelectedTopCTA(videoCtaAssignments.topCTAId || null);
+      setSelectedBottomCTA(videoCtaAssignments.bottomCTAId || null);
+      setSelectedPinnedCTA(videoCtaAssignments.pinnedCommentCTAId || null);
+    }
+  }, [videoCtaAssignments]);
 
   // API: POST /api/v1/metadata/description
   const generateDescriptionMutation = useMutation({
@@ -99,6 +135,20 @@ export const SEOTab = ({ scriptId, videoId }: SEOTabProps) => {
     },
   });
 
+  // CTA割り当て保存
+  const saveCTAAssignmentMutation = useMutation({
+    mutationFn: () =>
+      ctaService.assignCTAsToVideo({
+        videoId,
+        topCTAId: selectedTopCTA || undefined,
+        bottomCTAId: selectedBottomCTA || undefined,
+        pinnedCommentCTAId: selectedPinnedCTA || undefined,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cta', 'video', videoId] });
+    },
+  });
+
   const seoScore = seoData?.data?.score ?? {
     overall: 0,
     title: 0,
@@ -107,6 +157,36 @@ export const SEOTab = ({ scriptId, videoId }: SEOTabProps) => {
     hashtags: 0,
   };
   const keywords = seoData?.data?.keywords ?? [];
+
+  // CTA関連のヘルパー
+  const activeCTAs = ctaData?.ctas.filter((cta) => cta.isActive) ?? [];
+  const topCTAs = activeCTAs.filter((cta) => cta.placement === 'description_top');
+  const bottomCTAs = activeCTAs.filter((cta) => cta.placement === 'description_bottom');
+  const pinnedCTAs = activeCTAs.filter((cta) => cta.placement === 'pinned_comment');
+
+  const getSelectedCTA = (ctaId: string | null): CTATemplate | undefined => {
+    if (!ctaId) return undefined;
+    return activeCTAs.find((cta) => cta.id === ctaId);
+  };
+
+  // プレビュー用の説明文生成
+  const generatePreviewDescription = (): string => {
+    const parts: string[] = [];
+    const topCTA = getSelectedCTA(selectedTopCTA);
+    const bottomCTA = getSelectedCTA(selectedBottomCTA);
+
+    if (topCTA) {
+      parts.push(topCTA.displayText);
+      parts.push('───────────────');
+    }
+    parts.push(description);
+    if (bottomCTA) {
+      parts.push('───────────────');
+      parts.push(bottomCTA.displayText);
+    }
+
+    return parts.join('\n\n');
+  };
 
   const handleAddTag = () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
@@ -143,6 +223,14 @@ export const SEOTab = ({ scriptId, videoId }: SEOTabProps) => {
 
   const handleSave = () => {
     updateSEOMutation.mutate();
+    saveCTAAssignmentMutation.mutate();
+  };
+
+  const handleCopyPreview = () => {
+    const previewText = generatePreviewDescription();
+    navigator.clipboard.writeText(previewText);
+    setCopiedSection('preview');
+    setTimeout(() => setCopiedSection(null), 2000);
   };
 
   const getScoreColor = (score: number) => {
@@ -398,6 +486,197 @@ export const SEOTab = ({ scriptId, videoId }: SEOTabProps) => {
                 </button>
               </div>
             </div>
+
+            {/* CTA挿入セクション */}
+            <div
+              className={cn(
+                'p-6 rounded-2xl border',
+                themeClasses.cardBg,
+                themeClasses.cardBorder
+              )}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Link2 size={18} className="text-green-500" />
+                  <h3 className={cn('font-bold', themeClasses.text)}>CTA挿入</h3>
+                </div>
+                <button
+                  onClick={() => setShowPreview(!showPreview)}
+                  className={cn(
+                    'flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                    showPreview
+                      ? 'bg-blue-500/10 text-blue-500'
+                      : isDarkMode
+                      ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  )}
+                >
+                  <Eye size={14} />
+                  プレビュー
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* 上部CTA選択 */}
+                <div>
+                  <label className={cn('flex items-center gap-2 text-sm font-medium mb-2', themeClasses.text)}>
+                    <ArrowUpRight size={14} className="text-blue-500" />
+                    説明欄（上部）
+                  </label>
+                  <select
+                    value={selectedTopCTA || ''}
+                    onChange={(e) => setSelectedTopCTA(e.target.value || null)}
+                    className={cn(
+                      'w-full px-4 py-2 rounded-lg border text-sm',
+                      themeClasses.inputBg,
+                      themeClasses.cardBorder,
+                      themeClasses.text
+                    )}
+                  >
+                    <option value="">選択なし</option>
+                    {topCTAs.map((cta) => (
+                      <option key={cta.id} value={cta.id}>
+                        {cta.name} ({cta.conversionCount.toLocaleString()} クリック)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 下部CTA選択 */}
+                <div>
+                  <label className={cn('flex items-center gap-2 text-sm font-medium mb-2', themeClasses.text)}>
+                    <ArrowDownRight size={14} className="text-purple-500" />
+                    説明欄（下部）
+                  </label>
+                  <select
+                    value={selectedBottomCTA || ''}
+                    onChange={(e) => setSelectedBottomCTA(e.target.value || null)}
+                    className={cn(
+                      'w-full px-4 py-2 rounded-lg border text-sm',
+                      themeClasses.inputBg,
+                      themeClasses.cardBorder,
+                      themeClasses.text
+                    )}
+                  >
+                    <option value="">選択なし</option>
+                    {bottomCTAs.map((cta) => (
+                      <option key={cta.id} value={cta.id}>
+                        {cta.name} ({cta.conversionCount.toLocaleString()} クリック)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 固定コメントCTA選択 */}
+                <div>
+                  <label className={cn('flex items-center gap-2 text-sm font-medium mb-2', themeClasses.text)}>
+                    <MessageSquare size={14} className="text-orange-500" />
+                    固定コメント
+                  </label>
+                  <select
+                    value={selectedPinnedCTA || ''}
+                    onChange={(e) => setSelectedPinnedCTA(e.target.value || null)}
+                    className={cn(
+                      'w-full px-4 py-2 rounded-lg border text-sm',
+                      themeClasses.inputBg,
+                      themeClasses.cardBorder,
+                      themeClasses.text
+                    )}
+                  >
+                    <option value="">選択なし</option>
+                    {pinnedCTAs.map((cta) => (
+                      <option key={cta.id} value={cta.id}>
+                        {cta.name} ({cta.conversionCount.toLocaleString()} クリック)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 選択済みCTAのパフォーマンス表示 */}
+                {(selectedTopCTA || selectedBottomCTA || selectedPinnedCTA) && (
+                  <div className={cn('p-4 rounded-xl', isDarkMode ? 'bg-slate-800' : 'bg-slate-50')}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <MousePointerClick size={14} className="text-pink-500" />
+                      <span className={cn('text-sm font-medium', themeClasses.text)}>
+                        選択中CTAのパフォーマンス
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      {[
+                        { label: '上部', cta: getSelectedCTA(selectedTopCTA), color: 'text-blue-500' },
+                        { label: '下部', cta: getSelectedCTA(selectedBottomCTA), color: 'text-purple-500' },
+                        { label: '固定', cta: getSelectedCTA(selectedPinnedCTA), color: 'text-orange-500' },
+                      ].map((item) => (
+                        <div key={item.label}>
+                          <p className={cn('text-xs mb-1', item.color)}>{item.label}</p>
+                          {item.cta ? (
+                            <>
+                              <p className={cn('text-lg font-bold', themeClasses.text)}>
+                                {item.cta.conversionCount.toLocaleString()}
+                              </p>
+                              <p className={cn('text-xs', themeClasses.textSecondary)}>
+                                CTR: {(item.cta.ctr ?? 0).toFixed(2)}%
+                              </p>
+                            </>
+                          ) : (
+                            <p className={cn('text-sm', themeClasses.textSecondary)}>-</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* プレビューセクション */}
+            {showPreview && (
+              <div
+                className={cn(
+                  'p-6 rounded-2xl border',
+                  themeClasses.cardBg,
+                  themeClasses.cardBorder
+                )}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Eye size={18} className="text-indigo-500" />
+                    <h3 className={cn('font-bold', themeClasses.text)}>説明文プレビュー</h3>
+                  </div>
+                  <button
+                    onClick={handleCopyPreview}
+                    className={cn(
+                      'flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                      isDarkMode
+                        ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    )}
+                  >
+                    {copiedSection === 'preview' ? (
+                      <>
+                        <Check size={14} className="text-green-500" />
+                        コピー済み
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={14} />
+                        コピー
+                      </>
+                    )}
+                  </button>
+                </div>
+                <div
+                  className={cn(
+                    'p-4 rounded-xl text-sm font-mono whitespace-pre-wrap',
+                    isDarkMode ? 'bg-slate-800' : 'bg-slate-50',
+                    themeClasses.text
+                  )}
+                  style={{ maxHeight: '400px', overflowY: 'auto' }}
+                >
+                  {generatePreviewDescription()}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right Column - SEO Score & Keywords */}
@@ -542,7 +821,7 @@ export const SEOTab = ({ scriptId, videoId }: SEOTabProps) => {
 
         {/* Action Button */}
         <div className="flex justify-end mt-8 gap-3">
-          {updateSEOMutation.isSuccess && (
+          {(updateSEOMutation.isSuccess || saveCTAAssignmentMutation.isSuccess) && (
             <span className="flex items-center gap-2 text-green-500 text-sm">
               <Check size={16} />
               保存しました
@@ -550,21 +829,21 @@ export const SEOTab = ({ scriptId, videoId }: SEOTabProps) => {
           )}
           <button
             onClick={handleSave}
-            disabled={updateSEOMutation.isPending}
+            disabled={updateSEOMutation.isPending || saveCTAAssignmentMutation.isPending}
             className={cn(
               'px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all',
-              updateSEOMutation.isPending
+              (updateSEOMutation.isPending || saveCTAAssignmentMutation.isPending)
                 ? 'opacity-50 cursor-not-allowed'
                 : 'hover:from-blue-700 hover:to-indigo-700'
             )}
           >
-            {updateSEOMutation.isPending ? (
+            {(updateSEOMutation.isPending || saveCTAAssignmentMutation.isPending) ? (
               <span className="flex items-center gap-2">
                 <Loader2 size={16} className="animate-spin" />
                 保存中...
               </span>
             ) : (
-              'SEO設定を保存'
+              'SEO・CTA設定を保存'
             )}
           </button>
         </div>

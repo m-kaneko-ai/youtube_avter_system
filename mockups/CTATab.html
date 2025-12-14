@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTA管理 - Creator Studio AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- サイドバー（省略版） -->
+        <aside class="w-72 bg-white border-r border-slate-100 flex flex-col">
+            <div class="h-20 flex items-center px-6 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
+                        <i data-lucide="video" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <span class="font-bold text-xl text-slate-800">Creator Studio</span>
+                </div>
+            </div>
+            <nav class="flex-1 px-4 py-4 overflow-y-auto">
+                <div class="space-y-1">
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                        <span class="font-medium">ダッシュボード</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 text-blue-700 transition-colors relative">
+                        <i data-lucide="settings" class="w-5 h-5"></i>
+                        <span class="font-medium">管理</span>
+                        <div class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-500 rounded-l-full"></div>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- メインコンテンツ -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <!-- ヘッダー -->
+            <header class="h-20 bg-white border-b border-slate-100 flex items-center justify-between px-8">
+                <div class="flex-1 max-w-md">
+                    <div class="relative">
+                        <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" placeholder="検索..." class="w-full bg-slate-50 border-none rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:outline-none">
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="relative p-2 hover:bg-slate-50 rounded-xl transition-colors">
+                        <i data-lucide="bell" class="w-6 h-6 text-slate-600"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    <div class="flex items-center gap-3 pl-4 border-l border-slate-200">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold">K</div>
+                        <div>
+                            <div class="font-semibold text-slate-800">金子 光義</div>
+                            <div class="text-xs text-slate-500">Owner</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- タブナビゲーション -->
+            <div class="bg-white border-b border-slate-100 px-8 py-6">
+                <div class="mb-6">
+                    <h1 class="text-3xl font-bold text-slate-800">管理</h1>
+                    <p class="text-slate-500 mt-1">システム設定とチーム管理</p>
+                </div>
+                <div class="bg-slate-100/80 rounded-xl p-1 inline-flex gap-1">
+                    <button class="tab-button px-6 py-2.5 rounded-xl font-medium transition-all text-slate-600 hover:text-slate-800" data-tab="team">
+                        チーム
+                    </button>
+                    <button class="tab-button px-6 py-2.5 rounded-xl font-medium transition-all text-slate-600 hover:text-slate-800" data-tab="approval">
+                        承認管理
+                    </button>
+                    <button class="tab-button px-6 py-2.5 rounded-xl font-medium transition-all text-slate-600 hover:text-slate-800" data-tab="client">
+                        クライアント
+                    </button>
+                    <button class="tab-button px-6 py-2.5 rounded-xl font-medium transition-all text-slate-600 hover:text-slate-800" data-tab="knowledge">
+                        ナレッジ
+                    </button>
+                    <button class="tab-button active px-6 py-2.5 rounded-xl font-medium transition-all bg-white shadow-sm text-slate-800" data-tab="cta">
+                        CTA管理
+                    </button>
+                </div>
+            </div>
+
+            <!-- コンテンツエリア -->
+            <div class="flex-1 overflow-y-auto p-8">
+                <div class="max-w-6xl mx-auto space-y-6">
+
+                    <!-- ヘッダー＆アクション -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800">CTAテンプレート管理</h2>
+                            <p class="text-sm mt-1 text-slate-500">動画説明欄やコメントに挿入するCTAを管理</p>
+                        </div>
+                        <button onclick="openAddModal()" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            CTAを追加
+                        </button>
+                    </div>
+
+                    <!-- 統計カード -->
+                    <div class="grid grid-cols-4 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                            <div class="text-blue-500 mb-3">
+                                <i data-lucide="link" class="w-5 h-5"></i>
+                            </div>
+                            <p class="text-2xl font-bold text-slate-800">8</p>
+                            <p class="text-xs mt-1 text-slate-500">総CTA数</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                            <div class="text-green-500 mb-3">
+                                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                            </div>
+                            <p class="text-2xl font-bold text-slate-800">5</p>
+                            <p class="text-xs mt-1 text-slate-500">有効なCTA</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                            <div class="text-pink-500 mb-3">
+                                <i data-lucide="mouse-pointer-click" class="w-5 h-5"></i>
+                            </div>
+                            <p class="text-2xl font-bold text-slate-800">2,847</p>
+                            <p class="text-xs mt-1 text-slate-500">総クリック数</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                            <div class="text-purple-500 mb-3">
+                                <i data-lucide="percent" class="w-5 h-5"></i>
+                            </div>
+                            <p class="text-2xl font-bold text-slate-800">2.3%</p>
+                            <p class="text-xs mt-1 text-slate-500">平均CTR</p>
+                        </div>
+                    </div>
+
+                    <!-- CTA一覧 -->
+                    <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                        <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                            <i data-lucide="list" class="w-5 h-5 text-blue-600"></i>
+                            CTAテンプレート一覧
+                        </h3>
+
+                        <div class="space-y-4">
+                            <!-- CTA Item 1 - LINE -->
+                            <div class="flex items-center gap-4 p-5 rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all">
+                                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="message-circle" class="w-6 h-6 text-green-600"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h4 class="font-bold text-slate-800">LINE公式アカウント登録</h4>
+                                        <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">LINE</span>
+                                        <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">説明欄上部</span>
+                                        <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    </div>
+                                    <p class="text-sm text-slate-500 truncate">無料PDF「YouTube成功の秘訣10選」をプレゼント中!</p>
+                                    <div class="flex items-center gap-4 mt-2 text-sm text-slate-400">
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="link-2" class="w-3 h-3"></i>
+                                            lin.ee/abc123
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="mouse-pointer-click" class="w-3 h-3"></i>
+                                            1,245回
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="trending-up" class="w-3 h-3"></i>
+                                            CTR 3.2%
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button class="p-2 rounded-lg hover:bg-slate-100 transition-colors" title="プレビュー">
+                                        <i data-lucide="eye" class="w-4 h-4 text-slate-500"></i>
+                                    </button>
+                                    <button class="p-2 rounded-lg hover:bg-slate-100 transition-colors" title="編集">
+                                        <i data-lucide="edit-3" class="w-4 h-4 text-slate-500"></i>
+                                    </button>
+                                    <button class="p-2 rounded-lg hover:bg-slate-100 transition-colors" title="コピー">
+                                        <i data-lucide="copy" class="w-4 h-4 text-slate-500"></i>
+                                    </button>
+                                    <button class="p-2 rounded-lg hover:bg-red-50 transition-colors" title="削除">
+                                        <i data-lucide="trash-2" class="w-4 h-4 text-red-500"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- CTA Item 2 - メール -->
+                            <div class="flex items-center gap-4 p-5 rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all">
+                                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="mail" class="w-6 h-6 text-blue-600"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h4 class="font-bold text-slate-800">メルマガ登録</h4>
+                                        <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">メール</span>
+                                        <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">説明欄下部</span>
+                                        <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    </div>
+                                    <p class="text-sm text-slate-500 truncate">週3回、最新のマーケティング情報をお届けします</p>
+                                    <div class="flex items-center gap-4 mt-2 text-sm text-slate-400">
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="link-2" class="w-3 h-3"></i>
+                                            example.com/mail
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="mouse-pointer-click" class="w-3 h-3"></i>
+                                            892回
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="trending-up" class="w-3 h-3"></i>
+                                            CTR 2.1%
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button class="p-2 rounded-lg hover:bg-slate-100 transition-colors" title="プレビュー">
+                                        <i data-lucide="eye" class="w-4 h-4 text-slate-500"></i>
+                                    </button>
+                                    <button class="p-2 rounded-lg hover:bg-slate-100 transition-colors" title="編集">
+                                        <i data-lucide="edit-3" class="w-4 h-4 text-slate-500"></i>
+                                    </button>
+                                    <button class="p-2 rounded-lg hover:bg-slate-100 transition-colors" title="コピー">
+                                        <i data-lucide="copy" class="w-4 h-4 text-slate-500"></i>
+                                    </button>
+                                    <button class="p-2 rounded-lg hover:bg-red-50 transition-colors" title="削除">
+                                        <i data-lucide="trash-2" class="w-4 h-4 text-red-500"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- CTA Item 3 - ダウンロード -->
+                            <div class="flex items-center gap-4 p-5 rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all">
+                                <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="download" class="w-6 h-6 text-orange-600"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h4 class="font-bold text-slate-800">無料テンプレートダウンロード</h4>
+                                        <span class="px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-xs font-medium">ダウンロード</span>
+                                        <span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">固定コメント</span>
+                                        <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    </div>
+                                    <p class="text-sm text-slate-500 truncate">動画で紹介したテンプレートはこちらから無料でダウンロード!</p>
+                                    <div class="flex items-center gap-4 mt-2 text-sm text-slate-400">
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="link-2" class="w-3 h-3"></i>
+                                            bit.ly/template
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="mouse-pointer-click" class="w-3 h-3"></i>
+                                            456回
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="trending-up" class="w-3 h-3"></i>
+                                            CTR 1.8%
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button class="p-2 rounded-lg hover:bg-slate-100 transition-colors" title="プレビュー">
+                                        <i data-lucide="eye" class="w-4 h-4 text-slate-500"></i>
+                                    </button>
+                                    <button class="p-2 rounded-lg hover:bg-slate-100 transition-colors" title="編集">
+                                        <i data-lucide="edit-3" class="w-4 h-4 text-slate-500"></i>
+                                    </button>
+                                    <button class="p-2 rounded-lg hover:bg-slate-100 transition-colors" title="コピー">
+                                        <i data-lucide="copy" class="w-4 h-4 text-slate-500"></i>
+                                    </button>
+                                    <button class="p-2 rounded-lg hover:bg-red-50 transition-colors" title="削除">
+                                        <i data-lucide="trash-2" class="w-4 h-4 text-red-500"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- CTA Item 4 - Webinar -->
+                            <div class="flex items-center gap-4 p-5 rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all">
+                                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="video" class="w-6 h-6 text-purple-600"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h4 class="font-bold text-slate-800">無料ウェビナー申込</h4>
+                                        <span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">ウェビナー</span>
+                                        <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">説明欄上部</span>
+                                        <span class="w-2 h-2 bg-slate-300 rounded-full"></span>
+                                    </div>
+                                    <p class="text-sm text-slate-500 truncate">毎週金曜日開催!YouTubeで月収100万円を目指すウェビナー</p>
+                                    <div class="flex items-center gap-4 mt-2 text-sm text-slate-400">
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="link-2" class="w-3 h-3"></i>
+                                            example.com/webinar
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="mouse-pointer-click" class="w-3 h-3"></i>
+                                            254回
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="trending-up" class="w-3 h-3"></i>
+                                            CTR 1.5%
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button class="p-2 rounded-lg hover:bg-slate-100 transition-colors" title="プレビュー">
+                                        <i data-lucide="eye" class="w-4 h-4 text-slate-500"></i>
+                                    </button>
+                                    <button class="p-2 rounded-lg hover:bg-slate-100 transition-colors" title="編集">
+                                        <i data-lucide="edit-3" class="w-4 h-4 text-slate-500"></i>
+                                    </button>
+                                    <button class="p-2 rounded-lg hover:bg-slate-100 transition-colors" title="コピー">
+                                        <i data-lucide="copy" class="w-4 h-4 text-slate-500"></i>
+                                    </button>
+                                    <button class="p-2 rounded-lg hover:bg-red-50 transition-colors" title="削除">
+                                        <i data-lucide="trash-2" class="w-4 h-4 text-red-500"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- CTA Item 5 - LP -->
+                            <div class="flex items-center gap-4 p-5 rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all">
+                                <div class="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="external-link" class="w-6 h-6 text-pink-600"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h4 class="font-bold text-slate-800">講座LP</h4>
+                                        <span class="px-2 py-0.5 bg-pink-100 text-pink-700 rounded text-xs font-medium">LP</span>
+                                        <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">説明欄下部</span>
+                                        <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    </div>
+                                    <p class="text-sm text-slate-500 truncate">AIアバター動画講座の詳細はこちら</p>
+                                    <div class="flex items-center gap-4 mt-2 text-sm text-slate-400">
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="link-2" class="w-3 h-3"></i>
+                                            example.com/course
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="mouse-pointer-click" class="w-3 h-3"></i>
+                                            0回
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="trending-up" class="w-3 h-3"></i>
+                                            CTR 0%
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button class="p-2 rounded-lg hover:bg-slate-100 transition-colors" title="プレビュー">
+                                        <i data-lucide="eye" class="w-4 h-4 text-slate-500"></i>
+                                    </button>
+                                    <button class="p-2 rounded-lg hover:bg-slate-100 transition-colors" title="編集">
+                                        <i data-lucide="edit-3" class="w-4 h-4 text-slate-500"></i>
+                                    </button>
+                                    <button class="p-2 rounded-lg hover:bg-slate-100 transition-colors" title="コピー">
+                                        <i data-lucide="copy" class="w-4 h-4 text-slate-500"></i>
+                                    </button>
+                                    <button class="p-2 rounded-lg hover:bg-red-50 transition-colors" title="削除">
+                                        <i data-lucide="trash-2" class="w-4 h-4 text-red-500"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- UTMパラメータ設定 -->
+                    <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                        <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                            <i data-lucide="tag" class="w-5 h-5 text-indigo-600"></i>
+                            UTMパラメータ設定
+                        </h3>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">デフォルトソース</label>
+                                <input type="text" value="youtube" class="w-full bg-slate-50 rounded-xl px-4 py-3 border-none focus:ring-2 focus:ring-blue-500/50 focus:outline-none text-slate-800">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">デフォルトメディウム</label>
+                                <input type="text" value="video" class="w-full bg-slate-50 rounded-xl px-4 py-3 border-none focus:ring-2 focus:ring-blue-500/50 focus:outline-none text-slate-800">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">キャンペーン命名規則</label>
+                                <input type="text" value="{video_id}_{cta_type}" class="w-full bg-slate-50 rounded-xl px-4 py-3 border-none focus:ring-2 focus:ring-blue-500/50 focus:outline-none text-slate-800">
+                            </div>
+                        </div>
+                        <div class="mt-4 p-4 bg-slate-50 rounded-xl">
+                            <p class="text-sm text-slate-600">
+                                <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
+                                UTMパラメータは各CTAに自動的に付与されます。例: <code class="bg-slate-200 px-1 rounded">?utm_source=youtube&utm_medium=video&utm_campaign=abc123_line</code>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- CTA追加モーダル -->
+    <div id="addModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-slate-800">CTAテンプレートを追加</h2>
+                <button onclick="closeAddModal()" class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                    <i data-lucide="x" class="w-5 h-5 text-slate-500"></i>
+                </button>
+            </div>
+
+            <div class="space-y-5">
+                <!-- CTA名 -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">CTA名 <span class="text-red-500">*</span></label>
+                    <input type="text" placeholder="例: LINE公式アカウント登録" class="w-full bg-slate-50 rounded-xl px-4 py-3 border-none focus:ring-2 focus:ring-blue-500/50 focus:outline-none text-slate-800">
+                </div>
+
+                <!-- CTAタイプ -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">CTAタイプ <span class="text-red-500">*</span></label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button class="cta-type-btn active p-3 rounded-xl border-2 border-green-500 bg-green-50 text-center transition-all" data-type="line">
+                            <i data-lucide="message-circle" class="w-5 h-5 mx-auto mb-1 text-green-600"></i>
+                            <span class="text-xs font-medium text-green-700">LINE</span>
+                        </button>
+                        <button class="cta-type-btn p-3 rounded-xl border-2 border-slate-200 hover:border-blue-300 text-center transition-all" data-type="email">
+                            <i data-lucide="mail" class="w-5 h-5 mx-auto mb-1 text-slate-500"></i>
+                            <span class="text-xs font-medium text-slate-600">メール</span>
+                        </button>
+                        <button class="cta-type-btn p-3 rounded-xl border-2 border-slate-200 hover:border-blue-300 text-center transition-all" data-type="download">
+                            <i data-lucide="download" class="w-5 h-5 mx-auto mb-1 text-slate-500"></i>
+                            <span class="text-xs font-medium text-slate-600">ダウンロード</span>
+                        </button>
+                        <button class="cta-type-btn p-3 rounded-xl border-2 border-slate-200 hover:border-blue-300 text-center transition-all" data-type="discord">
+                            <i data-lucide="hash" class="w-5 h-5 mx-auto mb-1 text-slate-500"></i>
+                            <span class="text-xs font-medium text-slate-600">Discord</span>
+                        </button>
+                        <button class="cta-type-btn p-3 rounded-xl border-2 border-slate-200 hover:border-blue-300 text-center transition-all" data-type="webinar">
+                            <i data-lucide="video" class="w-5 h-5 mx-auto mb-1 text-slate-500"></i>
+                            <span class="text-xs font-medium text-slate-600">ウェビナー</span>
+                        </button>
+                        <button class="cta-type-btn p-3 rounded-xl border-2 border-slate-200 hover:border-blue-300 text-center transition-all" data-type="lp">
+                            <i data-lucide="external-link" class="w-5 h-5 mx-auto mb-1 text-slate-500"></i>
+                            <span class="text-xs font-medium text-slate-600">LP</span>
+                        </button>
+                        <button class="cta-type-btn p-3 rounded-xl border-2 border-slate-200 hover:border-blue-300 text-center transition-all col-span-2" data-type="custom">
+                            <i data-lucide="settings" class="w-5 h-5 mx-auto mb-1 text-slate-500"></i>
+                            <span class="text-xs font-medium text-slate-600">カスタム</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- リンクURL -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">リンクURL <span class="text-red-500">*</span></label>
+                    <input type="url" placeholder="https://lin.ee/xxxxx" class="w-full bg-slate-50 rounded-xl px-4 py-3 border-none focus:ring-2 focus:ring-blue-500/50 focus:outline-none text-slate-800">
+                    <div class="mt-2 flex items-center gap-2">
+                        <input type="checkbox" id="generateShortUrl" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                        <label for="generateShortUrl" class="text-sm text-slate-600">短縮URLを自動生成する（TinyURL）</label>
+                    </div>
+                </div>
+
+                <!-- 表示テキスト -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">表示テキスト <span class="text-red-500">*</span></label>
+                    <textarea rows="3" placeholder="例: 🎁 無料PDF「YouTube成功の秘訣10選」をプレゼント中!&#10;今すぐ受け取る ▶ " class="w-full bg-slate-50 rounded-xl px-4 py-3 border-none focus:ring-2 focus:ring-blue-500/50 focus:outline-none text-slate-800 resize-none"></textarea>
+                </div>
+
+                <!-- 配置場所 -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">配置場所 <span class="text-red-500">*</span></label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button class="placement-btn active p-3 rounded-xl border-2 border-blue-500 bg-blue-50 text-center transition-all">
+                            <i data-lucide="arrow-up" class="w-5 h-5 mx-auto mb-1 text-blue-600"></i>
+                            <span class="text-xs font-medium text-blue-700">説明欄上部</span>
+                        </button>
+                        <button class="placement-btn p-3 rounded-xl border-2 border-slate-200 hover:border-blue-300 text-center transition-all">
+                            <i data-lucide="arrow-down" class="w-5 h-5 mx-auto mb-1 text-slate-500"></i>
+                            <span class="text-xs font-medium text-slate-600">説明欄下部</span>
+                        </button>
+                        <button class="placement-btn p-3 rounded-xl border-2 border-slate-200 hover:border-blue-300 text-center transition-all">
+                            <i data-lucide="message-square" class="w-5 h-5 mx-auto mb-1 text-slate-500"></i>
+                            <span class="text-xs font-medium text-slate-600">固定コメント</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- UTMパラメータ -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">UTMパラメータ（任意）</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <input type="text" placeholder="utm_source" value="youtube" class="w-full bg-slate-50 rounded-xl px-3 py-2 border-none focus:ring-2 focus:ring-blue-500/50 focus:outline-none text-slate-800 text-sm">
+                        </div>
+                        <div>
+                            <input type="text" placeholder="utm_medium" value="video" class="w-full bg-slate-50 rounded-xl px-3 py-2 border-none focus:ring-2 focus:ring-blue-500/50 focus:outline-none text-slate-800 text-sm">
+                        </div>
+                        <div>
+                            <input type="text" placeholder="utm_campaign" class="w-full bg-slate-50 rounded-xl px-3 py-2 border-none focus:ring-2 focus:ring-blue-500/50 focus:outline-none text-slate-800 text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 有効/無効 -->
+                <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                    <div>
+                        <span class="text-sm font-medium text-slate-700">このCTAを有効にする</span>
+                        <p class="text-xs text-slate-500 mt-1">無効にすると、説明欄やコメントに挿入されません</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" checked class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- フッター -->
+            <div class="flex gap-3 mt-8">
+                <button onclick="closeAddModal()" class="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-200 transition-colors">
+                    キャンセル
+                </button>
+                <button class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">
+                    追加する
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- プレビューモーダル -->
+    <div id="previewModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-xl mx-4">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-slate-800">プレビュー</h2>
+                <button onclick="closePreviewModal()" class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                    <i data-lucide="x" class="w-5 h-5 text-slate-500"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="p-4 bg-slate-50 rounded-xl">
+                    <h4 class="text-sm font-medium text-slate-500 mb-2">説明欄での表示</h4>
+                    <div class="bg-white p-4 rounded-lg border border-slate-200">
+                        <p class="text-slate-800 whitespace-pre-line">🎁 無料PDF「YouTube成功の秘訣10選」をプレゼント中!
+今すぐ受け取る ▶ https://lin.ee/abc123?utm_source=youtube&utm_medium=video&utm_campaign=line_cta</p>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl">
+                    <h4 class="text-sm font-medium text-slate-500 mb-2">生成されたURL</h4>
+                    <div class="flex items-center gap-2">
+                        <code class="flex-1 bg-white px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-700 overflow-x-auto">https://lin.ee/abc123?utm_source=youtube&utm_medium=video&utm_campaign=line_cta</code>
+                        <button class="p-2 hover:bg-slate-200 rounded-lg transition-colors" title="コピー">
+                            <i data-lucide="copy" class="w-4 h-4 text-slate-500"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <button onclick="closePreviewModal()" class="w-full px-4 py-3 bg-slate-100 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-200 transition-colors">
+                    閉じる
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Lucide Icons初期化
+        lucide.createIcons();
+
+        // モーダル制御
+        function openAddModal() {
+            document.getElementById('addModal').classList.remove('hidden');
+            document.getElementById('addModal').classList.add('flex');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.add('hidden');
+            document.getElementById('addModal').classList.remove('flex');
+        }
+
+        function closePreviewModal() {
+            document.getElementById('previewModal').classList.add('hidden');
+            document.getElementById('previewModal').classList.remove('flex');
+        }
+
+        // CTAタイプ選択
+        const ctaTypeButtons = document.querySelectorAll('.cta-type-btn');
+        ctaTypeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                ctaTypeButtons.forEach(b => {
+                    b.classList.remove('active', 'border-green-500', 'bg-green-50');
+                    b.classList.add('border-slate-200');
+                });
+                btn.classList.add('active', 'border-green-500', 'bg-green-50');
+                btn.classList.remove('border-slate-200');
+            });
+        });
+
+        // 配置場所選択
+        const placementButtons = document.querySelectorAll('.placement-btn');
+        placementButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                placementButtons.forEach(b => {
+                    b.classList.remove('active', 'border-blue-500', 'bg-blue-50');
+                    b.classList.add('border-slate-200');
+                });
+                btn.classList.add('active', 'border-blue-500', 'bg-blue-50');
+                btn.classList.remove('border-slate-200');
+            });
+        });
+    </script>
+</body>
+</html>

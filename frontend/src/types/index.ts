@@ -702,3 +702,202 @@ export interface RAGAnalysisResult {
   /** 全フィールド数 */
   totalFields: number;
 }
+
+// =============================================
+// CTA管理用型定義
+// =============================================
+
+/**
+ * CTAタイプ
+ */
+export type CTAType = 'line' | 'email' | 'download' | 'discord' | 'webinar' | 'lp' | 'custom';
+
+/**
+ * CTA配置場所
+ */
+export type CTAPlacement = 'description_top' | 'description_bottom' | 'pinned_comment';
+
+/**
+ * UTMパラメータ
+ */
+export interface UTMParams {
+  /** ソース（例: youtube） */
+  source?: string;
+  /** メディウム（例: video） */
+  medium?: string;
+  /** キャンペーン名 */
+  campaign?: string;
+}
+
+/**
+ * CTAテンプレート
+ */
+export interface CTATemplate {
+  /** CTA ID */
+  id: string;
+  /** CTA名 */
+  name: string;
+  /** CTAタイプ */
+  type: CTAType;
+  /** リンクURL */
+  url: string;
+  /** UTMパラメータ */
+  utmParams?: UTMParams;
+  /** 短縮URL */
+  shortUrl?: string;
+  /** 表示テキスト */
+  displayText: string;
+  /** 配置場所 */
+  placement: CTAPlacement;
+  /** 有効/無効 */
+  isActive: boolean;
+  /** コンバージョン数（クリック数） */
+  conversionCount: number;
+  /** CTR（クリック率 %） */
+  ctr?: number;
+  /** 作成日時 */
+  createdAt: string;
+  /** 更新日時 */
+  updatedAt: string;
+}
+
+/**
+ * CTA作成リクエスト
+ */
+export interface CTACreateRequest {
+  /** CTA名 */
+  name: string;
+  /** CTAタイプ */
+  type: CTAType;
+  /** リンクURL */
+  url: string;
+  /** UTMパラメータ */
+  utmParams?: UTMParams;
+  /** 短縮URL生成フラグ */
+  generateShortUrl?: boolean;
+  /** 表示テキスト */
+  displayText: string;
+  /** 配置場所 */
+  placement: CTAPlacement;
+  /** 有効/無効 */
+  isActive?: boolean;
+}
+
+/**
+ * CTA更新リクエスト
+ */
+export interface CTAUpdateRequest {
+  /** CTA名 */
+  name?: string;
+  /** CTAタイプ */
+  type?: CTAType;
+  /** リンクURL */
+  url?: string;
+  /** UTMパラメータ */
+  utmParams?: UTMParams;
+  /** 短縮URL生成フラグ */
+  generateShortUrl?: boolean;
+  /** 表示テキスト */
+  displayText?: string;
+  /** 配置場所 */
+  placement?: CTAPlacement;
+  /** 有効/無効 */
+  isActive?: boolean;
+}
+
+/**
+ * CTA一覧レスポンス
+ */
+export interface CTAListResponse {
+  /** CTA一覧 */
+  ctas: CTATemplate[];
+  /** 総数 */
+  total: number;
+  /** 統計情報 */
+  stats: {
+    /** 総CTA数 */
+    totalCTAs: number;
+    /** 有効なCTA数 */
+    activeCTAs: number;
+    /** 総クリック数 */
+    totalClicks: number;
+    /** 平均CTR */
+    avgCTR: number;
+  };
+}
+
+/**
+ * CTA統計情報
+ */
+export interface CTAStats {
+  /** CTA ID */
+  ctaId: string;
+  /** クリック数 */
+  clicks: number;
+  /** CTR */
+  ctr: number;
+  /** 日別クリック数 */
+  dailyClicks?: {
+    date: string;
+    clicks: number;
+  }[];
+}
+
+/**
+ * 動画へのCTA割り当て
+ */
+export interface VideoCTAAssignment {
+  /** 動画ID */
+  videoId: string;
+  /** 説明欄上部CTA ID */
+  topCTAId?: string;
+  /** 説明欄下部CTA ID */
+  bottomCTAId?: string;
+  /** 固定コメントCTA ID */
+  pinnedCommentCTAId?: string;
+}
+
+/**
+ * UTMデフォルト設定
+ */
+export interface UTMDefaultSettings {
+  /** 設定ID */
+  id: string;
+  /** デフォルトソース */
+  defaultSource: string;
+  /** デフォルトメディウム */
+  defaultMedium: string;
+  /** キャンペーン命名規則 */
+  campaignNamingRule: string;
+  /** 作成日時 */
+  createdAt: string;
+  /** 更新日時 */
+  updatedAt: string;
+}
+
+/**
+ * CTA管理ページのタブ種別
+ */
+export type CTATabType = 'list' | 'settings';
+
+/**
+ * CTAタイプの設定情報
+ */
+export const CTA_TYPE_CONFIG: Record<CTAType, { label: string; icon: string; color: string }> = {
+  line: { label: 'LINE', icon: 'message-circle', color: 'green' },
+  email: { label: 'メール', icon: 'mail', color: 'blue' },
+  download: { label: 'ダウンロード', icon: 'download', color: 'orange' },
+  discord: { label: 'Discord', icon: 'hash', color: 'indigo' },
+  webinar: { label: 'ウェビナー', icon: 'video', color: 'purple' },
+  lp: { label: 'LP', icon: 'external-link', color: 'pink' },
+  custom: { label: 'カスタム', icon: 'settings', color: 'slate' },
+};
+
+/**
+ * CTA配置場所の設定情報
+ */
+export const CTA_PLACEMENT_CONFIG: Record<CTAPlacement, { label: string; icon: string }> = {
+  description_top: { label: '説明欄上部', icon: 'arrow-up' },
+  description_bottom: { label: '説明欄下部', icon: 'arrow-down' },
+  pinned_comment: { label: '固定コメント', icon: 'message-square' },
+};

@@ -42,7 +42,8 @@ async def get_config():
 from app.api.v1.endpoints import (
     auth, users, clients, master, knowledges, projects, videos,
     research, planning, scripts, metadata, thumbnails,
-    audio, avatar, broll, publish, analytics, admin, dashboard, metrics
+    audio, avatar, broll, publish, analytics, admin, dashboard, metrics,
+    cta
 )
 
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
@@ -65,3 +66,4 @@ api_router.include_router(analytics.router, prefix="/analytics", tags=["Analytic
 api_router.include_router(admin.router, prefix="/admin", tags=["Admin"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
 api_router.include_router(metrics.router, tags=["Metrics"])
+api_router.include_router(cta.router, prefix="/cta", tags=["CTA"])

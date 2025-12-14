@@ -101,6 +101,7 @@ export const PAGES: PageDefinition[] = [
       { id: 'approval', label: '承認ワークフロー' },
       { id: 'client', label: 'クライアントポータル' },
       { id: 'knowledge', label: 'ナレッジ作成' },
+      { id: 'cta', label: 'CTA管理' },
     ],
     requiredRoles: ['owner', 'team'],
   },

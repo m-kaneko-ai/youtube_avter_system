@@ -68,6 +68,14 @@ from app.models.dashboard import (
     Notification,
     NotificationType,
 )
+from app.models.cta import (
+    CTATemplate,
+    CTAType,
+    CTAPlacement,
+    VideoCTAAssignment,
+    UTMDefaultSettings,
+    CTAClickLog,
+)
 
 __all__ = [
     "User",
@@ -124,4 +132,10 @@ __all__ = [
     "TaskCategory",
     "Notification",
     "NotificationType",
+    "CTATemplate",
+    "CTAType",
+    "CTAPlacement",
+    "VideoCTAAssignment",
+    "UTMDefaultSettings",
+    "CTAClickLog",
 ]
