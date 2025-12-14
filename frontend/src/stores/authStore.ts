@@ -26,12 +26,13 @@ export const useAuthStore = create<AuthStore>()(
       isAuthenticated: false,
       isLoading: false,
 
-      // Legacy email/password login (for development)
+      // Legacy email/password login (demo accounts)
       login: async (email: string, password: string): Promise<boolean> => {
         set({ isLoading: true });
 
-        // Development mode: allow demo login
-        if (import.meta.env.DEV) {
+        // Demo login for development and testing
+        // TODO: Phase 2で本番認証に置き換え
+        {
           const DEMO_USERS: Record<string, { password: string; user: User }> = {
             'demo@example.com': {
               password: 'demo123',
