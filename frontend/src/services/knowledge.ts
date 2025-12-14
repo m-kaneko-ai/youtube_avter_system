@@ -568,6 +568,15 @@ const generateAIResponse = (
 
   // 「分からない」検出
   if (detectDontKnow(userMessage)) {
+    // 共感フレーズ
+    const empathyPhrases = [
+      'そうですよね、すぐには言葉にしづらいこともありますよね。',
+      '大丈夫です！ゆっくり一緒に考えていきましょう。',
+      '難しい質問でしたね。別の角度から聞いてみますね。',
+      'なるほど、まだ整理されていない部分もありますよね。',
+    ];
+    const empathy = empathyPhrases[Math.floor(Math.random() * empathyPhrases.length)];
+
     // ストーリーベースの質問で別角度からアプローチ
     const storyQuestion = template.storyBasedQuestions[
       Math.floor(Math.random() * template.storyBasedQuestions.length)
@@ -578,10 +587,10 @@ const generateAIResponse = (
       ];
 
     // ストーリーベースの質問を優先
-    const response = deepDiveCount < MAX_DEEP_DIVE ? storyQuestion : dontKnowResponse;
+    const question = deepDiveCount < MAX_DEEP_DIVE ? storyQuestion : dontKnowResponse;
 
     return {
-      content: response,
+      content: `${empathy}\n\n${question}`,
       shouldMoveNext: false,
       extractedData: {},
       newDeepDiveCount: deepDiveCount + 1,
@@ -600,8 +609,14 @@ const generateAIResponse = (
   if (answerDepth === 'shallow' && deepDiveCount < MAX_DEEP_DIVE) {
     const deepDive = selectDeepDiveQuestion(userMessage, answerDepth, dataKey);
     if (deepDive) {
+      const gentlePrompts = [
+        'なるほど！もう少しだけ聞かせてください。',
+        'ありがとうございます。もう一歩深く教えていただけますか？',
+        'いいですね！さらに具体的に聞かせてください。',
+      ];
+      const prompt = gentlePrompts[Math.floor(Math.random() * gentlePrompts.length)];
       return {
-        content: `なるほど、ありがとうございます。もう少し聞かせてください。
+        content: `${prompt}
 
 ${deepDive.question}`,
         shouldMoveNext: false,
@@ -616,8 +631,14 @@ ${deepDive.question}`,
     const storyQuestion = template.storyBasedQuestions[
       Math.floor(Math.random() * template.storyBasedQuestions.length)
     ];
+    const encouragements = [
+      'いい感じです！その調子でもう少し深掘りさせてください。',
+      '素敵ですね！もう少しお聞きしてもいいですか？',
+      'なるほど！そこをもう少し聞かせてください。',
+    ];
+    const encouragement = encouragements[Math.floor(Math.random() * encouragements.length)];
     return {
-      content: `いい回答ですね！もう少し深掘りさせてください。
+      content: `${encouragement}
 
 ${storyQuestion}`,
       shouldMoveNext: false,
@@ -628,13 +649,19 @@ ${storyQuestion}`,
 
   // フォローアップ質問がまだある場合
   if (questionIndex < template.followUpQuestions.length) {
-    const acknowledgeMessages = [
+    // 回答の深さに応じた共感メッセージ
+    const empathyMessages = answerDepth === 'deep' ? [
+      '素晴らしいエピソードですね！その経験が今の強みにつながっているんですね。',
+      '心に響くお話をありがとうございます。とても伝わってきました。',
+      '貴重な体験談ですね！これは視聴者の心にも響くと思います。',
+      'すごく具体的で分かりやすいです！ありがとうございます。',
+    ] : [
       'ありがとうございます！',
-      '素晴らしいですね！',
       'なるほど、よく分かりました！',
-      '貴重なお話をありがとうございます！',
+      'いいですね！続けてお聞きします。',
+      '了解です！では次の質問です。',
     ];
-    const acknowledge = acknowledgeMessages[Math.floor(Math.random() * acknowledgeMessages.length)];
+    const acknowledge = empathyMessages[Math.floor(Math.random() * empathyMessages.length)];
 
     return {
       content: `${acknowledge}
@@ -663,12 +690,21 @@ ${template.followUpQuestions[questionIndex]}`,
     ...extractedData,
   };
 
+  // ステップ完了時の共感メッセージ
+  const completionMessages = [
+    'このステップ、しっかり深掘りできましたね！',
+    'ここまでお話いただきありがとうございます。とても充実した内容です。',
+    '素晴らしい！このセクションはバッチリですね。',
+    'いい感じにまとまりました！',
+  ];
+  const completionMsg = completionMessages[Math.floor(Math.random() * completionMessages.length)];
+
   return {
-    content: `素晴らしい回答をありがとうございます！
+    content: `${completionMsg}
 
 ${template.summaryTemplate(currentStepData)}
 
-問題なければ「次へ」と入力してください。修正があれば教えてください。`,
+問題なければ「**次へ**」と入力してください。修正があれば教えてください。`,
     shouldMoveNext: false,
     extractedData,
     newDeepDiveCount: 0,
@@ -865,15 +901,20 @@ export const knowledgeService = {
     return {
       id: `msg-${Date.now()}`,
       role: 'assistant',
-      content: `おめでとうございます！全てのステップが完了しました！
+      content: `🎉 **お疲れさまでした！全てのステップが完了しました！**
 
-以下があなたのナレッジデータです：
+あなたのビジネスへの想いや、お客様への深い理解が伝わってきました。
+これだけ丁寧に言語化できているのは、本当に素晴らしいことです。
+
+---
+
+**📋 あなたのナレッジデータ：**
 
 ${summaries}
 
 ---
 
-「保存」ボタンを押すと、このナレッジがデータベースに登録されます。
+✨ 右側パネルの「**ナレッジを保存**」ボタンから、データベースに登録できます。
 修正が必要な場合は、該当するステップに戻って編集できます。`,
       timestamp: new Date().toISOString(),
     };
@@ -1152,11 +1193,18 @@ ${summaries}
 
     let content = '';
     if (previousAnswer) {
-      const acknowledges = [
+      // 前回の回答の深さを判定して共感メッセージを変える
+      const prevDepth = assessAnswerDepth(previousAnswer);
+      const acknowledges = prevDepth === 'deep' ? [
+        '素晴らしいエピソードをありがとうございます！とても伝わってきました。',
+        '心に響くお話ですね。これはコンテンツの強みになります！',
+        '具体的で分かりやすいです！この調子で進めていきましょう。',
+        '貴重な体験談をありがとうございます！',
+      ] : [
         'ありがとうございます！',
-        '素晴らしいエピソードですね！',
-        '貴重なお話をありがとうございます！',
-        'なるほど、よく分かりました！',
+        'なるほど、分かりました！',
+        'いいですね！では次に進みましょう。',
+        '了解です！',
       ];
       content = `${acknowledges[Math.floor(Math.random() * acknowledges.length)]}では次の質問です。\n\n`;
     }

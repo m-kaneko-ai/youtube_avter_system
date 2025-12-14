@@ -1234,13 +1234,13 @@ export const KnowledgeChatTab = () => {
             </div>
           </div>
 
-          {/* 保存ボタン */}
-          {progress.progressPercent === 100 && (
+          {/* 保存ボタン - 手動モードで100%完了時、またはRAGモードでヒアリング完了時 */}
+          {(progress.progressPercent === 100 || (mode === 'rag' && hearingComplete)) && (
             <button
               onClick={handleSaveSession}
               className={cn(
                 'w-full mt-4 px-4 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all',
-                'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:shadow-lg'
+                'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:shadow-lg hover:scale-[1.02]'
               )}
             >
               <Save className="w-5 h-5" />
