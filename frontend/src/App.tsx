@@ -12,6 +12,7 @@ import {
   ProductionPage,
   PublishPage,
   AnalyticsPage,
+  AgentPage,
   AdminPage,
 } from './pages';
 import { useThemeStore } from './stores/themeStore';
@@ -51,6 +52,14 @@ function App() {
           <Route path="/production" element={<ProductionPage />} />
           <Route path="/publish" element={<PublishPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route
+            path="/agent"
+            element={
+              <ProtectedRoute requiredRoles={['owner', 'team']}>
+                <AgentPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/admin"
             element={

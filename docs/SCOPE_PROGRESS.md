@@ -775,7 +775,7 @@
 | フロントエンドサービス | - | [x] | [x] | services/agent.ts ✅ |
 | QAエージェント | - | [x] | [x] | AgentType.qa_checker ✅ |
 | DBマイグレーション | - | [x] | [x] | 3f1f9a01d400_add_agent_models.py ✅ |
-| エージェント進捗UI | - | [ ] | [ ] | 別タスク |
+| エージェント管理UI | - | [x] | [x] | AgentPage.tsx (5タブ構成) ✅ |
 
 ### 12.2 エンドポイント実装
 
@@ -816,7 +816,12 @@
 | ThumbnailABTest.tsx | [ ] | [ ] | [ ] |
 | OptimalTimeSelector.tsx | [ ] | [ ] | [ ] |
 | EndScreenEditor.tsx | [ ] | [ ] | [ ] |
-| AgentStatus.tsx | [ ] | [ ] | [ ] |
+| AgentPage.tsx | [x] | [x] | [ ] |
+| └─ DashboardTab.tsx | [x] | [x] | [ ] |
+| └─ AgentsTab.tsx | [x] | [x] | [ ] |
+| └─ CommentsTab.tsx | [x] | [x] | [ ] |
+| └─ AlertsTab.tsx | [x] | [x] | [ ] |
+| └─ LogsTab.tsx | [x] | [x] | [ ] |
 
 ### 12.4 秘策対応状況
 
@@ -844,4 +849,4 @@
 
 ---
 
-**最終更新日**: 2025-12-15
+**最終更新日**: 2025-12-15 (Agent Management UI完了)

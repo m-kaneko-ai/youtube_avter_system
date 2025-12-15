@@ -7,6 +7,7 @@ import {
   Send,
   BarChart2,
   Users,
+  Bot,
 } from 'lucide-react';
 import type { PageDefinition } from '../types';
 
@@ -94,6 +95,20 @@ export const PAGES: PageDefinition[] = [
     ],
   },
   {
+    id: 'agent',
+    name: 'エージェント',
+    path: '/agent',
+    description: 'AI自動化エージェント',
+    tabs: [
+      { id: 'dashboard', label: 'ダッシュボード' },
+      { id: 'agents', label: 'エージェント一覧' },
+      { id: 'comments', label: 'コメント管理' },
+      { id: 'alerts', label: 'アラート' },
+      { id: 'logs', label: '実行履歴' },
+    ],
+    requiredRoles: ['owner', 'team'],
+  },
+  {
     id: 'admin',
     name: '管理',
     path: '/admin',
@@ -118,6 +133,7 @@ export const PAGE_ICONS: Record<string, React.ReactNode> = {
   production: <Video size={20} />,
   publish: <Send size={20} />,
   analytics: <BarChart2 size={20} />,
+  agent: <Bot size={20} />,
   admin: <Users size={20} />,
 };
 

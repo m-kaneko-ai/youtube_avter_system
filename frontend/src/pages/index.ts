@@ -9,6 +9,7 @@ export { ScriptPage } from './script/ScriptPage';
 export { ProductionPage } from './production/ProductionPage';
 export { PublishPage } from './publish/PublishPage';
 export { AnalyticsPage } from './analytics/AnalyticsPage';
+export { AgentPage } from './agent/AgentPage';
 export { AdminPage } from './admin/AdminPage';
 
 // Common
