@@ -3,7 +3,9 @@
 
 台本生成、タイトル生成、説明文生成、サムネイル生成のビジネスロジック
 Claude/Gemini API連携による実装
+Central DB連携によるナレッジ注入
 """
+import logging
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
@@ -36,6 +38,9 @@ from app.schemas.script import (
     ThumbnailGenerateResponse,
 )
 from app.services.external import claude_client, gemini_client
+from app.services.central_db_service import central_db_service
+
+logger = logging.getLogger(__name__)
 
 
 class ScriptService:
@@ -81,6 +86,22 @@ class ScriptService:
             knowledge = await db.get(Knowledge, request.knowledge_id)
             if knowledge and knowledge.content:
                 knowledge_context = knowledge.content[:2000]  # 最大2000文字
+
+        # Central DBからも関連ナレッジを取得して補強
+        try:
+            central_db_context = await central_db_service.get_knowledge_context_for_script(
+                topic=request.title or request.prompt[:100],
+                target_audience=None,  # 将来拡張: リクエストから取得
+                video_type="long",
+            )
+            if central_db_context:
+                if knowledge_context:
+                    knowledge_context = f"{knowledge_context}\n\n{central_db_context}"
+                else:
+                    knowledge_context = central_db_context
+                logger.info("Central DB knowledge injected into script generation")
+        except Exception as e:
+            logger.warning(f"Failed to get Central DB context: {e}")
 
         # AI APIで台本生成
         content = None
@@ -158,6 +179,18 @@ class ScriptService:
         db.add(script)
         await db.commit()
         await db.refresh(script)
+
+        # 台本をCentral DBに保存（将来の学習用）
+        try:
+            await central_db_service.save_script_to_knowledge(
+                title=script.title,
+                script_content=content[:5000] if content else "",  # 最大5000文字
+                video_type="long",
+                tags=[request.style or "educational"],
+            )
+            logger.info(f"Script saved to Central DB: {script.id}")
+        except Exception as e:
+            logger.warning(f"Failed to save script to Central DB: {e}")
 
         return ScriptGenerateResponse(
             script_id=script.id,

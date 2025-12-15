@@ -50,3 +50,7 @@ export type {
   SeriesStats,
   SeriesPerformance,
 } from './series';
+export { learningService } from './learning';
+export { dnaService } from './dna';
+export { optimizationService } from './optimization';
+export { agentService } from './agent';

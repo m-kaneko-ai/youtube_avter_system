@@ -729,41 +729,53 @@
 | ショート→長尺UI | - | [x] | [x] | ShortToLongLinkTab.tsx |
 | シリーズ詳細UI | - | [x] | [x] | SeriesDetailTab.tsx |
 
-#### Phase 3: 学習システム（Day 6-8）
+#### Phase 3: 学習システム（Day 6-8）✅ 完了
 
 | タスク | 担当 | 開始 | 完了 | 備考 |
 |--------|------|------|------|------|
-| パフォーマンス学習モデル | - | [ ] | [ ] | learning.py |
-| パフォーマンス学習API | - | [ ] | [ ] | 秘策1 |
-| コンテンツDNAモデル | - | [ ] | [ ] | dna.py |
-| DNA抽出サービス | - | [ ] | [ ] | 秘策5 |
-| Central DB連携 | - | [ ] | [ ] | 秘策7 |
-| 台本生成へのナレッジ注入 | - | [ ] | [ ] | |
+| パフォーマンス学習モデル | - | [x] | [x] | learning.py ✅ |
+| パフォーマンス学習API | - | [x] | [x] | learning endpoints ✅ |
+| コンテンツDNAモデル | - | [x] | [x] | dna.py ✅ |
+| DNA API | - | [x] | [x] | dna endpoints ✅ |
+| フロントエンド型定義 | - | [x] | [x] | types/index.ts ✅ |
+| フロントエンドサービス | - | [x] | [x] | learning.ts, dna.ts ✅ |
+| DNA抽出サービス | - | [x] | [x] | dna_service.py ✅ 秘策5 |
+| Central DB連携 | - | [x] | [x] | central_db_service.py ✅ 秘策7 |
+| 台本生成へのナレッジ注入 | - | [x] | [x] | script_service.py 連携完了 ✅ |
 
-#### Phase 4: アルゴリズム最適化（Day 9-12）
+#### Phase 4: アルゴリズム最適化（Day 9-12）✅ バックエンド完了
 
 | タスク | 担当 | 開始 | 完了 | 備考 |
 |--------|------|------|------|------|
-| リテンション曲線モデル | - | [ ] | [ ] | optimization.py |
+| リテンション曲線モデル | - | [x] | [x] | optimization.py ✅ |
+| A/Bテストモデル | - | [x] | [x] | optimization.py ✅ |
+| 最適投稿時間モデル | - | [x] | [x] | optimization.py ✅ 秘策6 |
+| 終了画面モデル | - | [x] | [x] | optimization.py ✅ |
+| 最適化スキーマ定義 | - | [x] | [x] | schemas/optimization.py ✅ |
+| 最適化APIエンドポイント | - | [x] | [x] | api/v1/endpoints/optimization.py ✅ |
+| フロントエンド型定義 | - | [x] | [x] | types/index.ts ✅ |
+| フロントエンドサービス | - | [x] | [x] | services/optimization.ts ✅ |
 | リテンション分析UI | - | [ ] | [ ] | 秘策3 |
-| A/Bテストモデル | - | [ ] | [ ] | |
 | サムネイルA/BテストUI | - | [ ] | [ ] | |
-| 最適投稿時間モデル | - | [ ] | [ ] | 秘策6 |
 | 最適投稿時間UI | - | [ ] | [ ] | |
-| 終了画面モデル | - | [ ] | [ ] | |
 | 終了画面エディタUI | - | [ ] | [ ] | |
 
-#### Phase 5: 自動化（Day 13-15）
+#### Phase 5: 自動化（Day 13-15）✅ バックエンド完了
 
 | タスク | 担当 | 開始 | 完了 | 備考 |
 |--------|------|------|------|------|
-| エージェントモデル | - | [ ] | [ ] | agent.py |
-| トレンドエージェント | - | [ ] | [ ] | 秘策2 |
-| 競合分析エージェント | - | [ ] | [ ] | |
-| コメント返信モデル | - | [ ] | [ ] | 秘策6 |
-| コメント自動化サービス | - | [ ] | [ ] | |
-| QAエージェント | - | [ ] | [ ] | |
-| エージェント進捗UI | - | [ ] | [ ] | |
+| エージェントモデル | - | [x] | [x] | agent.py ✅ |
+| トレンドエージェント | - | [x] | [x] | 秘策2 TrendAlert ✅ |
+| 競合分析エージェント | - | [x] | [x] | CompetitorAlert ✅ |
+| コメント返信モデル | - | [x] | [x] | 秘策6 CommentTemplate/CommentQueue ✅ |
+| コメント自動化サービス | - | [x] | [x] | ReplyStatus ✅ |
+| エージェントスキーマ | - | [x] | [x] | schemas/agent.py ✅ |
+| エージェントAPI | - | [x] | [x] | endpoints/agent.py ✅ |
+| フロントエンド型定義 | - | [x] | [x] | types/index.ts ✅ |
+| フロントエンドサービス | - | [x] | [x] | services/agent.ts ✅ |
+| QAエージェント | - | [x] | [x] | AgentType.qa_checker ✅ |
+| DBマイグレーション | - | [x] | [x] | 3f1f9a01d400_add_agent_models.py ✅ |
+| エージェント進捗UI | - | [ ] | [ ] | 別タスク |
 
 ### 12.2 エンドポイント実装
 
@@ -773,14 +785,25 @@
 | /api/v1/cta | GET | [x] | [ ] | [x] |
 | /api/v1/cta/:id | PUT | [x] | [ ] | [x] |
 | /api/v1/cta/:id | DELETE | [x] | [ ] | [x] |
-| /api/v1/learning | GET | [ ] | [ ] | [ ] |
-| /api/v1/learning | POST | [ ] | [ ] | [ ] |
-| /api/v1/optimization/retention | GET | [ ] | [ ] | [ ] |
-| /api/v1/optimization/abtest | POST | [ ] | [ ] | [ ] |
+| /api/v1/learning | GET | [x] | [ ] | [x] |
+| /api/v1/learning | POST | [x] | [ ] | [x] |
+| /api/v1/optimization/retention | CRUD | [x] | [ ] | [x] |
+| /api/v1/optimization/abtest | CRUD | [x] | [ ] | [x] |
+| /api/v1/optimization/posting-time | CRUD | [x] | [ ] | [x] |
+| /api/v1/optimization/end-screen | CRUD | [x] | [ ] | [x] |
 | /api/v1/series | CRUD | [x] | [ ] | [x] |
 | /api/v1/dna | CRUD | [ ] | [ ] | [ ] |
 | /api/v1/engagement | CRUD | [x] | [ ] | [x] |
-| /api/v1/agents | POST | [ ] | [ ] | [ ] |
+| /api/v1/agent/agents | CRUD | [x] | [ ] | [x] |
+| /api/v1/agent/tasks | CRUD | [x] | [ ] | [x] |
+| /api/v1/agent/schedules | CRUD | [x] | [ ] | [x] |
+| /api/v1/agent/comment-templates | CRUD | [x] | [ ] | [x] |
+| /api/v1/agent/comment-queue | CRUD | [x] | [ ] | [x] |
+| /api/v1/agent/trend-alerts | CRUD | [x] | [ ] | [x] |
+| /api/v1/agent/competitor-alerts | CRUD | [x] | [ ] | [x] |
+| /api/v1/agent/logs | GET | [x] | [ ] | [x] |
+| /api/v1/agent/summary | GET | [x] | [ ] | [x] |
+| /api/v1/agent/dashboard | GET | [x] | [ ] | [x] |
 
 ### 12.3 コンポーネント実装
 
@@ -799,21 +822,21 @@
 
 | 秘策 | 名称 | 実装状況 |
 |------|------|----------|
-| 1 | パフォーマンス学習システム | [ ] 未着手 |
-| 2 | サブエージェント戦略 | [ ] 未着手 |
-| 3 | YouTubeアルゴリズム最適化 | [ ] 未着手 |
+| 1 | パフォーマンス学習システム | ✅ 完了 (learning_service.py) |
+| 2 | サブエージェント戦略 | ✅ バックエンド完了 (TrendAlert, トレンド監視エージェント) |
+| 3 | YouTubeアルゴリズム最適化 | ✅ バックエンド完了 (リテンション/A/Bテスト/終了画面) |
 | 4 | コンテンツ複利戦略 | [ ] 未着手 |
-| 5 | コンテンツDNA抽出 | [ ] 未着手 |
-| 6 | 見落とされた機能 | [ ] 未着手 |
-| 7 | Central DB活用 | [ ] 未着手 |
+| 5 | コンテンツDNA抽出 | ✅ 完了 (dna_service.py) |
+| 6 | コメント自動返信 + 最適投稿時間 | ✅ バックエンド完了 (CommentTemplate/CommentQueue + PostingTimeAnalysis) |
+| 7 | Central DB活用 | ✅ 完了 (central_db_service.py) |
 
 ### 12.5 完了チェックリスト
 
 - [x] Phase 1: CTA基盤の動作確認 ✅ 2025-12-15完了
 - [x] Phase 2: ショート→長尺連携の動作確認 ✅ 2025-12-15完了
-- [ ] Phase 3: 学習システムの動作確認
-- [ ] Phase 4: 最適化機能の動作確認
-- [ ] Phase 5: 自動化機能の動作確認
+- [x] Phase 3: 学習システムの動作確認 ✅ 2025-12-15完了
+- [x] Phase 4: 最適化機能バックエンド ✅ 2025-12-15完了 (UIは別タスク)
+- [x] Phase 5: 自動化機能バックエンド ✅ 2025-12-15完了 (UIは別タスク)
 - [ ] 全機能の統合テスト
 - [ ] パフォーマンステスト
 - [ ] セキュリティテスト
