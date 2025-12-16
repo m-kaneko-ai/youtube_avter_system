@@ -20,9 +20,33 @@ from app.core.config import settings
 
 # DATABASE_URLをasyncpg用に変換
 # postgresql:// -> postgresql+asyncpg://
+# sslmodeパラメータはasyncpgでは未対応なので除去
+import re
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 database_url = settings.DATABASE_URL
 if database_url.startswith("postgresql://"):
     database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+# asyncpgでサポートされていないパラメータを除去
+parsed = urlparse(database_url)
+if parsed.query:
+    # クエリパラメータを解析
+    params = parse_qs(parsed.query, keep_blank_values=True)
+    # asyncpg未対応パラメータを除去
+    unsupported_params = ['sslmode', 'channel_binding']
+    for param in unsupported_params:
+        params.pop(param, None)
+    # 新しいクエリ文字列を構築（値がリストの場合は最初の値を使用）
+    new_query = urlencode({k: v[0] if isinstance(v, list) else v for k, v in params.items()})
+    # URLを再構築
+    database_url = urlunparse((
+        parsed.scheme,
+        parsed.netloc,
+        parsed.path,
+        parsed.params,
+        new_query,
+        parsed.fragment,
+    ))
 
 # 非同期エンジンの作成
 engine = create_async_engine(

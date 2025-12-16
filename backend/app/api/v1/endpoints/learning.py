@@ -11,7 +11,7 @@ from sqlalchemy import select, func
 from uuid import UUID
 
 from app.core.database import get_db
-from app.core.security import get_current_user
+from app.api.deps import get_current_user_id_dev as get_current_user_id
 from app.models.learning import (
     PerformanceRecord,
     LearningInsight,
@@ -59,7 +59,7 @@ async def get_performance_records(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """パフォーマンス記録一覧を取得"""
     query = select(PerformanceRecord)
@@ -130,7 +130,7 @@ async def get_performance_records(
 async def create_performance_record(
     data: PerformanceRecordCreate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """パフォーマンス記録を作成"""
     record = PerformanceRecord(
@@ -213,7 +213,7 @@ async def create_performance_record(
 async def get_performance_record(
     record_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """パフォーマンス記録を取得"""
     result = await db.execute(
@@ -265,7 +265,7 @@ async def update_performance_record(
     record_id: str,
     data: PerformanceRecordUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """パフォーマンス記録を更新"""
     result = await db.execute(
@@ -359,7 +359,7 @@ async def get_insights(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """学習インサイト一覧を取得"""
     query = select(LearningInsight)
@@ -414,7 +414,7 @@ async def get_insights(
 async def create_insight(
     data: LearningInsightCreate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """学習インサイトを作成"""
     insight = LearningInsight(
@@ -467,7 +467,7 @@ async def get_success_patterns(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """成功パターン一覧を取得"""
     query = select(SuccessPattern)
@@ -517,7 +517,7 @@ async def get_success_patterns(
 async def create_success_pattern(
     data: SuccessPatternCreate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """成功パターンを作成"""
     pattern = SuccessPattern(
@@ -565,7 +565,7 @@ async def get_recommendations(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """推奨事項一覧を取得"""
     query = select(Recommendation)
@@ -621,7 +621,7 @@ async def get_recommendations(
 async def create_recommendation(
     data: RecommendationCreate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """推奨事項を作成"""
     recommendation = Recommendation(
@@ -668,7 +668,7 @@ async def create_recommendation(
 async def apply_recommendation(
     recommendation_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """推奨事項を適用済みにする"""
     result = await db.execute(
@@ -695,7 +695,7 @@ async def apply_recommendation(
 async def get_learning_summary(
     knowledge_id: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """学習サマリーを取得"""
     base_filter = []
@@ -769,7 +769,7 @@ async def get_learning_trends(
     knowledge_id: Optional[str] = Query(None),
     days: int = Query(30, ge=7, le=90),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """学習トレンドを取得"""
     since = datetime.utcnow() - timedelta(days=days)
@@ -794,7 +794,7 @@ async def get_learning_trends(
 async def analyze_performance(
     data: LearningAnalysisRequest,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """パフォーマンス分析を実行"""
     import uuid as uuid_mod

@@ -204,6 +204,36 @@ def require_role(required_roles: list[str]):
 
 
 # ===== 開発モード用の認証バイパス =====
+async def get_current_user_id_dev(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    access_token_cookie: Optional[str] = Cookie(None, alias="access_token"),
+    x_dev_bypass: Optional[str] = Header(None, alias="X-Dev-Bypass"),
+) -> str:
+    """
+    開発モード用のユーザーID取得（バイパス可能）
+
+    開発モード（DEBUG=True）で、X-Dev-Bypass: true ヘッダーが
+    設定されている場合、認証をバイパスしてダミーユーザーIDを返す。
+
+    Args:
+        request: FastAPIリクエストオブジェクト
+        credentials: HTTPベアラー認証情報（オプション）
+        access_token_cookie: Cookieからのアクセストークン
+        x_dev_bypass: 開発バイパスヘッダー
+
+    Returns:
+        str: ユーザーID
+    """
+    # 開発モードでバイパスヘッダーがある場合
+    if settings.debug and x_dev_bypass == "true":
+        return "dev-user-id"
+
+    # 通常の認証フロー
+    token = await get_token_from_request(request, credentials, access_token_cookie)
+    return await get_current_user_id(token)
+
+
 async def get_current_user_role_dev(
     request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),

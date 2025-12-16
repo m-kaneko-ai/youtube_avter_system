@@ -11,7 +11,7 @@ from sqlalchemy import select, func
 from uuid import UUID
 
 from app.core.database import get_db
-from app.core.security import get_current_user
+from app.api.deps import get_current_user_id_dev as get_current_user_id
 from app.models.dna import (
     ContentDNA,
     DNAElement,
@@ -58,7 +58,7 @@ async def get_content_dnas(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """コンテンツDNA一覧を取得"""
     query = select(ContentDNA)
@@ -114,7 +114,7 @@ async def get_content_dnas(
 async def create_content_dna(
     data: ContentDNACreate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """コンテンツDNAを作成"""
     dna = ContentDNA(
@@ -166,7 +166,7 @@ async def create_content_dna(
 async def get_content_dna(
     dna_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """コンテンツDNAを取得"""
     result = await db.execute(
@@ -207,7 +207,7 @@ async def update_content_dna(
     dna_id: str,
     data: ContentDNAUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """コンテンツDNAを更新"""
     result = await db.execute(
@@ -281,7 +281,7 @@ async def update_content_dna(
 async def delete_content_dna(
     dna_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """コンテンツDNAを削除"""
     result = await db.execute(
@@ -306,7 +306,7 @@ async def get_dna_elements(
     dna_id: str,
     element_type: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """DNA要素一覧を取得"""
     query = select(DNAElement).where(DNAElement.content_dna_id == UUID(dna_id))
@@ -343,7 +343,7 @@ async def create_dna_element(
     dna_id: str,
     data: DNAElementCreate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """DNA要素を作成"""
     # Verify DNA exists
@@ -401,7 +401,7 @@ async def get_dna_templates(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """DNAテンプレート一覧を取得"""
     query = select(DNATemplate)
@@ -455,7 +455,7 @@ async def get_dna_templates(
 async def create_dna_template(
     data: DNATemplateCreate,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user_id: str = Depends(get_current_user_id),
 ):
     """DNAテンプレートを作成"""
     template = DNATemplate(
@@ -502,7 +502,7 @@ async def create_dna_template(
 async def get_dna_template(
     template_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """DNAテンプレートを取得"""
     result = await db.execute(
@@ -539,7 +539,7 @@ async def update_dna_template(
     template_id: str,
     data: DNATemplateUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """DNAテンプレートを更新"""
     result = await db.execute(
@@ -599,7 +599,7 @@ async def update_dna_template(
 async def delete_dna_template(
     template_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """DNAテンプレートを削除"""
     result = await db.execute(
@@ -623,7 +623,7 @@ async def delete_dna_template(
 async def compare_dnas(
     data: DNAComparisonRequest,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """2つのDNAを比較"""
     # Verify source DNA exists
@@ -684,7 +684,7 @@ async def compare_dnas(
 async def get_channel_profile(
     knowledge_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """チャンネルDNAプロファイルを取得"""
     result = await db.execute(
@@ -720,7 +720,7 @@ async def get_channel_profile(
 async def create_channel_profile(
     data: ChannelDNAProfileCreate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """チャンネルDNAプロファイルを作成"""
     # Check if profile already exists
@@ -775,7 +775,7 @@ async def update_channel_profile(
     knowledge_id: str,
     data: ChannelDNAProfileUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """チャンネルDNAプロファイルを更新"""
     result = await db.execute(
@@ -844,7 +844,7 @@ async def update_channel_profile(
 async def extract_dna(
     data: DNAExtractionRequest,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """動画からDNAを抽出"""
     import uuid as uuid_mod
@@ -890,7 +890,7 @@ async def extract_dna(
 async def get_dna_summary(
     knowledge_id: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """DNAサマリーを取得"""
     base_filter = []

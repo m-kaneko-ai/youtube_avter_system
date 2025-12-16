@@ -11,7 +11,7 @@ from sqlalchemy import select, func
 from uuid import UUID
 
 from app.core.database import get_db
-from app.core.security import get_current_user
+from app.api.deps import get_current_user_id_dev as get_current_user_id
 from app.models.engagement import (
     ShortToLongLink,
     EngagementMetrics,
@@ -65,7 +65,7 @@ async def get_links(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """ショート→長尺連携一覧を取得"""
     query = select(ShortToLongLink)
@@ -122,7 +122,7 @@ async def get_links(
 async def create_link(
     data: ShortToLongLinkCreate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """ショート→長尺連携を作成"""
     # Verify videos exist
@@ -174,7 +174,7 @@ async def create_link(
 async def get_link(
     link_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """ショート→長尺連携を取得"""
     result = await db.execute(
@@ -216,7 +216,7 @@ async def update_link(
     link_id: str,
     data: ShortToLongLinkUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """ショート→長尺連携を更新"""
     result = await db.execute(
@@ -273,7 +273,7 @@ async def update_link(
 async def delete_link(
     link_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """ショート→長尺連携を削除"""
     result = await db.execute(
@@ -296,7 +296,7 @@ async def delete_link(
 @router.get("/stats/summary", response_model=EngagementSummary)
 async def get_engagement_summary(
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エンゲージメントサマリーを取得"""
     # Total links
@@ -355,7 +355,7 @@ async def get_link_performance(
     link_id: str,
     days: int = Query(30, ge=1, le=90, description="分析期間（日数）"),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """連携のパフォーマンスを取得"""
     result = await db.execute(
@@ -428,7 +428,7 @@ async def record_metrics(
     link_id: str,
     data: EngagementMetricsCreate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エンゲージメント指標を記録"""
     # Verify link exists
@@ -496,7 +496,7 @@ async def record_metrics(
 async def create_clip(
     data: ShortVideoClipCreate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """ショート動画切り抜きを作成"""
     # Verify short video exists
@@ -547,7 +547,7 @@ async def create_clip(
 async def get_clip(
     clip_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """ショート動画切り抜きを取得"""
     result = await db.execute(

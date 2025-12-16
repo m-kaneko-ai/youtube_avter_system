@@ -7,11 +7,11 @@ from typing import Optional, List
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, cast, String
 from uuid import UUID
 
 from app.core.database import get_db
-from app.core.security import get_current_user
+from app.api.deps import get_current_user_id_dev as get_current_user_id
 from app.models.agent import (
     Agent,
     AgentTask,
@@ -83,7 +83,7 @@ async def get_agents(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エージェント一覧を取得"""
     query = select(Agent)
@@ -115,7 +115,7 @@ async def get_agents(
 async def create_agent(
     data: AgentCreate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エージェントを作成"""
     agent = Agent(
@@ -142,7 +142,7 @@ async def create_agent(
 async def get_agent(
     agent_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エージェント詳細を取得"""
     result = await db.execute(
@@ -160,7 +160,7 @@ async def update_agent(
     agent_id: str,
     data: AgentUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エージェントを更新"""
     result = await db.execute(
@@ -184,7 +184,7 @@ async def update_agent(
 async def delete_agent(
     agent_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エージェントを削除"""
     result = await db.execute(
@@ -205,7 +205,7 @@ async def update_agent_status(
     agent_id: str,
     data: AgentStatusUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エージェントステータスを更新"""
     result = await db.execute(
@@ -228,7 +228,7 @@ async def run_agent(
     task_name: str = Query(..., description="タスク名"),
     input_data: Optional[dict] = None,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エージェントを手動実行"""
     result = await db.execute(
@@ -275,7 +275,7 @@ async def get_agent_tasks(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エージェントタスク一覧を取得"""
     query = select(AgentTask)
@@ -307,7 +307,7 @@ async def get_agent_tasks(
 async def get_agent_task(
     task_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エージェントタスク詳細を取得"""
     result = await db.execute(
@@ -324,7 +324,7 @@ async def get_agent_task(
 async def cancel_agent_task(
     task_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エージェントタスクをキャンセル"""
     result = await db.execute(
@@ -355,7 +355,7 @@ async def get_agent_schedules(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エージェントスケジュール一覧を取得"""
     query = select(AgentSchedule)
@@ -385,7 +385,7 @@ async def get_agent_schedules(
 async def create_agent_schedule(
     data: AgentScheduleCreate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エージェントスケジュールを作成"""
     schedule = AgentSchedule(
@@ -414,7 +414,7 @@ async def update_agent_schedule(
     schedule_id: str,
     data: AgentScheduleUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エージェントスケジュールを更新"""
     result = await db.execute(
@@ -438,7 +438,7 @@ async def update_agent_schedule(
 async def delete_agent_schedule(
     schedule_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エージェントスケジュールを削除"""
     result = await db.execute(
@@ -467,7 +467,7 @@ async def get_comment_templates(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """コメントテンプレート一覧を取得"""
     query = select(CommentTemplate)
@@ -501,7 +501,7 @@ async def get_comment_templates(
 async def create_comment_template(
     data: CommentTemplateCreate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """コメントテンプレートを作成"""
     template = CommentTemplate(
@@ -533,7 +533,7 @@ async def update_comment_template(
     template_id: str,
     data: CommentTemplateUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """コメントテンプレートを更新"""
     result = await db.execute(
@@ -557,7 +557,7 @@ async def update_comment_template(
 async def delete_comment_template(
     template_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """コメントテンプレートを削除"""
     result = await db.execute(
@@ -586,7 +586,7 @@ async def get_comment_queue(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """コメントキュー一覧を取得"""
     query = select(CommentQueue)
@@ -621,7 +621,7 @@ async def approve_comment(
     comment_id: str,
     data: CommentApproval,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user_id: str = Depends(get_current_user_id),
 ):
     """コメント返信を承認/却下"""
     result = await db.execute(
@@ -633,7 +633,7 @@ async def approve_comment(
 
     if data.approved:
         comment.status = ReplyStatus.APPROVED
-        comment.approved_by = current_user.id
+        comment.approved_by = current_user_id
         comment.approved_at = datetime.utcnow()
         if data.modified_reply:
             comment.reply_text = data.modified_reply
@@ -650,7 +650,7 @@ async def approve_comment(
 async def send_comment_reply(
     comment_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """承認済みコメント返信を送信"""
     result = await db.execute(
@@ -686,7 +686,7 @@ async def get_trend_alerts(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """トレンドアラート一覧を取得"""
     query = select(TrendAlert)
@@ -721,7 +721,7 @@ async def update_trend_alert(
     alert_id: str,
     data: TrendAlertUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """トレンドアラートを更新"""
     result = await db.execute(
@@ -747,7 +747,7 @@ async def update_trend_alert(
 async def mark_trend_alert_read(
     alert_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """トレンドアラートを既読にする"""
     result = await db.execute(
@@ -778,7 +778,7 @@ async def get_competitor_alerts(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """競合アラート一覧を取得"""
     query = select(CompetitorAlert)
@@ -815,7 +815,7 @@ async def update_competitor_alert(
     alert_id: str,
     data: CompetitorAlertUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """競合アラートを更新"""
     result = await db.execute(
@@ -841,7 +841,7 @@ async def update_competitor_alert(
 async def mark_competitor_alert_read(
     alert_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """競合アラートを既読にする"""
     result = await db.execute(
@@ -870,7 +870,7 @@ async def get_agent_logs(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エージェントログ一覧を取得"""
     query = select(AgentLog)
@@ -905,7 +905,7 @@ async def get_agent_logs(
 @router.get("/summary", response_model=AgentSummary)
 async def get_agent_summary(
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エージェントサマリーを取得"""
     today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -920,7 +920,7 @@ async def get_agent_summary(
     active_agents = active_agents_result.scalar() or 0
 
     running_agents_result = await db.execute(
-        select(func.count(Agent.id)).where(Agent.status == AgentStatus.RUNNING)
+        select(func.count(Agent.id)).where(cast(Agent.status, String) == "running")
     )
     running_agents = running_agents_result.scalar() or 0
 
@@ -934,7 +934,7 @@ async def get_agent_summary(
         select(func.count(AgentTask.id)).where(
             and_(
                 AgentTask.created_at >= today,
-                AgentTask.status == TaskStatus.COMPLETED
+                cast(AgentTask.status, String) == "completed"
             )
         )
     )
@@ -944,7 +944,7 @@ async def get_agent_summary(
         select(func.count(AgentTask.id)).where(
             and_(
                 AgentTask.created_at >= today,
-                AgentTask.status == TaskStatus.FAILED
+                cast(AgentTask.status, String) == "failed"
             )
         )
     )
@@ -952,7 +952,7 @@ async def get_agent_summary(
 
     # Pending comments
     pending_comments_result = await db.execute(
-        select(func.count(CommentQueue.id)).where(CommentQueue.status == ReplyStatus.PENDING)
+        select(func.count(CommentQueue.id)).where(cast(CommentQueue.status, String) == "pending")
     )
     pending_comments = pending_comments_result.scalar() or 0
 
@@ -983,11 +983,11 @@ async def get_agent_summary(
 @router.get("/dashboard", response_model=AgentDashboard)
 async def get_agent_dashboard(
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """エージェントダッシュボードを取得"""
     # Get summary
-    summary = await get_agent_summary(db=db, _current_user=_current_user)
+    summary = await get_agent_summary(db=db, _current_user_id=_current_user_id)
 
     # Recent agents
     agents_result = await db.execute(
@@ -1016,7 +1016,7 @@ async def get_agent_dashboard(
     # Pending comments
     pending_comments_result = await db.execute(
         select(CommentQueue)
-        .where(CommentQueue.status == ReplyStatus.PENDING)
+        .where(cast(CommentQueue.status, String) == "pending")
         .order_by(CommentQueue.created_at.desc())
         .limit(10)
     )

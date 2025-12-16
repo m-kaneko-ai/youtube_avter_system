@@ -18,8 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
-from app.core.auth import get_current_user
-from app.models.user import User
+from app.api.deps import get_current_user_id_dev as get_current_user_id
 from app.models.optimization import (
     RetentionCurve,
     RetentionEvent,
@@ -76,7 +75,7 @@ router = APIRouter()
 async def create_retention_curve(
     request: RetentionCurveCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """リテンション曲線を作成"""
     # データポイントを辞書のリストに変換
@@ -125,7 +124,7 @@ async def create_retention_curve(
 async def get_retention_curve(
     video_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """動画のリテンション曲線を取得"""
     result = await db.execute(
@@ -149,7 +148,7 @@ async def get_retention_curve(
 async def analyze_retention(
     request: RetentionAnalysisRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """リテンションを分析"""
     result = await db.execute(
@@ -202,7 +201,7 @@ async def analyze_retention(
 async def create_ab_test(
     request: ABTestCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """A/Bテストを作成"""
     ab_test = ABTest(
@@ -256,7 +255,7 @@ async def list_ab_tests(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """A/Bテスト一覧を取得"""
     query = select(ABTest).options(selectinload(ABTest.variants))
@@ -291,7 +290,7 @@ async def list_ab_tests(
 async def get_ab_test(
     test_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """A/Bテストを取得"""
     result = await db.execute(
@@ -315,7 +314,7 @@ async def update_ab_test(
     test_id: UUID,
     request: ABTestUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """A/Bテストを更新"""
     result = await db.execute(
@@ -356,7 +355,7 @@ async def update_ab_test(
 async def start_ab_test(
     test_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """A/Bテストを開始"""
     result = await db.execute(
@@ -391,7 +390,7 @@ async def start_ab_test(
 async def complete_ab_test(
     test_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """A/Bテストを完了し結果を取得"""
     result = await db.execute(
@@ -446,7 +445,7 @@ async def complete_ab_test(
 async def create_posting_time_analysis(
     request: PostingTimeAnalysisCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """最適投稿時間分析を作成"""
     # モックの推奨時間（実際はパフォーマンスデータから計算）
@@ -486,7 +485,7 @@ async def get_posting_time_analysis(
     knowledge_id: UUID,
     video_type: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """最適投稿時間分析を取得"""
     query = select(PostingTimeAnalysis).where(
@@ -517,7 +516,7 @@ async def get_posting_time_analysis(
 async def create_end_screen(
     request: EndScreenCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """終了画面を作成"""
     end_screen = EndScreen(
@@ -573,7 +572,7 @@ async def create_end_screen(
 async def get_end_screen(
     video_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """終了画面を取得"""
     result = await db.execute(
@@ -598,7 +597,7 @@ async def update_end_screen(
     end_screen_id: UUID,
     request: EndScreenUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """終了画面を更新"""
     result = await db.execute(
@@ -644,7 +643,7 @@ async def list_end_screen_templates(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """終了画面テンプレート一覧を取得"""
     query = select(EndScreenTemplate).where(EndScreenTemplate.is_active == True)
@@ -675,7 +674,7 @@ async def list_end_screen_templates(
 async def create_end_screen_template(
     request: EndScreenTemplateCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """終了画面テンプレートを作成"""
     template = EndScreenTemplate(
@@ -704,7 +703,7 @@ async def create_end_screen_template(
 async def get_optimization_summary(
     knowledge_id: Optional[UUID] = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """最適化サマリーを取得"""
     # A/Bテスト数

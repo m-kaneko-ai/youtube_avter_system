@@ -107,7 +107,7 @@ export const agentService = {
     if (params?.limit) queryParams.append('limit', String(params.limit));
 
     const query = queryParams.toString();
-    const response = await api.get<AgentListResponse>(`/agent/agents${query ? `?${query}` : ''}`);
+    const response = await api.get<AgentListResponse>(`/api/v1/agent/agents${query ? `?${query}` : ''}`);
     return {
       agents: response.agents.map((a) => toCamelCase(a as unknown as Record<string, unknown>) as unknown as Agent),
       total: response.total,
@@ -119,7 +119,7 @@ export const agentService = {
    */
   async createAgent(data: AgentCreateRequest): Promise<Agent> {
     const snakeData = toSnakeCase(data as unknown as Record<string, unknown>);
-    const response = await api.post<Agent>('/agent/agents', snakeData);
+    const response = await api.post<Agent>('/api/v1/agent/agents', snakeData);
     return toCamelCase(response as unknown as Record<string, unknown>) as unknown as Agent;
   },
 
@@ -127,7 +127,7 @@ export const agentService = {
    * エージェント詳細取得
    */
   async getAgent(agentId: string): Promise<Agent> {
-    const response = await api.get<Agent>(`/agent/agents/${agentId}`);
+    const response = await api.get<Agent>(`/api/v1/agent/agents/${agentId}`);
     return toCamelCase(response as unknown as Record<string, unknown>) as unknown as Agent;
   },
 
@@ -136,7 +136,7 @@ export const agentService = {
    */
   async updateAgent(agentId: string, data: AgentUpdateRequest): Promise<Agent> {
     const snakeData = toSnakeCase(data as unknown as Record<string, unknown>);
-    const response = await api.put<Agent>(`/agent/agents/${agentId}`, snakeData);
+    const response = await api.put<Agent>(`/api/v1/agent/agents/${agentId}`, snakeData);
     return toCamelCase(response as unknown as Record<string, unknown>) as unknown as Agent;
   },
 
@@ -144,14 +144,14 @@ export const agentService = {
    * エージェント削除
    */
   async deleteAgent(agentId: string): Promise<void> {
-    await api.delete(`/agent/agents/${agentId}`);
+    await api.delete(`/api/v1/agent/agents/${agentId}`);
   },
 
   /**
    * エージェントステータス更新
    */
   async updateAgentStatus(agentId: string, status: AgentStatus): Promise<Agent> {
-    const response = await api.post<Agent>(`/agent/agents/${agentId}/status`, { status });
+    const response = await api.post<Agent>(`/api/v1/agent/agents/${agentId}/status`, { status });
     return toCamelCase(response as unknown as Record<string, unknown>) as unknown as Agent;
   },
 
@@ -161,7 +161,7 @@ export const agentService = {
   async runAgent(agentId: string, taskName: string, inputData?: Record<string, unknown>): Promise<AgentTask> {
     const queryParams = new URLSearchParams({ task_name: taskName });
     const response = await api.post<AgentTask>(
-      `/agent/agents/${agentId}/run?${queryParams.toString()}`,
+      `/api/v1/agent/agents/${agentId}/run?${queryParams.toString()}`,
       inputData ? toSnakeCase(inputData) : undefined
     );
     return toCamelCase(response as unknown as Record<string, unknown>) as unknown as AgentTask;
@@ -189,7 +189,7 @@ export const agentService = {
     if (params?.limit) queryParams.append('limit', String(params.limit));
 
     const query = queryParams.toString();
-    const response = await api.get<AgentTaskListResponse>(`/agent/tasks${query ? `?${query}` : ''}`);
+    const response = await api.get<AgentTaskListResponse>(`/api/v1/agent/tasks${query ? `?${query}` : ''}`);
     return {
       tasks: response.tasks.map((t) => toCamelCase(t as unknown as Record<string, unknown>) as unknown as AgentTask),
       total: response.total,
@@ -200,7 +200,7 @@ export const agentService = {
    * タスク詳細取得
    */
   async getTask(taskId: string): Promise<AgentTask> {
-    const response = await api.get<AgentTask>(`/agent/tasks/${taskId}`);
+    const response = await api.get<AgentTask>(`/api/v1/agent/tasks/${taskId}`);
     return toCamelCase(response as unknown as Record<string, unknown>) as unknown as AgentTask;
   },
 
@@ -208,7 +208,7 @@ export const agentService = {
    * タスクキャンセル
    */
   async cancelTask(taskId: string): Promise<void> {
-    await api.post(`/agent/tasks/${taskId}/cancel`);
+    await api.post(`/api/v1/agent/tasks/${taskId}/cancel`);
   },
 
   // ============================================================
@@ -231,7 +231,7 @@ export const agentService = {
     if (params?.limit) queryParams.append('limit', String(params.limit));
 
     const query = queryParams.toString();
-    const response = await api.get<AgentScheduleListResponse>(`/agent/schedules${query ? `?${query}` : ''}`);
+    const response = await api.get<AgentScheduleListResponse>(`/api/v1/agent/schedules${query ? `?${query}` : ''}`);
     return {
       schedules: response.schedules.map((s) => toCamelCase(s as unknown as Record<string, unknown>) as unknown as AgentSchedule),
       total: response.total,
@@ -243,7 +243,7 @@ export const agentService = {
    */
   async createSchedule(data: AgentScheduleCreateRequest): Promise<AgentSchedule> {
     const snakeData = toSnakeCase(data as unknown as Record<string, unknown>);
-    const response = await api.post<AgentSchedule>('/agent/schedules', snakeData);
+    const response = await api.post<AgentSchedule>('/api/v1/agent/schedules', snakeData);
     return toCamelCase(response as unknown as Record<string, unknown>) as unknown as AgentSchedule;
   },
 
@@ -252,7 +252,7 @@ export const agentService = {
    */
   async updateSchedule(scheduleId: string, data: AgentScheduleUpdateRequest): Promise<AgentSchedule> {
     const snakeData = toSnakeCase(data as unknown as Record<string, unknown>);
-    const response = await api.put<AgentSchedule>(`/agent/schedules/${scheduleId}`, snakeData);
+    const response = await api.put<AgentSchedule>(`/api/v1/agent/schedules/${scheduleId}`, snakeData);
     return toCamelCase(response as unknown as Record<string, unknown>) as unknown as AgentSchedule;
   },
 
@@ -260,7 +260,7 @@ export const agentService = {
    * スケジュール削除
    */
   async deleteSchedule(scheduleId: string): Promise<void> {
-    await api.delete(`/agent/schedules/${scheduleId}`);
+    await api.delete(`/api/v1/agent/schedules/${scheduleId}`);
   },
 
   // ============================================================
@@ -287,7 +287,7 @@ export const agentService = {
     if (params?.limit) queryParams.append('limit', String(params.limit));
 
     const query = queryParams.toString();
-    const response = await api.get<CommentTemplateListResponse>(`/agent/comment-templates${query ? `?${query}` : ''}`);
+    const response = await api.get<CommentTemplateListResponse>(`/api/v1/agent/comment-templates${query ? `?${query}` : ''}`);
     return {
       templates: response.templates.map((t) => toCamelCase(t as unknown as Record<string, unknown>) as unknown as CommentTemplate),
       total: response.total,
@@ -299,7 +299,7 @@ export const agentService = {
    */
   async createCommentTemplate(data: CommentTemplateCreateRequest): Promise<CommentTemplate> {
     const snakeData = toSnakeCase(data as unknown as Record<string, unknown>);
-    const response = await api.post<CommentTemplate>('/agent/comment-templates', snakeData);
+    const response = await api.post<CommentTemplate>('/api/v1/agent/comment-templates', snakeData);
     return toCamelCase(response as unknown as Record<string, unknown>) as unknown as CommentTemplate;
   },
 
@@ -308,7 +308,7 @@ export const agentService = {
    */
   async updateCommentTemplate(templateId: string, data: CommentTemplateUpdateRequest): Promise<CommentTemplate> {
     const snakeData = toSnakeCase(data as unknown as Record<string, unknown>);
-    const response = await api.put<CommentTemplate>(`/agent/comment-templates/${templateId}`, snakeData);
+    const response = await api.put<CommentTemplate>(`/api/v1/agent/comment-templates/${templateId}`, snakeData);
     return toCamelCase(response as unknown as Record<string, unknown>) as unknown as CommentTemplate;
   },
 
@@ -316,7 +316,7 @@ export const agentService = {
    * コメントテンプレート削除
    */
   async deleteCommentTemplate(templateId: string): Promise<void> {
-    await api.delete(`/agent/comment-templates/${templateId}`);
+    await api.delete(`/api/v1/agent/comment-templates/${templateId}`);
   },
 
   // ============================================================
@@ -343,7 +343,7 @@ export const agentService = {
     if (params?.limit) queryParams.append('limit', String(params.limit));
 
     const query = queryParams.toString();
-    const response = await api.get<CommentQueueListResponse>(`/agent/comment-queue${query ? `?${query}` : ''}`);
+    const response = await api.get<CommentQueueListResponse>(`/api/v1/agent/comment-queue${query ? `?${query}` : ''}`);
     return {
       comments: response.comments.map((c) => toCamelCase(c as unknown as Record<string, unknown>) as unknown as CommentQueueItem),
       total: response.total,
@@ -355,7 +355,7 @@ export const agentService = {
    */
   async approveComment(commentId: string, data: CommentApprovalRequest): Promise<CommentQueueItem> {
     const snakeData = toSnakeCase(data as unknown as Record<string, unknown>);
-    const response = await api.post<CommentQueueItem>(`/agent/comment-queue/${commentId}/approve`, snakeData);
+    const response = await api.post<CommentQueueItem>(`/api/v1/agent/comment-queue/${commentId}/approve`, snakeData);
     return toCamelCase(response as unknown as Record<string, unknown>) as unknown as CommentQueueItem;
   },
 
@@ -363,7 +363,7 @@ export const agentService = {
    * コメント返信送信
    */
   async sendCommentReply(commentId: string): Promise<CommentQueueItem> {
-    const response = await api.post<CommentQueueItem>(`/agent/comment-queue/${commentId}/send`);
+    const response = await api.post<CommentQueueItem>(`/api/v1/agent/comment-queue/${commentId}/send`);
     return toCamelCase(response as unknown as Record<string, unknown>) as unknown as CommentQueueItem;
   },
 
@@ -391,7 +391,7 @@ export const agentService = {
     if (params?.limit) queryParams.append('limit', String(params.limit));
 
     const query = queryParams.toString();
-    const response = await api.get<TrendAlertListResponse>(`/agent/trend-alerts${query ? `?${query}` : ''}`);
+    const response = await api.get<TrendAlertListResponse>(`/api/v1/agent/trend-alerts${query ? `?${query}` : ''}`);
     return {
       alerts: response.alerts.map((a) => toCamelCase(a as unknown as Record<string, unknown>) as unknown as TrendAlert),
       total: response.total,
@@ -403,7 +403,7 @@ export const agentService = {
    */
   async updateTrendAlert(alertId: string, data: TrendAlertUpdateRequest): Promise<TrendAlert> {
     const snakeData = toSnakeCase(data as unknown as Record<string, unknown>);
-    const response = await api.put<TrendAlert>(`/agent/trend-alerts/${alertId}`, snakeData);
+    const response = await api.put<TrendAlert>(`/api/v1/agent/trend-alerts/${alertId}`, snakeData);
     return toCamelCase(response as unknown as Record<string, unknown>) as unknown as TrendAlert;
   },
 
@@ -411,7 +411,7 @@ export const agentService = {
    * トレンドアラート既読
    */
   async markTrendAlertRead(alertId: string): Promise<TrendAlert> {
-    const response = await api.post<TrendAlert>(`/agent/trend-alerts/${alertId}/read`);
+    const response = await api.post<TrendAlert>(`/api/v1/agent/trend-alerts/${alertId}/read`);
     return toCamelCase(response as unknown as Record<string, unknown>) as unknown as TrendAlert;
   },
 
@@ -441,7 +441,7 @@ export const agentService = {
     if (params?.limit) queryParams.append('limit', String(params.limit));
 
     const query = queryParams.toString();
-    const response = await api.get<CompetitorAlertListResponse>(`/agent/competitor-alerts${query ? `?${query}` : ''}`);
+    const response = await api.get<CompetitorAlertListResponse>(`/api/v1/agent/competitor-alerts${query ? `?${query}` : ''}`);
     return {
       alerts: response.alerts.map((a) => toCamelCase(a as unknown as Record<string, unknown>) as unknown as CompetitorAlert),
       total: response.total,
@@ -453,7 +453,7 @@ export const agentService = {
    */
   async updateCompetitorAlert(alertId: string, data: CompetitorAlertUpdateRequest): Promise<CompetitorAlert> {
     const snakeData = toSnakeCase(data as unknown as Record<string, unknown>);
-    const response = await api.put<CompetitorAlert>(`/agent/competitor-alerts/${alertId}`, snakeData);
+    const response = await api.put<CompetitorAlert>(`/api/v1/agent/competitor-alerts/${alertId}`, snakeData);
     return toCamelCase(response as unknown as Record<string, unknown>) as unknown as CompetitorAlert;
   },
 
@@ -461,7 +461,7 @@ export const agentService = {
    * 競合アラート既読
    */
   async markCompetitorAlertRead(alertId: string): Promise<CompetitorAlert> {
-    const response = await api.post<CompetitorAlert>(`/agent/competitor-alerts/${alertId}/read`);
+    const response = await api.post<CompetitorAlert>(`/api/v1/agent/competitor-alerts/${alertId}/read`);
     return toCamelCase(response as unknown as Record<string, unknown>) as unknown as CompetitorAlert;
   },
 
@@ -487,7 +487,7 @@ export const agentService = {
     if (params?.limit) queryParams.append('limit', String(params.limit));
 
     const query = queryParams.toString();
-    const response = await api.get<AgentLogListResponse>(`/agent/logs${query ? `?${query}` : ''}`);
+    const response = await api.get<AgentLogListResponse>(`/api/v1/agent/logs${query ? `?${query}` : ''}`);
     return {
       logs: response.logs.map((l) => toCamelCase(l as unknown as Record<string, unknown>) as unknown as AgentLog),
       total: response.total,
@@ -502,7 +502,7 @@ export const agentService = {
    * エージェントサマリー取得
    */
   async getSummary(): Promise<AgentSummary> {
-    const response = await api.get<AgentSummary>('/agent/summary');
+    const response = await api.get<AgentSummary>('/api/v1/agent/summary');
     return toCamelCase(response as unknown as Record<string, unknown>) as unknown as AgentSummary;
   },
 
@@ -510,7 +510,7 @@ export const agentService = {
    * エージェントダッシュボード取得
    */
   async getDashboard(): Promise<AgentDashboard> {
-    const response = await api.get<AgentDashboard>('/agent/dashboard');
+    const response = await api.get<AgentDashboard>('/api/v1/agent/dashboard');
     const camelResponse = toCamelCase(response as unknown as Record<string, unknown>) as unknown as AgentDashboard;
     return {
       ...camelResponse,

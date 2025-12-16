@@ -11,7 +11,7 @@ from sqlalchemy import select, func, update
 from uuid import UUID
 
 from app.core.database import get_db
-from app.core.security import get_current_user
+from app.api.deps import get_current_user_id_dev as get_current_user_id
 from app.models.series import (
     Series,
     SeriesVideoItem,
@@ -68,7 +68,7 @@ async def get_series_list(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """シリーズ一覧を取得"""
     query = select(Series)
@@ -124,7 +124,7 @@ async def get_series_list(
 async def create_series(
     data: SeriesCreate,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user_id: str = Depends(get_current_user_id),
 ):
     """シリーズを作成"""
     series = Series(
@@ -177,7 +177,7 @@ async def create_series(
 async def get_series(
     series_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """シリーズ詳細を取得（動画一覧含む）"""
     result = await db.execute(
@@ -254,7 +254,7 @@ async def update_series(
     series_id: str,
     data: SeriesUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """シリーズを更新"""
     result = await db.execute(
@@ -323,7 +323,7 @@ async def update_series(
 async def delete_series(
     series_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """シリーズを削除"""
     result = await db.execute(
@@ -348,7 +348,7 @@ async def add_video_to_series(
     series_id: str,
     data: SeriesVideoItemCreate,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """シリーズに動画を追加"""
     # Verify series exists
@@ -420,7 +420,7 @@ async def bulk_add_videos(
     series_id: str,
     data: BulkAddVideosRequest,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """シリーズに動画を一括追加"""
     # Verify series exists
@@ -496,7 +496,7 @@ async def reorder_videos(
     series_id: str,
     data: ReorderVideosRequest,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """動画の並び順を変更"""
     # Verify series exists
@@ -526,7 +526,7 @@ async def remove_video_from_series(
     series_id: str,
     video_id: str,
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """シリーズから動画を削除"""
     result = await db.execute(
@@ -560,7 +560,7 @@ async def remove_video_from_series(
 @router.get("/stats/summary", response_model=SeriesStats)
 async def get_series_stats(
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """シリーズ統計サマリーを取得"""
     # Total series
@@ -605,7 +605,7 @@ async def get_series_performance(
     series_id: str,
     days: int = Query(30, ge=1, le=90, description="分析期間（日数）"),
     db: AsyncSession = Depends(get_db),
-    _current_user=Depends(get_current_user),
+    _current_user_id: str = Depends(get_current_user_id),
 ):
     """シリーズのパフォーマンスを取得"""
     result = await db.execute(
