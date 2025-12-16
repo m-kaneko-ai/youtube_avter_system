@@ -3573,3 +3573,338 @@ export const REPLY_STATUS_CONFIG: Record<ReplyStatus, { label: string; color: st
   failed: { label: '失敗', color: 'red' },
   skipped: { label: 'スキップ', color: 'gray' },
 };
+
+// =============================================
+// 専門家レビュー機能（Expert Review）
+// =============================================
+
+/**
+ * 専門家タイプ（5人の専門家）
+ */
+export type ExpertType =
+  | 'hook_master'           // 🎣 フックマスター（冒頭30秒の鬼）
+  | 'story_architect'       // 🎬 ストーリーアーキテクト（物語の設計士）
+  | 'entertainment_producer' // 🎭 エンタメプロデューサー（笑いと緩急の職人）
+  | 'target_insight'        // 🎯 ターゲットインサイター（視聴者の代弁者）
+  | 'cta_strategist';       // 📣 CTAストラテジスト（行動喚起の達人）
+
+/**
+ * 専門家設定
+ */
+export const EXPERT_CONFIG: Record<ExpertType, {
+  label: string;
+  icon: string;
+  description: string;
+  color: string;
+}> = {
+  hook_master: {
+    label: 'フックマスター',
+    icon: '🎣',
+    description: '冒頭30秒の鬼',
+    color: 'blue'
+  },
+  story_architect: {
+    label: 'ストーリーアーキテクト',
+    icon: '🎬',
+    description: '物語の設計士',
+    color: 'purple'
+  },
+  entertainment_producer: {
+    label: 'エンタメプロデューサー',
+    icon: '🎭',
+    description: '笑いと緩急の職人',
+    color: 'orange'
+  },
+  target_insight: {
+    label: 'ターゲットインサイター',
+    icon: '🎯',
+    description: '視聴者の代弁者',
+    color: 'green'
+  },
+  cta_strategist: {
+    label: 'CTAストラテジスト',
+    icon: '📣',
+    description: '行動喚起の達人',
+    color: 'yellow'
+  },
+};
+
+/**
+ * 専門家フィードバック（各専門家の添削結果）
+ */
+export interface ExpertFeedback {
+  expertType: ExpertType;
+  score: number;                    // 0-100
+  originalText: string;             // 添削前テキスト
+  revisedText: string;              // 添削後テキスト
+  improvementReason: string;        // 改善の根拠
+  suggestions: string[];            // 追加の提案
+}
+
+/**
+ * 公開OK判定
+ */
+export interface PublishReadiness {
+  ready: boolean;                   // true = 公開OK
+  score: number;                    // 0-100
+  grade: 'S' | 'A' | 'B' | 'C' | 'D';  // ランク
+  message: string;                  // メッセージ
+}
+
+/**
+ * 公開判定ランク設定
+ */
+export const PUBLISH_GRADE_CONFIG: Record<PublishReadiness['grade'], {
+  label: string;
+  color: string;
+  message: string;
+}> = {
+  S: { label: 'S', color: 'purple', message: 'バズる可能性が高いです！' },
+  A: { label: 'A', color: 'green', message: '自信を持って公開してください！' },
+  B: { label: 'B', color: 'blue', message: '公開OK。さらに改善の余地あり' },
+  C: { label: 'C', color: 'yellow', message: '公開可能ですが、改善推奨' },
+  D: { label: 'D', color: 'red', message: '再添削を推奨します' },
+};
+
+/**
+ * チェックリストアイテム
+ */
+export interface ChecklistItem {
+  id: string;
+  label: string;
+  passed: boolean;
+  comment?: string;
+}
+
+/**
+ * 必須項目チェックリスト定義
+ */
+export const CHECKLIST_ITEMS_CONFIG: { id: string; label: string }[] = [
+  { id: 'hook_3sec', label: '冒頭3秒のインパクト' },
+  { id: 'hook_30sec', label: '冒頭30秒のフック' },
+  { id: 'open_loop', label: 'オープンループ（続きが気になる）' },
+  { id: 'structure', label: '3幕構成（導入→展開→結論）' },
+  { id: 'entertainment', label: '茶番・掛け合いが3箇所以上' },
+  { id: 'tempo', label: 'テンポの緩急設計' },
+  { id: 'target_match', label: 'ターゲットの言葉遣い' },
+  { id: 'pain_point', label: '痛みと欲求への訴求' },
+  { id: 'mid_cta', label: '中間CTA' },
+  { id: 'end_cta', label: '終盤CTA' },
+];
+
+/**
+ * ビフォーアフター比較（スコア比較）
+ */
+export interface ScoreComparison {
+  before: number;
+  after: number;
+}
+
+/**
+ * ビフォーアフター比較（4指標）
+ */
+export interface BeforeAfterComparison {
+  hookScore: ScoreComparison;       // フック強度
+  retentionScore: ScoreComparison;  // 視聴維持率予測
+  ctaScore: ScoreComparison;        // CTA効果
+  overallScore: ScoreComparison;    // 総合スコア
+}
+
+/**
+ * ペルソナ反応予測
+ */
+export interface PersonaReaction {
+  personaType: 'main' | 'sub' | 'potential';  // メイン/サブ/潜在層
+  personaName: string;                         // ペルソナ名（例：30代会社員）
+  reactionScore: number;                       // 0-100
+  reactionEmoji: '😊' | '😐' | '🤔' | '😕';   // 反応絵文字
+  reason: string;                              // 予測理由
+}
+
+/**
+ * 改善された台本セクション
+ */
+export interface RevisedScriptSection {
+  id: string;
+  label: string;
+  timestamp: string;
+  originalContent: string;          // 元のテキスト
+  revisedContent: string;           // 改善後のテキスト
+  isImproved: boolean;              // 改善されたかどうか
+  improvementsByExpert: {           // 専門家ごとの改善
+    expertType: ExpertType;
+    contribution: string;
+  }[];
+}
+
+// ============================================================
+// 演出提案関連の型定義
+// ============================================================
+
+/**
+ * 差し込みビジュアルの種類
+ */
+export type VisualInsertType =
+  | 'number_slide'      // 数字スライド（数値を強調）
+  | 'bullet_slide'      // 箇条書きスライド（要点整理）
+  | 'image'             // イメージ画像（感情喚起）
+  | 'chart'             // 図解・チャート（比較・変化）
+  | 'broll'             // B-roll動画（リアル感）
+  | 'caption'           // テロップ強調（キーワード）
+  | 'question'          // 問いかけ画面（視聴者参加）
+  | 'avatar_only';      // アバターのみ
+
+/**
+ * 差し込み時のアバター位置
+ */
+export type AvatarPositionType =
+  | 'hidden'            // 完全切り替え（アバター非表示）
+  | 'pip_right'         // 右下PiP（小窓）
+  | 'pip_left'          // 左下PiP（小窓）
+  | 'pip_bottom'        // 下部PiP（横長小窓）
+  | 'split_left'        // 画面分割（アバター左）
+  | 'split_right';      // 画面分割（アバター右）
+
+/**
+ * 差し込みタイプの設定情報
+ */
+export const VISUAL_INSERT_CONFIG: Record<VisualInsertType, {
+  label: string;
+  emoji: string;
+  description: string;
+}> = {
+  number_slide: { label: '数字スライド', emoji: '📊', description: '数値を大きく表示して強調' },
+  bullet_slide: { label: '箇条書きスライド', emoji: '📝', description: '要点を整理して列挙' },
+  image: { label: 'イメージ画像', emoji: '🖼️', description: '感情を喚起する画像' },
+  chart: { label: '図解・チャート', emoji: '📈', description: 'Before/After、比較図など' },
+  broll: { label: 'B-roll動画', emoji: '🎬', description: '関連する映像素材' },
+  caption: { label: 'テロップ強調', emoji: '💬', description: 'キーワードを大きく表示' },
+  question: { label: '問いかけ画面', emoji: '🤔', description: '視聴者への問いかけ' },
+  avatar_only: { label: 'アバターのみ', emoji: '🧑‍💼', description: 'アバターが話すのみ' },
+};
+
+/**
+ * アバター位置の設定情報
+ */
+export const AVATAR_POSITION_CONFIG: Record<AvatarPositionType, {
+  label: string;
+  description: string;
+}> = {
+  hidden: { label: '完全切り替え', description: 'アバター非表示' },
+  pip_right: { label: '右下PiP', description: '小窓でアバター継続' },
+  pip_left: { label: '左下PiP', description: '小窓でアバター継続' },
+  pip_bottom: { label: '下部PiP', description: '横長小窓でアバター継続' },
+  split_left: { label: '分割（左）', description: 'アバター左、素材右' },
+  split_right: { label: '分割（右）', description: '素材左、アバター右' },
+};
+
+/**
+ * スライドの内容提案
+ */
+export interface SlideSuggestion {
+  title?: string;                   // スライドタイトル
+  points?: string[];                // 箇条書き内容
+  mainNumber?: string;              // メインの数字（例: "70%"）
+  subText?: string;                 // 補足テキスト
+}
+
+/**
+ * 演出提案（セクションごと）
+ */
+export interface DirectionSuggestion {
+  sectionId: string;                // 対象セクションID
+  sectionLabel: string;             // セクション名
+  timestamp: string;                // タイムスタンプ
+
+  // 演出必要度（1-5、5が最も必要）
+  urgency: 1 | 2 | 3 | 4 | 5;
+  urgencyReason: string;            // 必要度の理由
+
+  // 提案内容
+  suggestedType: VisualInsertType;  // 推奨する差し込みタイプ
+  avatarPosition: AvatarPositionType; // アバターの位置
+  reason: string;                   // この提案の理由
+
+  // 具体的な内容案
+  slideSuggestion?: SlideSuggestion; // スライドの場合の内容案
+  searchKeywords?: string[];        // 画像/B-roll検索キーワード
+  recommendedColors?: string[];     // 推奨カラー
+  displayDuration?: number;         // 推奨表示時間（秒）
+
+  // 提案元の専門家
+  suggestedBy: ExpertType;
+}
+
+/**
+ * タイムライン警告（アバターのみが長すぎる等）
+ */
+export interface TimelineWarning {
+  startTime: string;                // 開始時間（例: "0:20"）
+  endTime: string;                  // 終了時間（例: "0:35"）
+  durationSeconds: number;          // 継続秒数
+  warningType: 'avatar_too_long' | 'no_visual_change' | 'low_engagement';
+  message: string;                  // 警告メッセージ
+  recommendation: string;           // 改善提案
+}
+
+/**
+ * 専門家レビュー結果（安心セット含む）
+ */
+export interface ExpertReviewResult {
+  id: string;
+  scriptId: string;
+
+  // 専門家レビュー版台本
+  revisedSections: RevisedScriptSection[];
+
+  // 各専門家のフィードバック
+  expertFeedbacks: ExpertFeedback[];
+
+  // 安心セット（6要素）
+  publishReadiness: PublishReadiness;           // 1. 公開OK判定
+  checklist: ChecklistItem[];                   // 2. 必須項目チェックリスト
+  beforeAfter: BeforeAfterComparison;           // 3. ビフォーアフター比較
+  improvementReasons: {                         // 4. 改善の根拠
+    expertType: ExpertType;
+    reason: string;
+  }[];
+  personaReactions: PersonaReaction[];          // 5. ペルソナ別反応予測
+  directionSuggestions: DirectionSuggestion[];  // 6. 演出提案
+  timelineWarnings: TimelineWarning[];          // タイムライン警告
+
+  // メタデータ
+  sourceAiType: 'gemini' | 'claude';            // 元の台本AI種別
+  createdAt: string;
+  processingTimeMs: number;
+}
+
+/**
+ * 専門家レビューリクエスト
+ */
+export interface ExpertReviewRequest {
+  scriptId: string;
+  sections: {
+    id: string;
+    label: string;
+    timestamp: string;
+    content: string;
+  }[];
+  sourceAiType: 'gemini' | 'claude';
+  knowledgeId?: string;                         // ナレッジDB参照用
+}
+
+/**
+ * 専門家レビュー進捗状態
+ */
+export interface ExpertReviewProgress {
+  status: 'idle' | 'processing' | 'completed' | 'error';
+  currentExpert?: ExpertType;
+  completedExperts: ExpertType[];
+  progress: number;                             // 0-100
+  errorMessage?: string;
+}
+
+/**
+ * 台本表示モード
+ */
+export type ScriptViewMode = 'text_only' | 'with_visual';
