@@ -10,8 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import (
     get_db_session,
-    get_current_user_id,
-    get_current_user_role,
+    get_current_user_id_dev as get_current_user_id,
+    get_current_user_role_dev as get_current_user_role,
     get_current_client_id,
 )
 from app.schemas.planning import (
