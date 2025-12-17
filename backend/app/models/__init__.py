@@ -143,6 +143,12 @@ from app.models.agent import (
     TrendAlert,
     CompetitorAlert,
 )
+from app.models.content_compound import (
+    LinkType,
+    ContentLink,
+    ContentCluster,
+    CompoundMetrics,
+)
 
 __all__ = [
     "User",
@@ -264,4 +270,9 @@ __all__ = [
     "AgentLog",
     "TrendAlert",
     "CompetitorAlert",
+    # Compound
+    "LinkType",
+    "ContentLink",
+    "ContentCluster",
+    "CompoundMetrics",
 ]

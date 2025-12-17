@@ -49,6 +49,7 @@ export type ThemeMode = 'light' | 'dark';
 export interface ThemeClasses {
   bg: string;
   text: string;
+  textPrimary: string;
   textSecondary: string;
   cardBg: string;
   cardBorder: string;
@@ -122,6 +123,37 @@ export interface Knowledge {
   content: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
+}
+
+/**
+ * ナレッジレスポンス（バックエンドAPIからの応答）
+ */
+export interface KnowledgeResponse {
+  id: string;
+  client_id: string;
+  name: string;
+  type: 'brand' | 'content_series';
+  section_1_main_target?: Record<string, unknown>;
+  section_2_sub_target?: Record<string, unknown>;
+  section_3_competitor?: Record<string, unknown>;
+  section_4_company?: Record<string, unknown>;
+  section_5_aha_concept?: Record<string, unknown>;
+  section_6_concept_summary?: Record<string, unknown>;
+  section_7_customer_journey?: Record<string, unknown>;
+  section_8_promotion_strategy?: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * ナレッジ一覧レスポンス
+ */
+export interface KnowledgeListResponse {
+  data: KnowledgeResponse[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
 }
 
 // API Response
@@ -2214,7 +2246,7 @@ export type ABTestType = 'thumbnail' | 'title' | 'description';
 /**
  * リテンションイベントタイプ
  */
-export type RetentionEventType = 'hook' | 'drop' | 'spike' | 'cta' | 'end';
+export type RetentionEventType = 'hook' | 'drop' | 'spike' | 'cta' | 'end' | 'recovery' | 'stable';
 
 /**
  * 終了画面要素タイプ
@@ -2969,6 +3001,8 @@ export const RETENTION_EVENT_TYPE_CONFIG: Record<RetentionEventType, { label: st
   spike: { label: '急上昇', color: 'blue', icon: 'trending-up' },
   cta: { label: 'CTA', color: 'purple', icon: 'mouse-pointer' },
   end: { label: '終了', color: 'slate', icon: 'check' },
+  recovery: { label: '回復', color: 'green', icon: 'trending-up' },
+  stable: { label: '安定', color: 'blue', icon: 'clock' },
 };
 
 /**

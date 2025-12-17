@@ -83,3 +83,20 @@ celerybeat.pid
 
 # Redis
 dump.rdb
+
+# GCP Service Account Keys (絶対にコミット禁止)
+sa-key.json
+sa-key-*.json
+*-sa-key.json
+service-account-key.json
+gcp-credentials.json
+
+# Generated secrets (絶対にコミット禁止)
+scripts/secrets-*.txt
+*.pem
+*.key
+*.crt
+
+# Vercel
+.vercel
+.env.production.local

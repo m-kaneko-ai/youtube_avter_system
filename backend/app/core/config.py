@@ -48,6 +48,10 @@ class Settings(BaseSettings):
     # Gemini API
     GEMINI_API_KEY: str = ""
 
+    # OpenAI API
+    OPENAI_API_KEY: str = ""
+    OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-large"  # 1536次元
+
     # HeyGen API
     HEYGEN_API_KEY: str = ""
 
@@ -61,6 +65,11 @@ class Settings(BaseSettings):
 
     # ===== 通知 =====
     SLACK_WEBHOOK_URL: str = ""  # Slack通知用Webhook URL
+
+    # ===== Google Cloud Storage =====
+    GCS_BUCKET_NAME: str = ""  # GCSバケット名
+    GCS_PROJECT_ID: str = ""  # GCPプロジェクトID
+    GOOGLE_APPLICATION_CREDENTIALS: str = ""  # サービスアカウントキーのパス（オプション）
 
     @property
     def cors_origins(self) -> List[str]:

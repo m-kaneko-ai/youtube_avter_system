@@ -8,21 +8,6 @@ from fastapi import APIRouter
 # メインルーター（/api/v1プレフィックス）
 api_router = APIRouter()
 
-# ヘルスチェックエンドポイント（認証不要）
-@api_router.get("/health", tags=["Health"])
-async def health_check():
-    """
-    ヘルスチェックエンドポイント
-
-    Returns:
-        dict: システムステータス
-    """
-    return {
-        "status": "ok",
-        "message": "Creator Studio AI Backend is running"
-    }
-
-
 # 設定情報エンドポイント（認証不要）
 @api_router.get("/config", tags=["Config"])
 async def get_config():
@@ -43,9 +28,10 @@ from app.api.v1.endpoints import (
     auth, users, clients, master, knowledges, projects, videos,
     research, planning, scripts, metadata, thumbnails,
     audio, avatar, broll, publish, analytics, admin, dashboard, metrics,
-    cta, engagement, series, learning, dna, optimization, agent, youtube_oauth
+    cta, engagement, series, learning, dna, optimization, agent, youtube_oauth, health, monitoring, compound
 )
 
+api_router.include_router(health.router, prefix="/health", tags=["Health"])
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 api_router.include_router(users.router, prefix="/users", tags=["Users"])
 api_router.include_router(clients.router)
@@ -74,3 +60,5 @@ api_router.include_router(dna.router, prefix="/dna", tags=["DNA"])
 api_router.include_router(optimization.router, prefix="/optimization", tags=["Optimization"])
 api_router.include_router(agent.router, prefix="/agent", tags=["Agent"])
 api_router.include_router(youtube_oauth.router, prefix="/youtube", tags=["YouTube OAuth"])
+api_router.include_router(monitoring.router, prefix="/monitoring", tags=["Monitoring"])
+api_router.include_router(compound.router, prefix="/compound", tags=["Compound Strategy"])

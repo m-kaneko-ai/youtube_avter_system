@@ -88,10 +88,12 @@ export const PAGES: PageDefinition[] = [
     tabs: [
       { id: 'performance', label: 'パフォーマンス' },
       { id: 'revenue', label: '収益管理' },
+      { id: 'brand-knowledge', label: 'ブランドナレッジ' },
       { id: 'knowledge', label: 'ナレッジ・成功事例' },
       { id: 'template', label: 'テンプレート' },
       { id: 'series', label: 'シリーズ分析' },
       { id: 'series-detail', label: 'シリーズ管理' },
+      { id: 'compound-strategy', label: 'コンテンツ複利' },
     ],
   },
   {
@@ -119,6 +121,9 @@ export const PAGES: PageDefinition[] = [
       { id: 'client', label: 'クライアントポータル' },
       { id: 'knowledge', label: 'ナレッジ作成' },
       { id: 'cta', label: 'CTA管理' },
+      { id: 'settings', label: 'システム設定' },
+      { id: 'api-connections', label: 'API連携' },
+      { id: 'audit-log', label: '監査ログ' },
     ],
     requiredRoles: ['owner', 'team'],
   },

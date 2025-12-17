@@ -2,6 +2,9 @@
 HeyGen API クライアント
 
 AIアバター動画生成を提供
+
+公式ドキュメント: https://docs.heygen.com/
+V2 API: Create Avatar Video (V2) + Retrieve Video Status
 """
 from typing import Optional, List, Dict, Any
 import httpx
@@ -181,28 +184,37 @@ class HeyGenClient:
 
         Returns:
             Dict: ステータス情報
+            - status: pending, processing, completed, failed
+            - video_url: 完了時の動画URL
+            - thumbnail_url: サムネイルURL
+            - duration: 動画の長さ（秒）
         """
         if not self.is_available():
             return {"error": "HeyGen API is not available"}
 
         try:
-            response = await self.client.get(
-                f"{self.BASE_URL}/video_status.get",
-                params={"video_id": video_id}
-            )
+            response = await self.client.get(f"{self.BASE_URL}/video_status.get?video_id={video_id}")
             response.raise_for_status()
             data = response.json()
 
-            video_data = data.get("data", {})
-            return {
-                "video_id": video_id,
-                "status": video_data.get("status", "unknown"),
-                "video_url": video_data.get("video_url", ""),
-                "thumbnail_url": video_data.get("thumbnail_url", ""),
-                "duration": video_data.get("duration", 0),
-                "error": video_data.get("error", ""),
-            }
+            # HeyGen V2 APIのレスポンス形式
+            if data.get("code") == 100:
+                video_data = data.get("data", {})
+                return {
+                    "video_id": video_id,
+                    "status": video_data.get("status", "unknown"),
+                    "video_url": video_data.get("video_url", ""),
+                    "thumbnail_url": video_data.get("thumbnail_url", ""),
+                    "duration": video_data.get("duration", 0),
+                    "error": video_data.get("error", ""),
+                }
+            else:
+                error_msg = data.get("message", "Unknown error")
+                return {"error": error_msg, "status": "error"}
 
+        except httpx.HTTPStatusError as e:
+            print(f"HeyGen API HTTP Error: {e.response.status_code} - {e.response.text}")
+            return {"error": str(e), "status": "error"}
         except Exception as e:
             print(f"HeyGen API Error (get_video_status): {e}")
             return {"error": str(e), "status": "error"}

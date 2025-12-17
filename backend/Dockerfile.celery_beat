@@ -1,0 +1,39 @@
+# Creator Studio AI - Celery Beat Dockerfile
+# Python 3.11 + Celery Beat (定期タスクスケジューラー)
+
+FROM python:3.11-slim
+
+# 作業ディレクトリ設定
+WORKDIR /app
+
+# 非rootユーザー作成
+RUN groupadd -r celeryuser && useradd -r -g celeryuser celeryuser
+
+# システム依存パッケージのインストール
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Pythonの依存関係をインストール
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# アプリケーションコードをコピー
+COPY --chown=celeryuser:celeryuser . .
+
+# 本番環境設定
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV C_FORCE_ROOT=true
+
+# 非rootユーザーで実行
+USER celeryuser
+
+# Celery Beat起動
+# --loglevel: ログレベル (info推奨)
+# --scheduler: スケジューラーバックエンド (デフォルト: celery.beat:PersistentScheduler)
+CMD celery -A app.core.celery_config:celery_app beat \
+    --loglevel=info \
+    --pidfile=/tmp/celerybeat.pid

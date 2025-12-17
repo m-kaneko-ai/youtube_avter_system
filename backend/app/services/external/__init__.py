@@ -15,6 +15,7 @@ from app.services.external.serp_api import serp_api, SerpAPIClient
 from app.services.external.heygen_api import heygen_api, HeyGenClient
 from app.services.external.minimax_api import minimax_audio, MiniMaxAudioClient
 from app.services.external.social_blade_api import social_blade_api, SocialBladeClient
+from app.services.external.gcs_service import gcs_service, GCSService
 
 __all__ = [
     # YouTube
@@ -38,4 +39,7 @@ __all__ = [
     # Audio Generation
     "minimax_audio",
     "MiniMaxAudioClient",
+    # Cloud Storage
+    "gcs_service",
+    "GCSService",
 ]

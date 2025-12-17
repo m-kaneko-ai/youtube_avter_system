@@ -4,7 +4,7 @@ import { cn } from '../../utils/cn';
 import { useThemeStore } from '../../stores/themeStore';
 import { useNavigationStore } from '../../stores/navigationStore';
 import { Modal } from '../../components/common';
-import { RevenueTab, KnowledgeTab, TemplateTab, SeriesTab, SeriesDetailTab } from './components';
+import { RevenueTab, KnowledgeTab, BrandKnowledgeTab, TemplateTab, SeriesTab, SeriesDetailTab, CompoundStrategyTab } from './components';
 
 type Period = '7days' | '30days' | '90days';
 
@@ -22,6 +22,9 @@ export const AnalyticsPage = () => {
   if (activeTab === 'revenue') {
     return <RevenueTab />;
   }
+  if (activeTab === 'brand-knowledge') {
+    return <BrandKnowledgeTab />;
+  }
   if (activeTab === 'knowledge') {
     return <KnowledgeTab />;
   }
@@ -33,6 +36,9 @@ export const AnalyticsPage = () => {
   }
   if (activeTab === 'series-detail') {
     return <SeriesDetailTab />;
+  }
+  if (activeTab === 'compound-strategy') {
+    return <CompoundStrategyTab />;
   }
 
   return (
@@ -232,3 +238,4 @@ export const AnalyticsPage = () => {
     </div>
   );
 };
+export default AnalyticsPage;

@@ -20,11 +20,14 @@ class NotificationType(str, Enum):
     SUCCESS = "success"
     WARNING = "warning"
     ERROR = "error"
+    CRITICAL = "critical"
     TREND_ALERT = "trend_alert"
     COMPETITOR_ALERT = "competitor_alert"
     COMMENT_PENDING = "comment_pending"
     TASK_COMPLETED = "task_completed"
     QUOTA_WARNING = "quota_warning"
+    DEPLOY = "deploy"
+    DAILY_REPORT = "daily_report"
 
 
 class NotificationService:
@@ -61,11 +64,14 @@ class NotificationService:
                 NotificationType.SUCCESS: "✅",
                 NotificationType.WARNING: "⚠️",
                 NotificationType.ERROR: "❌",
+                NotificationType.CRITICAL: "🔥",
                 NotificationType.TREND_ALERT: "📈",
                 NotificationType.COMPETITOR_ALERT: "🎯",
                 NotificationType.COMMENT_PENDING: "💬",
                 NotificationType.TASK_COMPLETED: "✨",
                 NotificationType.QUOTA_WARNING: "🚨",
+                NotificationType.DEPLOY: "🚀",
+                NotificationType.DAILY_REPORT: "📊",
             }
 
             emoji = emoji_map.get(notification_type, "📢")
@@ -242,6 +248,139 @@ class NotificationService:
             NotificationType.ERROR,
             details
         )
+
+    async def send_alert(
+        self,
+        level: str,
+        title: str,
+        message: str,
+        fields: Optional[Dict[str, Any]] = None,
+    ) -> bool:
+        """
+        アラート送信（error, warning, info, critical）
+
+        Args:
+            level: アラートレベル（error, warning, info, critical）
+            title: アラートタイトル
+            message: アラートメッセージ
+            fields: 追加情報（オプション）
+
+        Returns:
+            送信成功したかどうか
+        """
+        level_map = {
+            "error": NotificationType.ERROR,
+            "warning": NotificationType.WARNING,
+            "info": NotificationType.INFO,
+            "critical": NotificationType.CRITICAL,
+        }
+
+        notification_type = level_map.get(level.lower(), NotificationType.INFO)
+        full_message = f"*{title}*\n{message}"
+
+        return await self.send_slack(
+            full_message,
+            notification_type,
+            fields
+        )
+
+    async def send_daily_report(self, metrics: Dict[str, Any]) -> bool:
+        """
+        日次レポート送信
+
+        Args:
+            metrics: レポートに含めるメトリクス情報
+
+        Returns:
+            送信成功したかどうか
+        """
+        message = "日次レポート"
+
+        return await self.send_slack(
+            message,
+            NotificationType.DAILY_REPORT,
+            metrics
+        )
+
+    async def send_deploy_notification(
+        self,
+        version: str,
+        status: str,
+        environment: str = "production",
+        details: Optional[Dict[str, Any]] = None,
+    ) -> bool:
+        """
+        デプロイ通知
+
+        Args:
+            version: バージョン
+            status: デプロイステータス（success, failed, in_progress）
+            environment: 環境名
+            details: 追加情報（オプション）
+
+        Returns:
+            送信成功したかどうか
+        """
+        status_emoji = {
+            "success": "✅",
+            "failed": "❌",
+            "in_progress": "🔄",
+        }
+
+        emoji = status_emoji.get(status, "🚀")
+        message = f"{emoji} デプロイ {status.upper()}: *{version}* → {environment}"
+
+        deploy_details = {
+            "バージョン": version,
+            "環境": environment,
+            "ステータス": status,
+        }
+
+        if details:
+            deploy_details.update(details)
+
+        return await self.send_slack(
+            message,
+            NotificationType.DEPLOY,
+            deploy_details
+        )
+
+    async def send_error_alert(
+        self,
+        error: Exception,
+        context: Dict[str, Any],
+    ) -> bool:
+        """
+        エラーアラート（Exceptionオブジェクトから自動生成）
+
+        Args:
+            error: Exceptionオブジェクト
+            context: エラー発生時のコンテキスト情報
+
+        Returns:
+            送信成功したかどうか
+        """
+        error_type = type(error).__name__
+        error_message = str(error)
+
+        message = f"システムエラーが発生しました: *{error_type}*"
+
+        details = {
+            "エラー型": error_type,
+            "エラーメッセージ": error_message,
+        }
+        details.update(context)
+
+        return await self.send_slack(
+            message,
+            NotificationType.ERROR,
+            details
+        )
+
+    async def close(self):
+        """クライアントをクローズ"""
+        if self._client:
+            await self._client.aclose()
 
 
 # シングルトンインスタンス

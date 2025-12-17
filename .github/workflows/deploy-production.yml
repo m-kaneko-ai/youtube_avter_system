@@ -1,0 +1,134 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # 手動実行も可能
+
+jobs:
+  # フロントエンド: Vercel Production Deploy
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://creator-studio-ai.vercel.app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Vercel (Production)
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./frontend
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+
+  # バックエンド: Google Cloud Run (production)
+  # GCP_SA_KEYが設定されている場合のみ実行
+  deploy-backend:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.GCP_SA_KEY != '' }}
+    environment:
+      name: production
+      url: https://creator-studio-backend.run.app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check GCP credentials
+        id: check-gcp
+        run: |
+          if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "⚠️ GCP_SA_KEY not set, skipping backend deployment"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Authenticate to Google Cloud
+        if: steps.check-gcp.outputs.skip != 'true'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker
+
+      - name: Build Docker image
+        run: |
+          cd backend
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/creator-studio-backend:production-${{ github.sha }} \
+                       -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/creator-studio-backend:latest .
+
+      - name: Push Docker image
+        run: |
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/creator-studio-backend:production-${{ github.sha }}
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/creator-studio-backend:latest
+
+      - name: Deploy to Cloud Run (Production)
+        run: |
+          gcloud run deploy creator-studio-backend \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/creator-studio-backend:production-${{ github.sha }} \
+            --platform managed \
+            --region asia-northeast1 \
+            --allow-unauthenticated \
+            --min-instances 1 \
+            --max-instances 10 \
+            --set-env-vars DATABASE_URL=${{ secrets.PRODUCTION_DATABASE_URL }} \
+            --set-env-vars REDIS_URL=${{ secrets.PRODUCTION_REDIS_URL }} \
+            --set-env-vars SECRET_KEY=${{ secrets.PRODUCTION_SECRET_KEY }} \
+            --set-env-vars GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
+            --set-env-vars GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
+            --set-env-vars ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }} \
+            --set-env-vars GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} \
+            --set-env-vars YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }} \
+            --set-env-vars HEYGEN_API_KEY=${{ secrets.HEYGEN_API_KEY }} \
+            --set-env-vars SERP_API_KEY=${{ secrets.SERP_API_KEY }} \
+            --set-env-vars SOCIAL_BLADE_API_KEY=${{ secrets.SOCIAL_BLADE_API_KEY }} \
+            --set-env-vars SLACK_WEBHOOK_URL=${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Run Database Migrations
+        run: |
+          # Cloud Run経由でマイグレーション実行
+          gcloud run jobs create migration-${{ github.sha }} \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/creator-studio-backend:production-${{ github.sha }} \
+            --region asia-northeast1 \
+            --set-env-vars DATABASE_URL=${{ secrets.PRODUCTION_DATABASE_URL }} \
+            --command alembic \
+            --args "upgrade,head" || true
+
+          gcloud run jobs execute migration-${{ github.sha }} --region asia-northeast1 --wait || true
+
+      - name: Notify Slack (Success)
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: '✅ Production deploy successful',
+              attachments: [{
+                color: 'good',
+                text: `Commit: ${{ github.sha }}\nAuthor: ${{ github.actor }}\nMessage: ${{ github.event.head_commit.message }}`
+              }]
+            }
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify Slack (Failure)
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: '❌ Production deploy failed',
+              attachments: [{
+                color: 'danger',
+                text: `Commit: ${{ github.sha }}\nAuthor: ${{ github.actor }}\nMessage: ${{ github.event.head_commit.message }}`
+              }]
+            }
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}

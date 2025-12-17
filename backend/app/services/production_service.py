@@ -31,6 +31,7 @@ from app.schemas.production import (
     BrollGenerateResponse,
 )
 from app.services.external import minimax_audio, heygen_api
+from app.services.external.gcs_service import gcs_service
 
 
 class AudioService:
@@ -94,11 +95,27 @@ class AudioService:
                     speed=request.speed or 1.0,
                     pitch=request.pitch or 0.0,
                     output_format="mp3",
+                    model="speech-02-hd",
+                    emotion="neutral",
                 )
 
                 if "error" not in result:
-                    # API成功
-                    audio_url = result.get("audio_url", audio_url)
+                    # API成功 - base64データを受け取る
+                    audio_data_base64 = result.get("audio_data", "")
+                    if audio_data_base64:
+                        # Google Cloud Storageにアップロードして公開URLを取得
+                        try:
+                            filename = f"audio_{request.video_id}_{voice_id}.mp3"
+                            audio_url = await gcs_service.upload_from_base64(
+                                base64_data=audio_data_base64,
+                                filename=filename,
+                                content_type="audio/mpeg",
+                            )
+                        except Exception as e:
+                            print(f"Failed to upload audio to GCS: {e}")
+                            # フォールバック: data URLとして保存（本番では推奨しない）
+                            audio_url = f"data:audio/mp3;base64,{audio_data_base64[:100]}..."
+
                     duration = result.get("duration", 0) or duration
                     gen_status = GenerationStatus.COMPLETED
                     message = "MiniMax Audioによる音声生成が完了しました"
@@ -329,7 +346,7 @@ class AvatarService:
         avatar_id: UUID,
     ) -> AvatarResponse:
         """
-        アバター動画を取得
+        アバター動画を取得（HeyGen APIのステータスを同期）
 
         Args:
             db: データベースセッション
@@ -351,6 +368,32 @@ class AvatarService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="アバター動画が見つかりません",
             )
+
+        # 処理中の場合はHeyGen APIでステータスを確認して更新
+        if avatar.status == GenerationStatus.PROCESSING and avatar.heygen_task_id and heygen_api.is_available():
+            try:
+                result = await heygen_api.get_video_status(avatar.heygen_task_id)
+
+                if "error" not in result:
+                    api_status = result.get("status", "unknown")
+
+                    # ステータスマッピング（HeyGen → 内部）
+                    if api_status == "completed":
+                        avatar.status = GenerationStatus.COMPLETED
+                        avatar.video_url = result.get("video_url", avatar.video_url)
+                        avatar.thumbnail_url = result.get("thumbnail_url", avatar.thumbnail_url)
+                        avatar.duration = result.get("duration", avatar.duration)
+                    elif api_status == "failed":
+                        avatar.status = GenerationStatus.FAILED
+                        avatar.error_message = result.get("error", "Generation failed")
+                    elif api_status in ["pending", "processing"]:
+                        avatar.status = GenerationStatus.PROCESSING
+
+                    avatar.updated_at = datetime.utcnow()
+                    await db.commit()
+                    await db.refresh(avatar)
+            except Exception as e:
+                print(f"Error checking HeyGen status: {e}")
 
         return AvatarResponse(
             id=avatar.id,

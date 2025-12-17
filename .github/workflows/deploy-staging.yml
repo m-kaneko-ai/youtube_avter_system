@@ -1,0 +1,69 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  # フロントエンド: Vercel Preview Deploy
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Vercel (Preview)
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./frontend
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+
+  # バックエンド: Google Cloud Run (staging)
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker
+
+      - name: Build Docker image
+        run: |
+          cd backend
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/creator-studio-backend:staging-${{ github.sha }} .
+
+      - name: Push Docker image
+        run: docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/creator-studio-backend:staging-${{ github.sha }}
+
+      - name: Deploy to Cloud Run (Staging)
+        run: |
+          gcloud run deploy creator-studio-backend-staging \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/creator-studio-backend:staging-${{ github.sha }} \
+            --platform managed \
+            --region asia-northeast1 \
+            --allow-unauthenticated \
+            --set-env-vars DATABASE_URL=${{ secrets.STAGING_DATABASE_URL }} \
+            --set-env-vars REDIS_URL=${{ secrets.STAGING_REDIS_URL }} \
+            --set-env-vars SECRET_KEY=${{ secrets.STAGING_SECRET_KEY }} \
+            --set-env-vars GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
+            --set-env-vars GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+
+      - name: Notify Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Staging deploy ${{ job.status }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

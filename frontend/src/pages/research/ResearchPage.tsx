@@ -27,3 +27,4 @@ export const ResearchPage = () => {
     </div>
   );
 };
+export default ResearchPage;

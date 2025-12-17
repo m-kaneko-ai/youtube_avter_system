@@ -27,6 +27,7 @@ export const useThemeStore = create<ThemeState>()(
         return {
           bg: isDarkMode ? 'bg-slate-950' : 'bg-slate-50',
           text: isDarkMode ? 'text-slate-100' : 'text-slate-800',
+          textPrimary: isDarkMode ? 'text-slate-100' : 'text-slate-800',
           textSecondary: isDarkMode ? 'text-slate-400' : 'text-slate-500',
           cardBg: isDarkMode ? 'bg-slate-900' : 'bg-white',
           cardBorder: isDarkMode ? 'border-slate-800' : 'border-slate-100',

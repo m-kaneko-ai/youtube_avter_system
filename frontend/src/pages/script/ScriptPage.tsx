@@ -649,3 +649,4 @@ export const ScriptPage = () => {
     </div>
   );
 };
+export default ScriptPage;

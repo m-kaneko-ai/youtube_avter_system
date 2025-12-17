@@ -27,3 +27,4 @@ export const PlanningPage = () => {
     </div>
   );
 };
+export default PlanningPage;

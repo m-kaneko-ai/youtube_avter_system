@@ -1,0 +1,157 @@
+# Creator Studio AI - Production Docker Compose
+# 本番環境のローカルテスト用
+
+version: '3.9'
+
+services:
+  # バックエンドAPI (FastAPI)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: creator-studio-backend-prod
+    ports:
+      - "8080:8080"
+    environment:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=${SECRET_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - HEYGEN_API_KEY=${HEYGEN_API_KEY}
+      - MINIMAX_API_KEY=${MINIMAX_API_KEY}
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - SERP_API_KEY=${SERP_API_KEY}
+      - SOCIAL_BLADE_API_KEY=${SOCIAL_BLADE_API_KEY}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/service-account-key.json
+    volumes:
+      - ./service-account-key.json:/app/service-account-key.json:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - creator-studio-network
+
+  # Celery Worker (非同期タスク処理)
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: creator-studio-celery-worker-prod
+    command: celery -A app.core.celery_config:celery_app worker --loglevel=info --concurrency=4
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+      - SECRET_KEY=${SECRET_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - HEYGEN_API_KEY=${HEYGEN_API_KEY}
+      - MINIMAX_API_KEY=${MINIMAX_API_KEY}
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - SERP_API_KEY=${SERP_API_KEY}
+      - SOCIAL_BLADE_API_KEY=${SOCIAL_BLADE_API_KEY}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - creator-studio-network
+
+  # Celery Beat (定期タスクスケジューラー)
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: creator-studio-celery-beat-prod
+    command: celery -A app.core.celery_config:celery_app beat --loglevel=info
+    environment:
+      - ENVIRONMENT=production
+      - REDIS_URL=redis://redis:6379
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - creator-studio-network
+
+  # Redis (キャッシュ・セッション・Celeryブローカー)
+  redis:
+    image: redis:7-alpine
+    container_name: creator-studio-redis-prod
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru --appendonly yes
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - creator-studio-network
+
+  # Nginx (リバースプロキシ)
+  nginx:
+    image: nginx:alpine
+    container_name: creator-studio-nginx-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - creator-studio-network
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  creator-studio-network:
+    driver: bridge
+
+# ===== 使用方法 =====
+# 1. .env.local に本番環境変数を設定
+# 2. サービスアカウントキーを配置: ./service-account-key.json
+# 3. フロントエンドをビルド: cd frontend && npm run build
+# 4. 起動: docker-compose -f docker-compose.prod.yml up -d
+# 5. ログ確認: docker-compose -f docker-compose.prod.yml logs -f
+# 6. 停止: docker-compose -f docker-compose.prod.yml down
+
+# ===== ヘルスチェック =====
+# curl http://localhost:8080/health
+# curl http://localhost/api/v1/health (Nginx経由)
+
+# ===== 本番デプロイ =====
+# このdocker-compose.prod.ymlは本番環境のローカルテスト用です
+# 実際の本番デプロイは以下を使用:
+# - バックエンド: Google Cloud Run
+# - フロントエンド: Vercel
+# - Redis: Upstash Redis Cloud
+# 詳細: docs/DEPLOYMENT.md

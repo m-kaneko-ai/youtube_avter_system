@@ -4,6 +4,10 @@ import { ApprovalTab } from './components/ApprovalTab';
 import { ClientTab } from './components/ClientTab';
 import { KnowledgeChatTab } from './components/KnowledgeChatTab';
 import { CTATab } from './components/CTATab';
+import { SettingsTab } from './components/SettingsTab';
+import { APIConnectionsTab } from './components/APIConnectionsTab';
+import { AuditLogTab } from './components/AuditLogTab';
+import { MonitoringTab } from './components/MonitoringTab';
 
 export const AdminPage = () => {
   const { getActiveTab } = useNavigationStore();
@@ -21,6 +25,14 @@ export const AdminPage = () => {
         return <KnowledgeChatTab />;
       case 'cta':
         return <CTATab />;
+      case 'settings':
+        return <SettingsTab />;
+      case 'api-connections':
+        return <APIConnectionsTab />;
+      case 'audit-log':
+        return <AuditLogTab />;
+      case 'monitoring':
+        return <MonitoringTab />;
       default:
         return <TeamTab />;
     }
@@ -32,3 +44,4 @@ export const AdminPage = () => {
     </div>
   );
 };
+export default AdminPage;

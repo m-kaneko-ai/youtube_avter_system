@@ -1,0 +1,60 @@
+# Creator Studio AI - Cloud Build Configuration
+# Celery Worker のビルド設定
+
+steps:
+  # Dockerイメージのビルド
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/creator-studio-celery-worker:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/creator-studio-celery-worker:latest'
+      - '-f'
+      - 'Dockerfile.celery'
+      - '.'
+    dir: 'backend'
+
+  # イメージをContainer Registryにプッシュ
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/creator-studio-celery-worker:$COMMIT_SHA'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/creator-studio-celery-worker:latest'
+
+  # Cloud Runにデプロイ
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'creator-studio-celery-worker'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/creator-studio-celery-worker:$COMMIT_SHA'
+      - '--platform'
+      - 'managed'
+      - '--region'
+      - 'asia-northeast1'
+      - '--no-allow-unauthenticated'
+      - '--memory'
+      - '2Gi'
+      - '--cpu'
+      - '2'
+      - '--min-instances'
+      - '1'
+      - '--max-instances'
+      - '5'
+
+images:
+  - 'gcr.io/$PROJECT_ID/creator-studio-celery-worker:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/creator-studio-celery-worker:latest'
+
+options:
+  machineType: 'N1_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: '1200s'

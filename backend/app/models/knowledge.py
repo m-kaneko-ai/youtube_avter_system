@@ -5,9 +5,10 @@
 8セクション構造でターゲット・競合・コンセプト・戦略を管理
 """
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Text, ForeignKey, Enum as SQLAlchemyEnum
+from sqlalchemy import Column, String, DateTime, Text, ForeignKey, Enum as SQLAlchemyEnum, Index
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
+from pgvector.sqlalchemy import Vector
 import uuid
 import enum
 
@@ -92,11 +93,12 @@ class Knowledge(Base):
         comment="セクション8: プロモーション戦略 & 商品設計"
     )
 
-    # RAG用ベクトル埋め込み（将来的にpgvectorで実装）
+    # RAG用ベクトル埋め込み（pgvector）
+    # Claude API (text-embedding-3-large) の次元数は1536
     embedding = Column(
-        Text,
+        Vector(1536),
         nullable=True,
-        comment="ベクトル埋め込み（RAG用）"
+        comment="ベクトル埋め込み（RAG用・1536次元）"
     )
 
     created_at = Column(
@@ -115,6 +117,17 @@ class Knowledge(Base):
 
     # リレーション
     client = relationship("Client", backref="knowledges")
+
+    # インデックス定義
+    __table_args__ = (
+        Index(
+            "ix_knowledges_embedding_hnsw",
+            "embedding",
+            postgresql_using="hnsw",
+            postgresql_with={"m": 16, "ef_construction": 64},
+            postgresql_ops={"embedding": "vector_cosine_ops"}
+        ),
+    )
 
     def __repr__(self) -> str:
         return f"<Knowledge(id={self.id}, name={self.name}, type={self.type})>"

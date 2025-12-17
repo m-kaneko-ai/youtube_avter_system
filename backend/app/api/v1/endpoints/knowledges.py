@@ -23,6 +23,7 @@ from app.schemas.knowledge import (
     RAGMissingField,
 )
 from app.services.knowledge_service import KnowledgeService
+from app.services.embedding_service import embedding_service
 
 router = APIRouter()
 
@@ -329,3 +330,93 @@ async def generate_hearing_question(
     )
 
     return {"question": question}
+
+
+# ============================================================
+# ベクトル検索エンドポイント
+# ============================================================
+
+@router.post(
+    "/{knowledge_id}/embedding",
+    response_model=KnowledgeResponse,
+    summary="埋め込み生成",
+    description="ナレッジの埋め込みベクトルを生成・更新します。Owner/Teamのみ実行可能です。",
+)
+async def generate_knowledge_embedding(
+    knowledge_id: UUID,
+    db: AsyncSession = Depends(get_db_session),
+    current_user_role: str = Depends(get_current_user_role),
+) -> KnowledgeResponse:
+    """
+    埋め込み生成エンドポイント
+
+    Args:
+        knowledge_id: ナレッジID
+        db: データベースセッション
+        current_user_role: 実行者のロール
+
+    Returns:
+        KnowledgeResponse: 更新されたナレッジ情報
+    """
+    # 権限チェック（Owner/Teamのみ実行可能）
+    from app.models.user import UserRole
+    from fastapi import HTTPException
+    if current_user_role not in [UserRole.OWNER.value, UserRole.TEAM.value]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="埋め込み生成にはOwnerまたはTeamロールが必要です",
+        )
+
+    knowledge = await embedding_service.update_knowledge_embedding(knowledge_id, db)
+    return KnowledgeResponse.model_validate(knowledge)
+
+
+@router.get(
+    "/search",
+    response_model=KnowledgeListResponse,
+    summary="ベクトル検索",
+    description="クエリに類似したナレッジを検索します。Owner/Teamのみ実行可能です。",
+)
+async def search_knowledges(
+    query: str,
+    limit: int = 5,
+    client_id: Optional[UUID] = None,
+    db: AsyncSession = Depends(get_db_session),
+    current_user_role: str = Depends(get_current_user_role),
+) -> KnowledgeListResponse:
+    """
+    ベクトル検索エンドポイント
+
+    Args:
+        query: 検索クエリ
+        limit: 取得件数（デフォルト: 5）
+        client_id: クライアントIDフィルタ（オプション）
+        db: データベースセッション
+        current_user_role: 実行者のロール
+
+    Returns:
+        KnowledgeListResponse: 検索結果
+    """
+    # 権限チェック（Owner/Teamのみ実行可能）
+    from app.models.user import UserRole
+    from fastapi import HTTPException
+    if current_user_role not in [UserRole.OWNER.value, UserRole.TEAM.value]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="ベクトル検索にはOwnerまたはTeamロールが必要です",
+        )
+
+    knowledges = await embedding_service.search_similar(
+        query=query,
+        db=db,
+        client_id=client_id,
+        limit=limit,
+    )
+
+    return KnowledgeListResponse(
+        data=[KnowledgeResponse.model_validate(knowledge) for knowledge in knowledges],
+        total=len(knowledges),
+        page=1,
+        page_size=limit,
+        total_pages=1,
+    )

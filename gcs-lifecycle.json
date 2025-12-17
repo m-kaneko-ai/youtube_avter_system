@@ -1,0 +1,48 @@
+{
+  "lifecycle": {
+    "rule": [
+      {
+        "action": {
+          "type": "Delete"
+        },
+        "condition": {
+          "age": 90,
+          "matchesPrefix": ["temp/", "cache/"]
+        },
+        "description": "一時ファイル・キャッシュを90日後に削除"
+      },
+      {
+        "action": {
+          "type": "SetStorageClass",
+          "storageClass": "NEARLINE"
+        },
+        "condition": {
+          "age": 30,
+          "matchesPrefix": ["videos/", "audio/"]
+        },
+        "description": "動画・音声ファイルを30日後にNEARLINEストレージクラスに移動"
+      },
+      {
+        "action": {
+          "type": "SetStorageClass",
+          "storageClass": "COLDLINE"
+        },
+        "condition": {
+          "age": 180,
+          "matchesPrefix": ["videos/", "audio/"]
+        },
+        "description": "動画・音声ファイルを180日後にCOLDLINEストレージクラスに移動"
+      },
+      {
+        "action": {
+          "type": "Delete"
+        },
+        "condition": {
+          "age": 365,
+          "matchesPrefix": ["logs/"]
+        },
+        "description": "ログファイルを365日後に削除"
+      }
+    ]
+  }
+}

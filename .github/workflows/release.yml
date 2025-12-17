@@ -1,0 +1,99 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate Changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v4
+        with:
+          configuration: |
+            {
+              "categories": [
+                {
+                  "title": "## 🚀 Features",
+                  "labels": ["feature", "enhancement"]
+                },
+                {
+                  "title": "## 🐛 Bug Fixes",
+                  "labels": ["bug", "fix"]
+                },
+                {
+                  "title": "## 📚 Documentation",
+                  "labels": ["documentation", "docs"]
+                },
+                {
+                  "title": "## 🔧 Maintenance",
+                  "labels": ["chore", "refactor"]
+                },
+                {
+                  "title": "## 🔒 Security",
+                  "labels": ["security"]
+                }
+              ],
+              "template": "#{{CHANGELOG}}\n\n**Full Changelog**: #{{RELEASE_DIFF}}"
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body: |
+            # Creator Studio AI ${{ github.ref_name }}
+
+            ${{ steps.changelog.outputs.changelog }}
+
+            ## Deployment
+            - Frontend: https://creator-studio-ai.vercel.app
+            - Backend: https://creator-studio-backend.run.app
+
+            ## Installation
+            See [README.md](https://github.com/${{ github.repository }}/blob/main/README.md) for installation instructions.
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
+
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: '🎉 New Release: ${{ github.ref_name }}',
+              attachments: [{
+                color: 'good',
+                title: 'Creator Studio AI ${{ github.ref_name }}',
+                text: 'A new version has been released!',
+                fields: [
+                  {
+                    title: 'Tag',
+                    value: '${{ github.ref_name }}',
+                    short: true
+                  },
+                  {
+                    title: 'Release URL',
+                    value: 'https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}',
+                    short: false
+                  }
+                ]
+              }]
+            }
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}

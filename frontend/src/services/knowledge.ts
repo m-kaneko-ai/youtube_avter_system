@@ -743,6 +743,95 @@ ${template.summaryTemplate(currentStepData)}
 
 export const knowledgeService = {
   /**
+   * ナレッジ一覧を取得
+   */
+  getKnowledges: async (params?: { page?: number; limit?: number; client_id?: string }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.append('page', params.page.toString());
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    if (params?.client_id) searchParams.append('client_id', params.client_id);
+
+    try {
+      const response = await api.get(`/api/v1/knowledges?${searchParams.toString()}`);
+      return response;
+    } catch (error) {
+      console.error('Failed to fetch knowledges:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * ナレッジを作成
+   */
+  createKnowledge: async (params: { name: string; type: 'brand' | 'content_series'; client_id: string }) => {
+    try {
+      const response = await api.post('/api/v1/knowledges', params);
+      return response;
+    } catch (error) {
+      console.error('Failed to create knowledge:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * 単一ナレッジを取得
+   */
+  getKnowledge: async (id: string) => {
+    try {
+      const response = await api.get(`/api/v1/knowledges/${id}`);
+      return response;
+    } catch (error) {
+      console.error('Failed to fetch knowledge:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * ナレッジを更新
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updateKnowledge: async (id: string, data: Partial<any>) => {
+    try {
+      const response = await api.put(`/api/v1/knowledges/${id}`, data);
+      return response;
+    } catch (error) {
+      console.error('Failed to update knowledge:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * ナレッジの埋め込みを生成
+   */
+  generateEmbedding: async (id: string) => {
+    try {
+      const response = await api.post(`/api/v1/knowledges/${id}/embedding`);
+      return response;
+    } catch (error) {
+      console.error('Failed to generate embedding:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * ベクトル検索でナレッジを検索
+   */
+  searchKnowledge: async (params: { query: string; limit?: number; client_id?: string }) => {
+    const searchParams = new URLSearchParams();
+    searchParams.append('query', params.query);
+    if (params.limit) searchParams.append('limit', params.limit.toString());
+    if (params.client_id) searchParams.append('client_id', params.client_id);
+
+    try {
+      const response = await api.get(`/api/v1/knowledges/search?${searchParams.toString()}`);
+      return response;
+    } catch (error) {
+      console.error('Failed to search knowledge:', error);
+      throw error;
+    }
+  },
+
+  /**
    * チャットセッション作成
    */
   createSession: async (
@@ -1304,3 +1393,9 @@ function extractFieldFromContent(
 
   return null;
 }
+
+// ============================================================
+// Named exports for backward compatibility
+// ============================================================
+
+export const { getKnowledges, createKnowledge } = knowledgeService;

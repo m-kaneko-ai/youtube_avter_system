@@ -37,7 +37,7 @@ async def get_categories(
     """
     categories = await MasterService.get_categories(db)
     return CategoryListResponse(
-        data=[CategoryResponse.model_validate(c) for c in categories]
+        data=[CategoryResponse(**c) for c in categories]
     )
 
 
@@ -65,5 +65,5 @@ async def get_tags(
     """
     tags = await MasterService.get_tags(db)
     return TagListResponse(
-        data=[TagResponse.model_validate(t) for t in tags]
+        data=[TagResponse(**t) for t in tags]
     )

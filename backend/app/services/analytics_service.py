@@ -29,12 +29,18 @@ from app.schemas.analytics import (
     ReportResponse,
     ReportGenerateResponse,
 )
+from app.core.cache import cached
 
 
 class AnalyticsService:
     """分析サービス"""
 
     @staticmethod
+    @cached(
+        "analytics:video",
+        ttl=600,  # 10分キャッシュ
+        key_builder=lambda db, role, video_id, date_from=None, date_to=None: f"{video_id}:{date_from}:{date_to}"
+    )
     async def get_video_analytics(
         db: AsyncSession,
         current_user_role: str,
@@ -118,6 +124,11 @@ class AnalyticsService:
         )
 
     @staticmethod
+    @cached(
+        "analytics:channel",
+        ttl=600,  # 10分キャッシュ
+        key_builder=lambda db, role, client_id, date_from=None, date_to=None: f"{client_id}:{date_from}:{date_to}"
+    )
     async def get_channel_overview(
         db: AsyncSession,
         current_user_role: str,
@@ -176,6 +187,11 @@ class AnalyticsService:
         )
 
     @staticmethod
+    @cached(
+        "analytics:performance",
+        ttl=600,  # 10分キャッシュ
+        key_builder=lambda db, role, client_id, date_from=None, date_to=None: f"{client_id}:{date_from}:{date_to}"
+    )
     async def get_performance_report(
         db: AsyncSession,
         current_user_role: str,
@@ -254,6 +270,11 @@ class AnalyticsService:
         )
 
     @staticmethod
+    @cached(
+        "analytics:trends",
+        ttl=600,  # 10分キャッシュ
+        key_builder=lambda db, role, client_id, date_from=None, date_to=None: f"{client_id}:{date_from}:{date_to}"
+    )
     async def get_trend_analysis(
         db: AsyncSession,
         current_user_role: str,

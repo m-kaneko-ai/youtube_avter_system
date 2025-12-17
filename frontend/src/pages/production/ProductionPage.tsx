@@ -29,3 +29,4 @@ export const ProductionPage = () => {
     </div>
   );
 };
+export default ProductionPage;
