@@ -5,6 +5,7 @@ Google OAuth認証、トークン管理、ユーザー情報のレスポンス
 """
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field
 
 from app.models.user import UserRole
@@ -60,7 +61,7 @@ class RefreshTokenResponse(BaseModel):
 
 class UserResponse(BaseModel):
     """ユーザー情報レスポンス"""
-    id: str = Field(..., description="ユーザーID（UUID）")
+    id: UUID = Field(..., description="ユーザーID（UUID）")
     email: EmailStr = Field(..., description="メールアドレス")
     name: str = Field(..., description="ユーザー名")
     role: UserRole = Field(..., description="ロール")
