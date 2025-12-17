@@ -354,45 +354,6 @@ export const ScriptPage = () => {
     return currentIndex < order.length - 1 ? order[currentIndex + 1] : null;
   };
 
-  // デモ用: 強制完了
-  const handleForceComplete = useCallback(async () => {
-    const sections = claudeSections.map((s) => ({
-      id: s.id,
-      label: s.label,
-      timestamp: s.timestamp,
-      content: s.content,
-    }));
-
-    const result = await expertReviewService.startReview({
-      scriptId: currentScriptId,
-      sections,
-      sourceAiType: 'claude',
-    });
-
-    setExpertReviewResult(result);
-    setExpertReviewSections(
-      result.revisedSections.map((s) => ({
-        ...s,
-        visual: { type: 'avatar' as const },
-      }))
-    );
-    const allExperts: ExpertType[] = [
-      'hook_master',
-      'story_architect',
-      'entertainment_producer',
-      'target_insight',
-      'cta_strategist',
-    ];
-    setCompletedExperts(allExperts);
-    setExpertReviewProgress({
-      status: 'completed',
-      completedExperts: allExperts,
-      progress: 100,
-    });
-    setIsExpertReviewModalOpen(false);
-    setViewMode('expertReview');
-  }, [claudeSections, currentScriptId]);
-
   if (activeTab === 'script') {
     // 専門家レビュー結果表示モード
     if (viewMode === 'expertReview' && expertReviewResult) {
@@ -703,7 +664,6 @@ export const ScriptPage = () => {
           onClose={() => setIsExpertReviewModalOpen(false)}
           progress={expertReviewProgress}
           completedExperts={completedExperts}
-          onForceComplete={handleForceComplete}
         />
       </>
     );

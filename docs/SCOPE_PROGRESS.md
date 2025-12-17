@@ -337,49 +337,17 @@
 
 ## 2. 完了したタスク
 
-### Step#1: 成果Yの詳細な定義
-- 台本作成時間90%削減
-- 月間120本制作（ショート90本 + 長尺30本）
-- フェーズ展開: 個人 → チーム(7名) → クライアント提供
+※実装完了した詳細設計はrequirements.md、CLAUDE.md、コードベースを参照してください。
 
-### Step#2: 実現可能性調査（技術的検証）
-- YouTube Data API v3: 利用可能
-- YouTube Analytics API: 利用可能
-- Social Blade API: 利用可能
-- Amazon PA-API: 利用可能（売上実績必要）
-- Instagram Graph API: 自社アカウントのみ
-
-### Step#2.5: 開発アプローチの選択
-- **選択**: 通常版（フル機能）
-- 16の追加機能を含む
-
-### Step#3: 認証・権限設計
-- 5ロール: Owner / Team / Client(Premium+) / Client(Premium) / Client(Basic)
-- 承認フロー設計完了
-
-### Step#4: ページリストの設計
-- 9ページ構成（タブベース）
-- クライアントポータル設計完了
-
-### Step#5: 技術スタック最終決定
-- Frontend: React 18 + TypeScript 5 + Tailwind CSS 4
-- Backend: Python 3.11+ + FastAPI + Celery
-- Database: PostgreSQL (Neon) + Redis + pgvector
-- Infrastructure: Vercel + Google Cloud Run
-
-### Step#6: 外部API・ナレッジ機能設計
-- AI生成: Claude Code Max + Gemini API + Imagen 3
-- 動画: HeyGen + MiniMax Audio
-- 調査: YouTube API + Social Blade + SerpApi
-
-### Step#6.5: ナレッジ構築チャットボット設計
-- 8ステップのヒアリングフロー
-- 「分からない」対応パターン
-- ナレッジドキュメント自動生成
-- MCPエージェント連携設計
-
-### Step#7: 要件定義書の書き出し
-- docs/requirements.md 作成完了
+### 主要完了項目（2025-12-11 〜 2025-12-15）
+- 要件定義・設計（Step 1-7）
+- フロントエンドUI実装（全10ページ）
+- バックエンドAPI実装（85%）
+- 認証・認可システム
+- セキュリティ強化（JWT Cookie化、脆弱性修正）
+- リスト獲得&学習システム（Phase 1-5）
+- E2Eテスト実装（150項目中149項目Pass）
+- 本番運用診断（スコア55.5→改善中）
 
 ## 3. ページ実装進捗
 
@@ -849,4 +817,170 @@
 
 ---
 
-**最終更新日**: 2025-12-15 (Agent Management UI完了)
+**最終更新日**: 2025-12-16 (台本専門家レビュー機能計画策定完了)
+
+---
+
+## 13. 🆕 機能拡張: 台本専門家レビュー機能
+
+**開始日**: 2025-12-16
+**目標完了日**: 2025-12-27
+**総工数**: 約9日
+
+### 13.1 実装タスク一覧
+
+#### Phase 1: フロントエンド実装（Day 1-3）
+
+| タスク | 担当 | 開始 | 完了 | 備考 |
+|--------|------|------|------|------|
+| ScriptPage.tsx 修正（3段階フロー） | - | [ ] | [ ] | 専門家レビューボタン追加、ミックスボタン削除 |
+| ExpertReviewModal.tsx 作成 | - | [ ] | [ ] | 5人の専門家添削結果表示モーダル |
+| QualityAssurance.tsx 作成 | - | [ ] | [ ] | 安心セットコンポーネント |
+| └─ ChecklistPanel.tsx | - | [ ] | [ ] | 必須項目チェックリスト |
+| └─ BeforeAfterChart.tsx | - | [ ] | [ ] | ビフォーアフター比較グラフ |
+| └─ ImprovementReasons.tsx | - | [ ] | [ ] | 改善の根拠パネル |
+| └─ PersonaReactionPanel.tsx | - | [ ] | [ ] | ペルソナ別反応予測 |
+| expert.ts サービス作成 | - | [ ] | [ ] | API通信レイヤー |
+| types/expert.ts 型定義 | - | [ ] | [ ] | TypeScript型定義 |
+
+#### Phase 2: バックエンド実装（Day 4-7）
+
+| タスク | 担当 | 開始 | 完了 | 備考 |
+|--------|------|------|------|------|
+| schemas/expert.py 作成 | - | [ ] | [ ] | Pydanticスキーマ定義 |
+| api/v1/endpoints/expert.py 作成 | - | [ ] | [ ] | エンドポイント実装 |
+| services/expert_review_service.py 作成 | - | [ ] | [ ] | 5人の専門家レビューロジック |
+| └─ フックマスター実装 | - | [ ] | [ ] | 冒頭30秒分析 |
+| └─ ストーリーアーキテクト実装 | - | [ ] | [ ] | 構成分析 |
+| └─ エンタメプロデューサー実装 | - | [ ] | [ ] | リズム・緩急分析 |
+| └─ ターゲットインサイター実装 | - | [ ] | [ ] | ターゲット適合性分析 |
+| └─ CTAストラテジスト実装 | - | [ ] | [ ] | CTA明確性分析 |
+| Central DB連携実装 | - | [ ] | [ ] | script_scores保存 |
+
+#### Phase 3: Central DB基盤（Day 8-9）
+
+| タスク | 担当 | 開始 | 完了 | 備考 |
+|--------|------|------|------|------|
+| script_scores テーブル設計 | - | [ ] | [ ] | 台本スコア履歴 |
+| adopted_scripts テーブル設計 | - | [ ] | [ ] | 採用された台本 |
+| improvement_patterns テーブル設計 | - | [ ] | [ ] | 改善パターン蓄積 |
+| Central DB保存ロジック | - | [ ] | [ ] | MCPツール連携 |
+| 成功パターン取得ロジック（Phase 3基盤） | - | [ ] | [ ] | 将来の類似度計算用 |
+| 履歴比較ロジック（Phase 3基盤） | - | [ ] | [ ] | 将来のグラフ表示用 |
+
+### 13.2 実装チェックリスト
+
+#### フロントエンド
+- [ ] 「両方の良いところをミックスして生成」ボタン削除
+- [ ] 「5人の専門家に添削してもらう」ボタン追加
+- [ ] ActionBar固定化（position: fixed）
+- [ ] 3段階フロー実装（初回生成 → 専門家レビュー → 最終版）
+- [ ] 専門家レビューモーダル実装
+- [ ] 安心セットコンポーネント実装
+- [ ] expert.tsサービス実装
+- [ ] 型定義完成
+
+#### バックエンド
+- [ ] エンドポイント実装（POST /api/v1/scripts/expert-review）
+- [ ] 5人の専門家レビューサービス実装
+- [ ] スコア計算ロジック実装
+- [ ] チェックリスト生成ロジック実装
+- [ ] ビフォーアフター比較ロジック実装
+- [ ] 改善理由生成ロジック実装
+- [ ] ペルソナ反応予測ロジック実装
+- [ ] Central DB連携実装
+
+#### Central DB
+- [ ] script_scores保存機能
+- [ ] adopted_scripts保存機能
+- [ ] improvement_patterns保存機能
+- [ ] 成功パターン取得機能（Phase 3基盤）
+- [ ] 履歴比較機能（Phase 3基盤）
+
+### 13.3 5人の専門家 実装詳細
+
+| 専門家 | アイコン | 担当領域 | AIモデル |
+|-------|---------|---------|---------|
+| フックマスター | 🎣 | 冒頭30秒 | Claude |
+| ストーリーアーキテクト | 🎬 | 構成全体 | Gemini |
+| エンタメプロデューサー | 🎭 | 演出・テンポ | Claude |
+| ターゲットインサイター | 🎯 | 共感・ペルソナ | Claude + ナレッジDB |
+| CTAストラテジスト | 📣 | 行動喚起 | Gemini |
+
+### 13.4 安心セット 実装詳細
+
+#### Phase 1 + 2（即実装）
+- [x] 仕様確定 ✅
+- [ ] 🚀 公開OK判定（スコア計算ロジック）
+- [ ] ✅ 必須項目チェックリスト（10項目判定）
+- [ ] 📊 ビフォーアフター比較（4指標）
+- [ ] 💡 改善の根拠（5人の専門家コメント）
+- [ ] 🎯 ペルソナ別反応予測（ナレッジDB連携）
+
+#### Phase 3（基盤のみ・UI後日）
+- [ ] Central DB蓄積開始
+  - [ ] script_scores保存
+  - [ ] adopted_scripts保存
+  - [ ] improvement_patterns保存
+- [ ] 🏆 成功事例との類似度（基盤ロジック）
+- [ ] 📈 過去の自分との比較（基盤ロジック）
+
+### 13.5 Central DB 蓄積フロー
+
+```
+【添削完了時】
+└─ mcp__central-db__add_knowledge({
+     category: "content",
+     subcategory: "script_quality",
+     title: "台本スコア - {video_title}",
+     content: {
+       scriptId, knowledgeId, scores, expertAdvice
+     }
+   })
+
+【採用ボタン押下時】
+└─ mcp__central-db__add_knowledge({
+     category: "content",
+     subcategory: "adopted_scripts",
+     title: "採用台本 - {video_title}",
+     content: {
+       scriptId, finalScript, adoptedAt
+     }
+   })
+
+【YouTube公開後】
+└─ mcp__central-db__add_knowledge({
+     category: "content",
+     subcategory: "script_performance",
+     title: "パフォーマンス - {video_title}",
+     content: {
+       scriptId, views, retention, ctr, listAcquisition
+     }
+   })
+```
+
+### 13.6 完了条件
+
+#### 機能テスト
+- [ ] Gemini版とClaude版の台本を入力し、専門家レビューを実行できる
+- [ ] 5人の専門家の添削結果が表示される
+- [ ] 公開OK判定が正しく表示される
+- [ ] 必須項目チェックリストが表示される
+- [ ] ビフォーアフター比較が表示される
+- [ ] 改善の根拠が表示される
+- [ ] ペルソナ別反応予測が表示される
+- [ ] 採用ボタンで台本を採用できる
+- [ ] Central DBにスコアが保存される
+
+#### UIテスト
+- [ ] 「両方の良いところをミックスして生成」ボタンが削除されている
+- [ ] 「5人の専門家に添削してもらう」ボタンが表示される
+- [ ] ActionBarが画面下部に固定されている
+- [ ] 3段階フロー（初回生成→専門家レビュー→最終版）が正しく動作する
+
+#### 蓄積テスト
+- [ ] 添削完了時にCentral DBに保存される
+- [ ] 採用時にCentral DBに保存される
+- [ ] 蓄積データが検索可能
+
+---

@@ -56,7 +56,6 @@ interface ExpertReviewModalProps {
   onClose: () => void;
   progress: ExpertReviewProgress;
   completedExperts: ExpertType[];
-  onForceComplete?: () => void; // デモ用
 }
 
 export const ExpertReviewModal = ({
@@ -64,7 +63,6 @@ export const ExpertReviewModal = ({
   onClose,
   progress,
   completedExperts,
-  onForceComplete,
 }: ExpertReviewModalProps) => {
   const { mode, getThemeClasses } = useThemeStore();
   const isDarkMode = mode === 'dark';
@@ -196,20 +194,6 @@ export const ExpertReviewModal = ({
           )}
         </div>
 
-        {/* Demo Button (for development) */}
-        {onForceComplete && progress.status === 'processing' && (
-          <button
-            onClick={onForceComplete}
-            className={cn(
-              'mt-6 w-full px-6 py-2 border rounded-xl transition-colors',
-              isDarkMode
-                ? 'border-slate-700 text-slate-400 hover:bg-slate-800'
-                : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-            )}
-          >
-            (デモ用) 結果を表示
-          </button>
-        )}
       </div>
     </div>
   );

@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>台本・メタデータ - 専門家レビュー - Creator Studio AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    .modal-backdrop {
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+    }
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .animate-pulse-slow {
+      animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="bg-slate-50">
+  <div class="flex h-screen overflow-hidden">
+    <!-- サイドバー -->
+    <aside class="w-72 bg-white border-r border-slate-100 flex flex-col">
+      <!-- ロゴ -->
+      <div class="h-16 flex items-center px-6 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+            <i data-lucide="video" class="w-5 h-5 text-white"></i>
+          </div>
+          <span class="font-bold text-slate-800">Creator Studio AI</span>
+        </div>
+      </div>
+
+      <!-- ナビゲーション -->
+      <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+        <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 rounded-xl transition-colors">
+          <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+          <span>ダッシュボード</span>
+        </a>
+        <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 rounded-xl transition-colors">
+          <i data-lucide="search" class="w-5 h-5"></i>
+          <span>リサーチ</span>
+        </a>
+        <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 rounded-xl transition-colors">
+          <i data-lucide="calendar" class="w-5 h-5"></i>
+          <span>企画・計画</span>
+        </a>
+        <a href="#" class="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl shadow-sm">
+          <i data-lucide="file-text" class="w-5 h-5"></i>
+          <span>台本・メタデータ</span>
+        </a>
+        <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 rounded-xl transition-colors">
+          <i data-lucide="clapperboard" class="w-5 h-5"></i>
+          <span>動画制作</span>
+        </a>
+        <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 rounded-xl transition-colors">
+          <i data-lucide="upload" class="w-5 h-5"></i>
+          <span>公開・配信</span>
+        </a>
+        <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 rounded-xl transition-colors">
+          <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+          <span>分析・ナレッジ</span>
+        </a>
+        <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 rounded-xl transition-colors">
+          <i data-lucide="settings" class="w-5 h-5"></i>
+          <span>管理</span>
+        </a>
+      </nav>
+
+      <!-- ユーザー情報 -->
+      <div class="p-4 border-t border-slate-100">
+        <div class="flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-xl">
+          <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
+            <span class="text-white font-semibold">K</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium text-slate-800 truncate">金子 光義</div>
+            <div class="text-sm text-slate-500">Owner</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-1 overflow-y-auto">
+      <!-- ヘッダー -->
+      <header class="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-8">
+        <div>
+          <h1 class="text-2xl font-bold text-slate-800">台本・メタデータ</h1>
+          <p class="text-sm text-slate-500 mt-0.5">AI生成台本の専門家レビューと編集</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-2">
+            <i data-lucide="bell" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- コンテンツエリア -->
+      <div class="p-8 pb-32">
+        <!-- 【State 1】初回生成: Gemini vs Claude 比較 -->
+        <div id="state-initial" class="space-y-6">
+          <!-- タイトル -->
+          <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
+            <h3 class="text-lg font-semibold text-slate-800 mb-4">企画タイトル</h3>
+            <div class="text-2xl font-bold text-slate-900">【実証】3日で動画制作時間を70%削減した方法</div>
+            <div class="text-sm text-slate-500 mt-2">ビジネスマーケティング</div>
+          </div>
+
+          <!-- Gemini版 vs Claude版 -->
+          <div class="grid grid-cols-2 gap-6">
+            <!-- Gemini版 -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                    <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+                  </div>
+                  <h3 class="text-lg font-semibold text-slate-800">Gemini版</h3>
+                </div>
+                <span class="text-xs text-slate-500">60秒</span>
+              </div>
+
+              <div class="space-y-4 max-h-96 overflow-y-auto">
+                <!-- セクション1 -->
+                <div class="border-l-4 border-purple-500 pl-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs font-semibold text-purple-700 bg-purple-50 px-2 py-1 rounded">0:00-0:10</span>
+                    <span class="text-xs font-medium text-slate-600">導入</span>
+                  </div>
+                  <p class="text-sm text-slate-700">「動画制作に時間がかかりすぎる...」そう思っていませんか？実は、たった3日で制作時間を70%削減できる方法があるんです。</p>
+                </div>
+
+                <!-- セクション2 -->
+                <div class="border-l-4 border-purple-500 pl-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs font-semibold text-purple-700 bg-purple-50 px-2 py-1 rounded">0:10-0:30</span>
+                    <span class="text-xs font-medium text-slate-600">課題提示</span>
+                  </div>
+                  <p class="text-sm text-slate-700">従来の方法では、企画→台本→撮影→編集で1本あたり5時間かかっていました。月30本作るには150時間も必要です。</p>
+                </div>
+
+                <!-- セクション3 -->
+                <div class="border-l-4 border-purple-500 pl-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs font-semibold text-purple-700 bg-purple-50 px-2 py-1 rounded">0:30-0:45</span>
+                    <span class="text-xs font-medium text-slate-600">解決策</span>
+                  </div>
+                  <p class="text-sm text-slate-700">AIツールを3つ組み合わせることで、台本作成は10分、音声生成は5分、動画編集は15分に短縮できます。</p>
+                </div>
+
+                <!-- セクション4 -->
+                <div class="border-l-4 border-purple-500 pl-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs font-semibold text-purple-700 bg-purple-50 px-2 py-1 rounded">0:45-0:60</span>
+                    <span class="text-xs font-medium text-slate-600">CTA</span>
+                  </div>
+                  <p class="text-sm text-slate-700">詳しい手順は概要欄のリンクから。今すぐチェックしてください。</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Claude版 -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                    <i data-lucide="cpu" class="w-5 h-5 text-white"></i>
+                  </div>
+                  <h3 class="text-lg font-semibold text-slate-800">Claude版</h3>
+                </div>
+                <span class="text-xs text-slate-500">60秒</span>
+              </div>
+
+              <div class="space-y-4 max-h-96 overflow-y-auto">
+                <!-- セクション1 -->
+                <div class="border-l-4 border-blue-500 pl-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded">0:00-0:10</span>
+                    <span class="text-xs font-medium text-slate-600">導入</span>
+                  </div>
+                  <p class="text-sm text-slate-700">まだ1本5時間かけて動画作ってるの？時代遅れです。今から見せる方法なら、1本30分で完成します。</p>
+                </div>
+
+                <!-- セクション2 -->
+                <div class="border-l-4 border-blue-500 pl-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded">0:10-0:30</span>
+                    <span class="text-xs font-medium text-slate-600">課題提示</span>
+                  </div>
+                  <p class="text-sm text-slate-700">動画制作の80%は「考える時間」です。企画を考え、台本を書き、演出を決める。この3つがボトルネックでした。</p>
+                </div>
+
+                <!-- セクション3 -->
+                <div class="border-l-4 border-blue-500 pl-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded">0:30-0:45</span>
+                    <span class="text-xs font-medium text-slate-600">解決策</span>
+                  </div>
+                  <p class="text-sm text-slate-700">AI活用で「考える」パートを自動化。あなたは最終チェックするだけ。月30本でも週3時間で完了します。</p>
+                </div>
+
+                <!-- セクション4 -->
+                <div class="border-l-4 border-blue-500 pl-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded">0:45-0:60</span>
+                    <span class="text-xs font-medium text-slate-600">CTA</span>
+                  </div>
+                  <p class="text-sm text-slate-700">具体的なツールと設定方法は概要欄へ。明日から使えます。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 専門家レビューボタン -->
+          <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-3xl p-8 text-center">
+            <div class="mb-4">
+              <div class="inline-flex items-center gap-2 text-purple-700 mb-2">
+                <i data-lucide="users" class="w-6 h-6"></i>
+                <span class="text-lg font-semibold">5人の専門家チーム</span>
+              </div>
+              <p class="text-sm text-slate-600">フックマスター・ストーリーアーキテクト・エンタメプロデューサー・ターゲットインサイター・CTAストラテジスト</p>
+            </div>
+            <button onclick="showExpertReviewModal()" class="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold text-lg hover:shadow-xl transition-all flex items-center gap-3 mx-auto">
+              <i data-lucide="sparkles" class="w-6 h-6"></i>
+              5人の専門家に添削してもらう
+            </button>
+          </div>
+        </div>
+
+        <!-- 【State 2】専門家レビュー実行中（モーダル） -->
+        <div id="modal-expert-review" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-8">
+          <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-8">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6 text-center">専門家レビュー実行中</h2>
+
+            <div class="space-y-4">
+              <!-- 専門家1 -->
+              <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+                <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-2xl">
+                  🎣
+                </div>
+                <div class="flex-1">
+                  <div class="font-semibold text-slate-800">フックマスター</div>
+                  <div class="text-sm text-slate-600">冒頭30秒を分析中...</div>
+                </div>
+                <div class="animate-pulse-slow">
+                  <i data-lucide="loader" class="w-6 h-6 text-blue-600 animate-spin"></i>
+                </div>
+              </div>
+
+              <!-- 専門家2 -->
+              <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+                <div class="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-2xl">
+                  🎬
+                </div>
+                <div class="flex-1">
+                  <div class="font-semibold text-slate-800">ストーリーアーキテクト</div>
+                  <div class="text-sm text-slate-600">構成を添削中...</div>
+                </div>
+                <div class="animate-pulse-slow">
+                  <i data-lucide="loader" class="w-6 h-6 text-purple-600 animate-spin"></i>
+                </div>
+              </div>
+
+              <!-- 専門家3 -->
+              <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+                <div class="w-12 h-12 bg-gradient-to-r from-orange-600 to-red-600 rounded-full flex items-center justify-center text-2xl">
+                  🎭
+                </div>
+                <div class="flex-1">
+                  <div class="font-semibold text-slate-800">エンタメプロデューサー</div>
+                  <div class="text-sm text-slate-600">リズムと緩急を評価中...</div>
+                </div>
+                <div class="animate-pulse-slow">
+                  <i data-lucide="loader" class="w-6 h-6 text-orange-600 animate-spin"></i>
+                </div>
+              </div>
+
+              <!-- 専門家4 -->
+              <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+                <div class="w-12 h-12 bg-gradient-to-r from-green-600 to-teal-600 rounded-full flex items-center justify-center text-2xl">
+                  🎯
+                </div>
+                <div class="flex-1">
+                  <div class="font-semibold text-slate-800">ターゲットインサイター</div>
+                  <div class="text-sm text-slate-600">ペルソナとの適合性を確認中...</div>
+                </div>
+                <div class="animate-pulse-slow">
+                  <i data-lucide="loader" class="w-6 h-6 text-green-600 animate-spin"></i>
+                </div>
+              </div>
+
+              <!-- 専門家5 -->
+              <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+                <div class="w-12 h-12 bg-gradient-to-r from-yellow-600 to-amber-600 rounded-full flex items-center justify-center text-2xl">
+                  📣
+                </div>
+                <div class="flex-1">
+                  <div class="font-semibold text-slate-800">CTAストラテジスト</div>
+                  <div class="text-sm text-slate-600">行動喚起を最適化中...</div>
+                </div>
+                <div class="animate-pulse-slow">
+                  <i data-lucide="loader" class="w-6 h-6 text-yellow-600 animate-spin"></i>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6 text-center text-sm text-slate-500">
+              約30秒で完了します...
+            </div>
+
+            <button onclick="showFinalResult()" class="mt-6 px-6 py-2 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors w-full">
+              （デモ用）結果を表示
+            </button>
+          </div>
+        </div>
+
+        <!-- 【State 3】最終版 + 安心セット -->
+        <div id="state-final" class="hidden space-y-6">
+          <!-- 公開OK判定 -->
+          <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-3xl p-6 border border-green-200">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <div class="w-16 h-16 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full flex items-center justify-center">
+                  <i data-lucide="check-circle" class="w-8 h-8 text-white"></i>
+                </div>
+                <div>
+                  <h2 class="text-2xl font-bold text-slate-800">公開OK判定</h2>
+                  <p class="text-sm text-slate-600 mt-1">専門家チームの総合評価</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-5xl font-bold text-green-700">87</div>
+                <div class="text-sm text-slate-600">/100点</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 専門家レビュー版台本（編集可能 + ビジュアル設定） -->
+          <div class="bg-white rounded-3xl shadow-sm border-2 border-purple-200 p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                  <i data-lucide="trophy" class="w-5 h-5 text-white"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-slate-800">🏆 専門家レビュー版（最高版）</h3>
+              </div>
+              <div class="flex items-center gap-3">
+                <!-- 表示モード切り替え -->
+                <div class="flex bg-slate-100 rounded-lg p-0.5">
+                  <button id="btn-text-only" onclick="setViewMode('text')" class="px-3 py-1.5 text-xs font-medium rounded-md text-slate-600 hover:bg-white transition-colors flex items-center gap-1">
+                    <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                    テキストのみ
+                  </button>
+                  <button id="btn-with-visual" onclick="setViewMode('visual')" class="px-3 py-1.5 text-xs font-medium rounded-md bg-purple-600 text-white flex items-center gap-1">
+                    <i data-lucide="image" class="w-3.5 h-3.5"></i>
+                    ビジュアル付き
+                  </button>
+                </div>
+                <span class="text-xs text-slate-500">60秒</span>
+                <span class="text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded font-medium">✏️ 編集可能</span>
+              </div>
+            </div>
+
+            <div class="space-y-6">
+              <!-- セクション1 - 改善済み + 編集可能 + ビジュアル -->
+              <div class="group border border-slate-200 rounded-2xl p-4 hover:border-purple-300 transition-colors">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold text-purple-700 bg-purple-100 px-2 py-1 rounded">0:00-0:10</span>
+                    <span class="text-xs font-medium text-slate-600">導入</span>
+                    <span class="text-xs text-green-600 bg-green-50 px-2 py-1 rounded font-medium">✨ 改善済み</span>
+                  </div>
+                  <button onclick="toggleEdit('section1')" class="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all">
+                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                  </button>
+                </div>
+
+                <!-- テキスト表示/編集 -->
+                <div id="section1-display" class="mb-4">
+                  <p class="text-sm text-slate-700 leading-relaxed cursor-pointer hover:bg-slate-50 rounded p-2 -m-2" onclick="toggleEdit('section1')">まだ1本5時間かけて動画作ってるの？今から見せる方法なら、たった3日で制作時間70%削減できます。</p>
+                </div>
+                <div id="section1-edit" class="hidden mb-4">
+                  <textarea class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500" rows="3">まだ1本5時間かけて動画作ってるの？今から見せる方法なら、たった3日で制作時間70%削減できます。</textarea>
+                  <div class="flex justify-end gap-2 mt-2">
+                    <button onclick="toggleEdit('section1')" class="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">キャンセル</button>
+                    <button onclick="toggleEdit('section1')" class="px-3 py-1.5 text-xs bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">保存</button>
+                  </div>
+                </div>
+
+                <!-- ビジュアル設定 -->
+                <div class="visual-setting border-t border-slate-100 pt-4">
+                  <div class="flex items-center gap-2 mb-3">
+                    <span class="text-xs font-medium text-slate-500">ビジュアル:</span>
+                    <div class="flex bg-slate-100 rounded-lg p-0.5">
+                      <button class="px-3 py-1 text-xs font-medium rounded-md bg-purple-600 text-white">アバター</button>
+                      <button class="px-3 py-1 text-xs font-medium rounded-md text-slate-600 hover:bg-white">画像</button>
+                      <button class="px-3 py-1 text-xs font-medium rounded-md text-slate-600 hover:bg-white">スライド</button>
+                    </div>
+                  </div>
+                  <div class="aspect-video bg-slate-100 rounded-xl flex items-center justify-center">
+                    <div class="text-center">
+                      <i data-lucide="video" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
+                      <p class="text-xs text-slate-500">アバターのみ表示</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- セクション2 + 編集可能 + ビジュアル（画像アップロード例） -->
+              <div class="group border border-slate-200 rounded-2xl p-4 hover:border-purple-300 transition-colors">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold text-purple-700 bg-purple-50 px-2 py-1 rounded">0:10-0:30</span>
+                    <span class="text-xs font-medium text-slate-600">課題提示</span>
+                  </div>
+                  <button onclick="toggleEdit('section2')" class="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all">
+                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                  </button>
+                </div>
+
+                <!-- テキスト表示/編集 -->
+                <div id="section2-display" class="mb-4">
+                  <p class="text-sm text-slate-700 leading-relaxed cursor-pointer hover:bg-slate-50 rounded p-2 -m-2" onclick="toggleEdit('section2')">動画制作の80%は「考える時間」です。企画を考え、台本を書き、演出を決める。月30本作るには150時間も必要でした。</p>
+                </div>
+                <div id="section2-edit" class="hidden mb-4">
+                  <textarea class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500" rows="3">動画制作の80%は「考える時間」です。企画を考え、台本を書き、演出を決める。月30本作るには150時間も必要でした。</textarea>
+                  <div class="flex justify-end gap-2 mt-2">
+                    <button onclick="toggleEdit('section2')" class="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">キャンセル</button>
+                    <button onclick="toggleEdit('section2')" class="px-3 py-1.5 text-xs bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">保存</button>
+                  </div>
+                </div>
+
+                <!-- ビジュアル設定（画像タイプ） -->
+                <div class="visual-setting border-t border-slate-100 pt-4">
+                  <div class="flex items-center gap-2 mb-3">
+                    <span class="text-xs font-medium text-slate-500">ビジュアル:</span>
+                    <div class="flex bg-slate-100 rounded-lg p-0.5">
+                      <button class="px-3 py-1 text-xs font-medium rounded-md text-slate-600 hover:bg-white">アバター</button>
+                      <button class="px-3 py-1 text-xs font-medium rounded-md bg-purple-600 text-white">画像</button>
+                      <button class="px-3 py-1 text-xs font-medium rounded-md text-slate-600 hover:bg-white">スライド</button>
+                    </div>
+                  </div>
+                  <div class="aspect-video bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center hover:border-purple-400 hover:bg-purple-50/30 cursor-pointer transition-colors">
+                    <div class="text-center">
+                      <i data-lucide="upload" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
+                      <p class="text-xs text-slate-500">画像をアップロード</p>
+                      <p class="text-xs text-slate-400 mt-1">またはドラッグ＆ドロップ</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 mt-3">
+                    <span class="text-xs text-slate-500">アバター位置:</span>
+                    <select class="text-xs px-2 py-1 border border-slate-200 rounded-lg bg-white">
+                      <option>右下(PiP)</option>
+                      <option>左下(PiP)</option>
+                      <option>下部(PiP)</option>
+                      <option>非表示</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- セクション3 - 改善済み + 編集可能 + ビジュアル（スライド例） -->
+              <div class="group border border-slate-200 rounded-2xl p-4 hover:border-purple-300 transition-colors">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold text-purple-700 bg-purple-100 px-2 py-1 rounded">0:30-0:45</span>
+                    <span class="text-xs font-medium text-slate-600">解決策</span>
+                    <span class="text-xs text-green-600 bg-green-50 px-2 py-1 rounded font-medium">✨ 改善済み</span>
+                  </div>
+                  <button onclick="toggleEdit('section3')" class="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all">
+                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                  </button>
+                </div>
+
+                <!-- テキスト表示/編集 -->
+                <div id="section3-display" class="mb-4">
+                  <p class="text-sm text-slate-700 leading-relaxed cursor-pointer hover:bg-slate-50 rounded p-2 -m-2" onclick="toggleEdit('section3')">AI活用で「考える」パートを自動化。あなたは最終チェックするだけ。月30本でも週3時間で完了します。実際に私も70%削減できました。</p>
+                </div>
+                <div id="section3-edit" class="hidden mb-4">
+                  <textarea class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500" rows="3">AI活用で「考える」パートを自動化。あなたは最終チェックするだけ。月30本でも週3時間で完了します。実際に私も70%削減できました。</textarea>
+                  <div class="flex justify-end gap-2 mt-2">
+                    <button onclick="toggleEdit('section3')" class="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">キャンセル</button>
+                    <button onclick="toggleEdit('section3')" class="px-3 py-1.5 text-xs bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">保存</button>
+                  </div>
+                </div>
+
+                <!-- ビジュアル設定（スライドタイプ） -->
+                <div class="visual-setting border-t border-slate-100 pt-4">
+                  <div class="flex items-center gap-2 mb-3">
+                    <span class="text-xs font-medium text-slate-500">ビジュアル:</span>
+                    <div class="flex bg-slate-100 rounded-lg p-0.5">
+                      <button class="px-3 py-1 text-xs font-medium rounded-md text-slate-600 hover:bg-white">アバター</button>
+                      <button class="px-3 py-1 text-xs font-medium rounded-md text-slate-600 hover:bg-white">画像</button>
+                      <button class="px-3 py-1 text-xs font-medium rounded-md bg-purple-600 text-white">スライド</button>
+                    </div>
+                  </div>
+                  <div class="space-y-2 mb-3">
+                    <input type="text" placeholder="スライドタイトル" value="AI活用で70%時短！" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500">
+                    <textarea placeholder="箇条書き（改行区切り）" rows="3" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500">• 企画AIで自動生成
+• 台本は5分で完成
+• 編集はテンプレート活用</textarea>
+                  </div>
+                  <div class="aspect-video bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-center">
+                    <p class="text-sm font-bold text-slate-800 mb-3">AI活用で70%時短！</p>
+                    <ul class="space-y-1.5 text-xs text-slate-600">
+                      <li class="flex items-start gap-2"><span class="text-purple-500">•</span>企画AIで自動生成</li>
+                      <li class="flex items-start gap-2"><span class="text-purple-500">•</span>台本は5分で完成</li>
+                      <li class="flex items-start gap-2"><span class="text-purple-500">•</span>編集はテンプレート活用</li>
+                    </ul>
+                  </div>
+                  <div class="flex items-center gap-2 mt-3">
+                    <span class="text-xs text-slate-500">アバター位置:</span>
+                    <select class="text-xs px-2 py-1 border border-slate-200 rounded-lg bg-white">
+                      <option>右下(PiP)</option>
+                      <option>左下(PiP)</option>
+                      <option>下部(PiP)</option>
+                      <option>非表示</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- セクション4 - 改善済み + 編集可能 + ビジュアル -->
+              <div class="group border border-slate-200 rounded-2xl p-4 hover:border-purple-300 transition-colors">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold text-purple-700 bg-purple-100 px-2 py-1 rounded">0:45-0:60</span>
+                    <span class="text-xs font-medium text-slate-600">CTA</span>
+                    <span class="text-xs text-green-600 bg-green-50 px-2 py-1 rounded font-medium">✨ 改善済み</span>
+                  </div>
+                  <button onclick="toggleEdit('section4')" class="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all">
+                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                  </button>
+                </div>
+
+                <!-- テキスト表示/編集 -->
+                <div id="section4-display" class="mb-4">
+                  <p class="text-sm text-slate-700 leading-relaxed cursor-pointer hover:bg-slate-50 rounded p-2 -m-2" onclick="toggleEdit('section4')">具体的なツールと設定方法は概要欄の「完全ガイド」へ。今日から始められます。チャンネル登録もお忘れなく！</p>
+                </div>
+                <div id="section4-edit" class="hidden mb-4">
+                  <textarea class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500" rows="3">具体的なツールと設定方法は概要欄の「完全ガイド」へ。今日から始められます。チャンネル登録もお忘れなく！</textarea>
+                  <div class="flex justify-end gap-2 mt-2">
+                    <button onclick="toggleEdit('section4')" class="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">キャンセル</button>
+                    <button onclick="toggleEdit('section4')" class="px-3 py-1.5 text-xs bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">保存</button>
+                  </div>
+                </div>
+
+                <!-- ビジュアル設定 -->
+                <div class="visual-setting border-t border-slate-100 pt-4">
+                  <div class="flex items-center gap-2 mb-3">
+                    <span class="text-xs font-medium text-slate-500">ビジュアル:</span>
+                    <div class="flex bg-slate-100 rounded-lg p-0.5">
+                      <button class="px-3 py-1 text-xs font-medium rounded-md bg-purple-600 text-white">アバター</button>
+                      <button class="px-3 py-1 text-xs font-medium rounded-md text-slate-600 hover:bg-white">画像</button>
+                      <button class="px-3 py-1 text-xs font-medium rounded-md text-slate-600 hover:bg-white">スライド</button>
+                    </div>
+                  </div>
+                  <div class="aspect-video bg-slate-100 rounded-xl flex items-center justify-center">
+                    <div class="text-center">
+                      <i data-lucide="video" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
+                      <p class="text-xs text-slate-500">アバターのみ表示</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 安心セット（5要素） -->
+          <div class="grid grid-cols-2 gap-6">
+            <!-- 1. 必須項目チェックリスト -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
+              <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="check-square" class="w-5 h-5 text-blue-600"></i>
+                <h3 class="text-lg font-semibold text-slate-800">必須項目チェックリスト</h3>
+              </div>
+              <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="check" class="w-5 h-5 text-green-600"></i>
+                    <span class="text-sm text-slate-700">冒頭3秒のインパクト</span>
+                  </div>
+                  <span class="text-xs font-semibold text-green-700">✅</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="check" class="w-5 h-5 text-green-600"></i>
+                    <span class="text-sm text-slate-700">ターゲット明確化</span>
+                  </div>
+                  <span class="text-xs font-semibold text-green-700">✅</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="check" class="w-5 h-5 text-green-600"></i>
+                    <span class="text-sm text-slate-700">起承転結の明確性</span>
+                  </div>
+                  <span class="text-xs font-semibold text-green-700">✅</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-600"></i>
+                    <span class="text-sm text-slate-700">CTA明確性</span>
+                  </div>
+                  <span class="text-xs font-semibold text-yellow-700">⚠️ 改善推奨</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="check" class="w-5 h-5 text-green-600"></i>
+                    <span class="text-sm text-slate-700">感情の波</span>
+                  </div>
+                  <span class="text-xs font-semibold text-green-700">✅</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. ビフォーアフター比較 -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
+              <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="trending-up" class="w-5 h-5 text-blue-600"></i>
+                <h3 class="text-lg font-semibold text-slate-800">ビフォーアフター比較</h3>
+              </div>
+              <div class="space-y-4">
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-slate-600">フックスコア</span>
+                    <span class="text-sm font-semibold text-green-600">+27</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-500">65</span>
+                    <div class="flex-1 bg-slate-100 rounded-full h-2">
+                      <div class="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full" style="width: 92%"></div>
+                    </div>
+                    <span class="text-xs font-semibold text-blue-600">92</span>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-slate-600">視聴維持率予測</span>
+                    <span class="text-sm font-semibold text-green-600">+23%</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-500">48%</span>
+                    <div class="flex-1 bg-slate-100 rounded-full h-2">
+                      <div class="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full" style="width: 71%"></div>
+                    </div>
+                    <span class="text-xs font-semibold text-purple-600">71%</span>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-slate-600">CTAクリック率</span>
+                    <span class="text-sm font-semibold text-green-600">+2.7%</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-500">2.1%</span>
+                    <div class="flex-1 bg-slate-100 rounded-full h-2">
+                      <div class="bg-gradient-to-r from-green-600 to-emerald-600 h-2 rounded-full" style="width: 48%"></div>
+                    </div>
+                    <span class="text-xs font-semibold text-green-600">4.8%</span>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-slate-600">総合スコア</span>
+                    <span class="text-sm font-semibold text-green-600">+29</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-500">58</span>
+                    <div class="flex-1 bg-slate-100 rounded-full h-2">
+                      <div class="bg-gradient-to-r from-yellow-600 to-orange-600 h-2 rounded-full" style="width: 87%"></div>
+                    </div>
+                    <span class="text-xs font-semibold text-yellow-600">87</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. 改善の根拠 -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
+              <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="lightbulb" class="w-5 h-5 text-blue-600"></i>
+                <h3 class="text-lg font-semibold text-slate-800">改善の根拠</h3>
+              </div>
+              <div class="space-y-3">
+                <div class="border-l-4 border-blue-500 pl-3 py-2">
+                  <div class="text-xs font-semibold text-blue-700 mb-1">🎣 フックマスター</div>
+                  <p class="text-sm text-slate-700">冒頭を質問形式に変更し、視聴者の注意を即座に引く構成に</p>
+                </div>
+                <div class="border-l-4 border-purple-500 pl-3 py-2">
+                  <div class="text-xs font-semibold text-purple-700 mb-1">🎬 ストーリーアーキテクト</div>
+                  <p class="text-sm text-slate-700">起承転結を明確化し、情報の順序を最適化</p>
+                </div>
+                <div class="border-l-4 border-orange-500 pl-3 py-2">
+                  <div class="text-xs font-semibold text-orange-700 mb-1">🎭 エンタメプロデューサー</div>
+                  <p class="text-sm text-slate-700">数字を追加しリズム感を改善、緩急をつけた</p>
+                </div>
+                <div class="border-l-4 border-green-500 pl-3 py-2">
+                  <div class="text-xs font-semibold text-green-700 mb-1">🎯 ターゲットインサイター</div>
+                  <p class="text-sm text-slate-700">ペルソナの悩みに直結する表現に修正</p>
+                </div>
+                <div class="border-l-4 border-yellow-500 pl-3 py-2">
+                  <div class="text-xs font-semibold text-yellow-700 mb-1">📣 CTAストラテジスト</div>
+                  <p class="text-sm text-slate-700">具体的な行動を明示し、チャンネル登録誘導を追加</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. ペルソナ別反応予測 -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
+              <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="users" class="w-5 h-5 text-blue-600"></i>
+                <h3 class="text-lg font-semibold text-slate-800">ペルソナ別反応予測</h3>
+              </div>
+              <div class="space-y-4">
+                <div class="p-4 bg-green-50 rounded-xl">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-slate-800">メインターゲット（30代会社員）</span>
+                    <span class="text-2xl">😊</span>
+                  </div>
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="flex-1 bg-white rounded-full h-2">
+                      <div class="bg-green-600 h-2 rounded-full" style="width: 90%"></div>
+                    </div>
+                    <span class="text-sm font-semibold text-green-600">90%</span>
+                  </div>
+                  <p class="text-xs text-slate-600">業務効率化の悩みに直結しており、高評価が期待できる</p>
+                </div>
+                <div class="p-4 bg-blue-50 rounded-xl">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-slate-800">サブターゲット（フリーランス）</span>
+                    <span class="text-2xl">😐</span>
+                  </div>
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="flex-1 bg-white rounded-full h-2">
+                      <div class="bg-blue-600 h-2 rounded-full" style="width: 60%"></div>
+                    </div>
+                    <span class="text-sm font-semibold text-blue-600">60%</span>
+                  </div>
+                  <p class="text-xs text-slate-600">興味は持つが、既に類似ツールを使用している可能性</p>
+                </div>
+                <div class="p-4 bg-purple-50 rounded-xl">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-slate-800">潜在層（学生・初心者）</span>
+                    <span class="text-2xl">🤔</span>
+                  </div>
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="flex-1 bg-white rounded-full h-2">
+                      <div class="bg-purple-600 h-2 rounded-full" style="width: 45%"></div>
+                    </div>
+                    <span class="text-sm font-semibold text-purple-600">45%</span>
+                  </div>
+                  <p class="text-xs text-slate-600">興味はあるが、実践までのハードルが高い可能性</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 固定アクションバー（画面下部） -->
+      <div id="action-bar" class="hidden fixed bottom-0 left-72 right-0 bg-white border-t border-slate-200 px-8 py-4 shadow-lg">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+              <div class="w-10 h-10 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full flex items-center justify-center">
+                <i data-lucide="check" class="w-6 h-6 text-white"></i>
+              </div>
+              <div>
+                <div class="text-sm font-semibold text-slate-800">公開準備完了</div>
+                <div class="text-xs text-slate-500">スコア: 87/100</div>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <button class="px-6 py-3 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-medium flex items-center gap-2">
+              <i data-lucide="edit" class="w-5 h-5"></i>
+              手動で編集
+            </button>
+            <button class="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-xl transition-all flex items-center gap-2">
+              <i data-lucide="check-circle" class="w-5 h-5"></i>
+              この台本を採用する
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Lucide Iconsの初期化
+    lucide.createIcons();
+
+    // 専門家レビューモーダルを表示
+    function showExpertReviewModal() {
+      document.getElementById('modal-expert-review').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    // 最終結果を表示
+    function showFinalResult() {
+      // モーダルを非表示
+      document.getElementById('modal-expert-review').classList.add('hidden');
+
+      // 初回状態を非表示
+      document.getElementById('state-initial').classList.add('hidden');
+
+      // 最終結果を表示
+      document.getElementById('state-final').classList.remove('hidden');
+
+      // アクションバーを表示
+      document.getElementById('action-bar').classList.remove('hidden');
+
+      // アイコンを再レンダリング
+      lucide.createIcons();
+
+      // 最終結果までスクロール
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // セクション編集の切り替え
+    function toggleEdit(sectionId) {
+      const displayEl = document.getElementById(`${sectionId}-display`);
+      const editEl = document.getElementById(`${sectionId}-edit`);
+
+      if (displayEl && editEl) {
+        displayEl.classList.toggle('hidden');
+        editEl.classList.toggle('hidden');
+      }
+    }
+
+    // 表示モード切り替え（テキストのみ / ビジュアル付き）
+    function setViewMode(mode) {
+      const btnTextOnly = document.getElementById('btn-text-only');
+      const btnWithVisual = document.getElementById('btn-with-visual');
+      const visualSettings = document.querySelectorAll('.visual-setting');
+
+      if (mode === 'text') {
+        // テキストのみモード
+        btnTextOnly.classList.remove('text-slate-600', 'hover:bg-white');
+        btnTextOnly.classList.add('bg-purple-600', 'text-white');
+        btnWithVisual.classList.remove('bg-purple-600', 'text-white');
+        btnWithVisual.classList.add('text-slate-600', 'hover:bg-white');
+
+        // ビジュアル設定を非表示
+        visualSettings.forEach(el => el.classList.add('hidden'));
+      } else {
+        // ビジュアル付きモード
+        btnWithVisual.classList.remove('text-slate-600', 'hover:bg-white');
+        btnWithVisual.classList.add('bg-purple-600', 'text-white');
+        btnTextOnly.classList.remove('bg-purple-600', 'text-white');
+        btnTextOnly.classList.add('text-slate-600', 'hover:bg-white');
+
+        // ビジュアル設定を表示
+        visualSettings.forEach(el => el.classList.remove('hidden'));
+      }
+
+      // アイコンを再レンダリング
+      lucide.createIcons();
+    }
+  </script>
+</body>
+</html>
