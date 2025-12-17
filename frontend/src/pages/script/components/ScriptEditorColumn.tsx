@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Sparkles, MessageCircle, Wand2, Edit3, Check, X, RefreshCw, Image, Video, Layers, Upload, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Sparkles, MessageCircle, Wand2, Edit3, Check, X, RefreshCw, Image, Video, Layers, Upload, Trash2, Eye, EyeOff, Users } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { toast } from '../../../components/common';
@@ -33,7 +33,9 @@ interface ScriptEditorColumnProps {
   onSectionsChange: (sections: ScriptSection[]) => void;
   onAdopt: () => void;
   onRewriteAll: () => void;
+  onRequestExpertReview?: () => void;
   isRecommended?: boolean;
+  showExpertReviewButton?: boolean;
 }
 
 export const ScriptEditorColumn = ({
@@ -43,7 +45,9 @@ export const ScriptEditorColumn = ({
   onSectionsChange,
   onAdopt,
   onRewriteAll,
+  onRequestExpertReview,
   isRecommended = false,
+  showExpertReviewButton = false,
 }: ScriptEditorColumnProps) => {
   const { mode, getThemeClasses } = useThemeStore();
   const isDarkMode = mode === 'dark';
@@ -672,34 +676,48 @@ export const ScriptEditorColumn = ({
       {/* Footer */}
       <div
         className={cn(
-          'px-3 py-2 border-t flex justify-end gap-2 backdrop-blur-sm',
+          'px-3 py-2 border-t flex flex-col gap-2 backdrop-blur-sm',
           isDarkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-white/50'
         )}
       >
-        <button
-          onClick={onRewriteAll}
-          className={cn(
-            'px-3 py-1.5 text-xs rounded-lg transition-colors',
-            isDarkMode ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-500 hover:bg-slate-100'
-          )}
-        >
-          書き直し
-        </button>
-        <button
-          onClick={onAdopt}
-          className={cn(
-            'px-4 py-1.5 text-white text-xs font-bold rounded-lg shadow-md transition-all',
-            isGemini
-              ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20'
-              : isMixed
-              ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-purple-500/20'
-              : isDarkMode
-              ? 'bg-slate-700 hover:bg-slate-600'
-              : 'bg-slate-900 hover:bg-slate-800'
-          )}
-        >
-          これを採用
-        </button>
+        {/* 専門家レビューボタン */}
+        {showExpertReviewButton && onRequestExpertReview && (
+          <button
+            onClick={onRequestExpertReview}
+            className="w-full px-4 py-2.5 text-white text-sm font-bold rounded-xl shadow-lg transition-all transform active:scale-[0.98] bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 hover:from-purple-700 hover:via-pink-700 hover:to-rose-700 shadow-purple-500/30 flex items-center justify-center gap-2"
+          >
+            <Users size={16} />
+            5人の専門家に添削してもらう
+          </button>
+        )}
+
+        {/* 従来のアクションボタン */}
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={onRewriteAll}
+            className={cn(
+              'px-3 py-1.5 text-xs rounded-lg transition-colors',
+              isDarkMode ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-500 hover:bg-slate-100'
+            )}
+          >
+            書き直し
+          </button>
+          <button
+            onClick={onAdopt}
+            className={cn(
+              'px-4 py-1.5 text-white text-xs font-bold rounded-lg shadow-md transition-all',
+              isGemini
+                ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20'
+                : isMixed
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-purple-500/20'
+                : isDarkMode
+                ? 'bg-slate-700 hover:bg-slate-600'
+                : 'bg-slate-900 hover:bg-slate-800'
+            )}
+          >
+            これを採用
+          </button>
+        </div>
       </div>
     </div>
   );

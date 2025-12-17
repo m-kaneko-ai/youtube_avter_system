@@ -59,6 +59,9 @@ class Settings(BaseSettings):
     SERP_API_KEY: str = ""
     SOCIAL_BLADE_API_KEY: str = ""
 
+    # ===== 通知 =====
+    SLACK_WEBHOOK_URL: str = ""  # Slack通知用Webhook URL
+
     @property
     def cors_origins(self) -> List[str]:
         """CORS許可オリジンのリスト"""

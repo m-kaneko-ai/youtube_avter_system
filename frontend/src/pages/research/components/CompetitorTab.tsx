@@ -223,7 +223,7 @@ export const CompetitorTab = () => {
           </div>
         ) : (
         <div className="space-y-4">
-          {competitors.map((competitor) => (
+          {competitors.map((competitor: Competitor) => (
             <div
               key={competitor.id}
               className={cn(
@@ -299,7 +299,7 @@ export const CompetitorTab = () => {
           </div>
         ) : (
         <div className="space-y-3">
-          {popularVideos.map((video, idx) => (
+          {popularVideos.map((video: PopularVideo, idx: number) => (
             <div
               key={video.id}
               className={cn(

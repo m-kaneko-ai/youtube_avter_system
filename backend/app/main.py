@@ -16,6 +16,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import ValidationError
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.core.config import settings
 
@@ -159,6 +160,29 @@ app.add_middleware(
 
 # APIルーター登録（/api/v1プレフィックス）
 app.include_router(api_router, prefix="/api/v1")
+
+
+# ========== Prometheusメトリクス設定 ==========
+
+# Prometheusインストゥルメンテーションを初期化
+# HTTPリクエストメトリクス（レイテンシ、リクエスト数、エラー率）を自動収集
+instrumentator = Instrumentator(
+    should_group_status_codes=True,  # ステータスコードをグループ化（2xx, 3xx, 4xx, 5xx）
+    should_ignore_untemplated=False,  # テンプレート化されていないパスも含める
+    should_respect_env_var=True,  # 環境変数ENABLE_METRICSでオン/オフ可能
+    should_instrument_requests_inprogress=True,  # 進行中のリクエスト数を計測
+    excluded_handlers=["/metrics"],  # /metricsエンドポイント自体は計測対象外
+    env_var_name="ENABLE_METRICS",  # 環境変数名（デフォルト有効）
+    inprogress_name="http_requests_inprogress",  # 進行中リクエストメトリクス名
+    inprogress_labels=True,  # 進行中リクエストにラベルを追加
+)
+
+# アプリケーションにインストゥルメンテーションを適用
+instrumentator.instrument(app)
+
+# /metricsエンドポイントを公開
+# このエンドポイントでPrometheus形式のメトリクスを取得可能
+instrumentator.expose(app, endpoint="/metrics", include_in_schema=True)
 
 
 # ========== グローバルエラーハンドラー ==========

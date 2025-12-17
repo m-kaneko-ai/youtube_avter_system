@@ -722,42 +722,55 @@ class PlanningService:
                 detail="この提案は既に採用されています",
             )
 
-        # プロジェクト作成
-        title = request.modifications.get("title", suggestion.title) if request.modifications else suggestion.title
-        project = Project(
-            client_id=client_id,
-            name=title,
-            description=suggestion.description,
-            status=ProjectStatus.PLANNING,
-        )
-        db.add(project)
-        await db.flush()
+        # 明示的なトランザクション管理
+        try:
+            async with db.begin():
+                # プロジェクト作成
+                title = request.modifications.get("title", suggestion.title) if request.modifications else suggestion.title
+                project = Project(
+                    client_id=client_id,
+                    name=title,
+                    description=suggestion.description,
+                    status=ProjectStatus.PLANNING,
+                )
+                db.add(project)
+                await db.flush()
 
-        # スケジュール作成
-        if request.scheduled_date:
-            schedule = ProjectSchedule(
-                project_id=project.id,
-                scheduled_date=request.scheduled_date,
+                # スケジュール作成
+                if request.scheduled_date:
+                    schedule = ProjectSchedule(
+                        project_id=project.id,
+                        scheduled_date=request.scheduled_date,
+                    )
+                    db.add(schedule)
+
+                # 提案を更新
+                suggestion.is_adopted = True
+                suggestion.adopted_project_id = project.id
+                suggestion.adopted_at = datetime.utcnow()
+
+            # トランザクション完了後にリフレッシュ
+            await db.refresh(project)
+
+            return SuggestionAdoptResponse(
+                success=True,
+                project={
+                    "id": str(project.id),
+                    "title": project.name,
+                    "status": project.status.value,
+                    "scheduled_date": request.scheduled_date.isoformat() if request.scheduled_date else None,
+                },
             )
-            db.add(schedule)
-
-        # 提案を更新
-        suggestion.is_adopted = True
-        suggestion.adopted_project_id = project.id
-        suggestion.adopted_at = datetime.utcnow()
-
-        await db.commit()
-        await db.refresh(project)
-
-        return SuggestionAdoptResponse(
-            success=True,
-            project={
-                "id": str(project.id),
-                "title": project.name,
-                "status": project.status.value,
-                "scheduled_date": request.scheduled_date.isoformat() if request.scheduled_date else None,
-            },
-        )
+        except HTTPException:
+            # HTTPExceptionは再スローする
+            raise
+        except Exception as e:
+            # その他のエラーはロールバックして例外を投げる
+            await db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"提案の採用に失敗しました: {str(e)}",
+            )
 
     @staticmethod
     async def get_adopted_suggestions(

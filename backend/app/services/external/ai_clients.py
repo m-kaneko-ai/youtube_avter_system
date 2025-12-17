@@ -267,6 +267,312 @@ class ClaudeClient:
             print(f"Claude API Error: {e}")
             return {"error": str(e), "description": None}
 
+    async def analyze_trend(
+        self,
+        keyword: str,
+        context: dict,
+    ) -> Dict[str, Any]:
+        """
+        トレンドの重要度を分析
+
+        Args:
+            keyword: 分析対象のキーワード
+            context: トレンドのコンテキスト情報（search_volume, growth_rate等）
+
+        Returns:
+            Dict: {
+                "importance": "high/medium/low",
+                "reason": str,
+                "recommendations": list
+            }
+        """
+        if not self.is_available():
+            return {"error": "Claude API is not available"}
+
+        try:
+            prompt = f"""以下のトレンドキーワードの重要度を分析してください。
+
+【キーワード】
+{keyword}
+
+【コンテキスト情報】
+{context}
+
+【分析観点】
+- 検索ボリュームの大きさ
+- 成長率・トレンドの勢い
+- YouTube動画コンテンツとの親和性
+- 競合状況
+- 収益化の可能性
+
+【出力形式】
+importance: high/medium/low のいずれか
+reason: 重要度の判断理由（100文字程度）
+recommendations: このトレンドを活用するための具体的な提案（3-5個）
+
+JSON形式で出力してください。
+"""
+
+            message = self.client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=2048,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ]
+            )
+
+            import json
+            result = json.loads(message.content[0].text)
+            return result
+
+        except Exception as e:
+            print(f"Claude API Error: {e}")
+            return {"error": str(e)}
+
+    async def analyze_competitor(
+        self,
+        channel_data: dict,
+        video_data: list,
+    ) -> Dict[str, Any]:
+        """
+        競合チャンネルの分析レポート生成
+
+        Args:
+            channel_data: チャンネル情報
+            video_data: 動画データリスト
+
+        Returns:
+            Dict: {
+                "strengths": list,
+                "weaknesses": list,
+                "opportunities": list,
+                "summary": str
+            }
+        """
+        if not self.is_available():
+            return {"error": "Claude API is not available"}
+
+        try:
+            prompt = f"""以下の競合チャンネルデータを分析し、SWOT分析レポートを作成してください。
+
+【チャンネル情報】
+{channel_data}
+
+【最近の動画データ】
+{video_data}
+
+【分析観点】
+- コンテンツ戦略の強み
+- 弱点や改善点
+- 自社が参考にできる機会
+- 動画の傾向やパターン
+- エンゲージメント率
+
+【出力形式】
+strengths: 強み（3-5個）
+weaknesses: 弱点（3-5個）
+opportunities: 自社にとっての機会（3-5個）
+summary: 総合サマリー（200文字程度）
+
+JSON形式で出力してください。
+"""
+
+            message = self.client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=2048,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ]
+            )
+
+            import json
+            result = json.loads(message.content[0].text)
+            return result
+
+        except Exception as e:
+            print(f"Claude API Error: {e}")
+            return {"error": str(e)}
+
+    async def analyze_performance(
+        self,
+        metrics: dict,
+    ) -> Dict[str, Any]:
+        """
+        パフォーマンスサマリーを生成
+
+        Args:
+            metrics: パフォーマンス指標データ
+
+        Returns:
+            Dict: {
+                "summary": str,
+                "insights": list,
+                "recommendations": list
+            }
+        """
+        if not self.is_available():
+            return {"error": "Claude API is not available"}
+
+        try:
+            prompt = f"""以下のパフォーマンス指標を分析し、サマリーレポートを作成してください。
+
+【パフォーマンス指標】
+{metrics}
+
+【分析観点】
+- 視聴回数・視聴維持率のトレンド
+- エンゲージメント（いいね、コメント、シェア）の傾向
+- クリック率（CTR）の評価
+- 好調な動画の共通点
+- 改善が必要な領域
+
+【出力形式】
+summary: 全体的なサマリー（150文字程度）
+insights: 重要な洞察（3-5個）
+recommendations: 改善のための具体的提案（3-5個）
+
+JSON形式で出力してください。
+"""
+
+            message = self.client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=2048,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ]
+            )
+
+            import json
+            result = json.loads(message.content[0].text)
+            return result
+
+        except Exception as e:
+            print(f"Claude API Error: {e}")
+            return {"error": str(e)}
+
+    async def evaluate_script_quality(
+        self,
+        script: str,
+        criteria: dict,
+    ) -> Dict[str, Any]:
+        """
+        台本の品質評価（QAチェッカー用）
+
+        Args:
+            script: 評価対象の台本
+            criteria: 評価基準（target_audience, style, duration等）
+
+        Returns:
+            Dict: {
+                "score": int (0-100),
+                "evaluation": dict,
+                "improvements": list
+            }
+        """
+        if not self.is_available():
+            return {"error": "Claude API is not available"}
+
+        try:
+            prompt = f"""以下の台本の品質を評価してください。
+
+【台本】
+{script}
+
+【評価基準】
+{criteria}
+
+【評価項目】
+1. 導入の魅力度（視聴者を引き込めるか）
+2. 構成の明確さ（論理的な流れか）
+3. 具体性（具体例や数値が適切か）
+4. ターゲット適合性（ターゲット層に刺さるか）
+5. エンディングの強さ（行動を促せるか）
+6. 文字数・尺の適切さ
+
+【出力形式】
+score: 総合点（0-100）
+evaluation: 各項目の評価（項目名: スコア(0-100)と理由）
+improvements: 改善提案（3-5個の具体的な修正案）
+
+JSON形式で出力してください。
+"""
+
+            message = self.client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=2048,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ]
+            )
+
+            import json
+            result = json.loads(message.content[0].text)
+            return result
+
+        except Exception as e:
+            print(f"Claude API Error: {e}")
+            return {"error": str(e)}
+
+    async def analyze_keywords(
+        self,
+        keywords: list,
+        context: str,
+    ) -> Dict[str, Any]:
+        """
+        キーワード分析（キーワードリサーチ用）
+
+        Args:
+            keywords: 分析対象のキーワードリスト
+            context: コンテキスト情報（チャンネル方向性、ターゲット層等）
+
+        Returns:
+            Dict: {
+                "relevance_scores": dict,
+                "suggestions": list,
+                "grouped": dict
+            }
+        """
+        if not self.is_available():
+            return {"error": "Claude API is not available"}
+
+        try:
+            prompt = f"""以下のキーワードリストを分析してください。
+
+【キーワードリスト】
+{keywords}
+
+【コンテキスト】
+{context}
+
+【分析タスク】
+1. 各キーワードの関連性スコアを算出（0-100）
+2. 追加で検討すべきキーワードを提案
+3. キーワードをテーマ別にグループ化
+
+【出力形式】
+relevance_scores: キーワード名: スコア（0-100）と理由
+suggestions: 追加提案キーワード（5-10個）
+grouped: テーマ名: [キーワードリスト] の形式でグループ化
+
+JSON形式で出力してください。
+"""
+
+            message = self.client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=2048,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ]
+            )
+
+            import json
+            result = json.loads(message.content[0].text)
+            return result
+
+        except Exception as e:
+            print(f"Claude API Error: {e}")
+            return {"error": str(e)}
+
 
 class GeminiClient:
     """Gemini API クライアント"""
@@ -490,6 +796,393 @@ class GeminiClient:
         except Exception as e:
             print(f"Gemini API Error: {e}")
             return {"error": str(e), "description": None}
+
+    async def generate_comment_reply(
+        self,
+        comment: str,
+        video_context: dict,
+        tone: str = "friendly",
+    ) -> Dict[str, Any]:
+        """
+        コメントへの返信文を生成
+
+        Args:
+            comment: コメント本文
+            video_context: 動画のコンテキスト情報
+            tone: 返信のトーン (friendly, professional, casual, etc.)
+
+        Returns:
+            Dict: {"reply": str, "sentiment": str, "tags": list}
+        """
+        if not self.is_available():
+            return {"error": "Gemini API is not available", "reply": None}
+
+        try:
+            video_title = video_context.get("title", "")
+            video_description = video_context.get("description", "")
+
+            prompt = f"""あなたはYouTubeチャンネルのコミュニティマネージャーです。
+視聴者のコメントに対して、適切で親しみやすい返信を作成してください。
+
+【動画情報】
+タイトル: {video_title}
+説明: {video_description[:200]}...
+
+【コメント】
+{comment}
+
+【返信のトーン】
+{tone}
+
+【要件】
+- 視聴者に感謝の気持ちを伝える
+- コメントの内容に具体的に応える
+- エンゲージメントを高める質問や提案を含める
+- 自然で人間らしい表現
+- 100文字以内
+
+返信文のみを出力してください。
+"""
+
+            response = self.model.generate_content(prompt)
+            reply_text = response.text.strip()
+
+            # センチメント分析用プロンプト
+            sentiment_prompt = f"""以下のコメントのセンチメントを分析してください。
+
+【コメント】
+{comment}
+
+positive, negative, neutral のいずれかで答えてください。1単語のみ出力してください。
+"""
+
+            sentiment_response = self.model.generate_content(sentiment_prompt)
+            sentiment = sentiment_response.text.strip().lower()
+
+            # タグ抽出用プロンプト
+            tags_prompt = f"""以下のコメントから、関連するトピックやカテゴリを抽出してください。
+
+【コメント】
+{comment}
+
+カテゴリ例: 質問、感想、提案、技術的な問題、賞賛、批判、その他
+
+該当するカテゴリをカンマ区切りで出力してください。
+"""
+
+            tags_response = self.model.generate_content(tags_prompt)
+            tags = [tag.strip() for tag in tags_response.text.strip().split(",")]
+
+            return {
+                "reply": reply_text,
+                "sentiment": sentiment if sentiment in ["positive", "negative", "neutral"] else "neutral",
+                "tags": tags,
+                "provider": AIProvider.GEMINI.value,
+            }
+
+        except Exception as e:
+            print(f"Gemini API Error: {e}")
+            return {"error": str(e), "reply": None}
+
+    async def generate_planning_suggestions(
+        self,
+        trend_data: dict,
+        knowledge_context: str,
+    ) -> Dict[str, Any]:
+        """
+        トレンドに基づく企画提案を生成
+
+        Args:
+            trend_data: トレンドデータ（キーワード、トピック等）
+            knowledge_context: ナレッジDB からのコンテキスト
+
+        Returns:
+            Dict: {"suggestions": list, "priority": list, "reasoning": str}
+        """
+        if not self.is_available():
+            return {"error": "Gemini API is not available", "suggestions": None}
+
+        try:
+            trending_keywords = trend_data.get("keywords", [])
+            trending_topics = trend_data.get("topics", [])
+
+            prompt = f"""あなたはYouTube動画の企画プランナーです。
+トレンドデータとナレッジコンテキストを元に、動画企画を5つ提案してください。
+
+【トレンドキーワード】
+{', '.join(trending_keywords[:10]) if trending_keywords else 'なし'}
+
+【トレンドトピック】
+{', '.join(trending_topics[:10]) if trending_topics else 'なし'}
+
+【ナレッジコンテキスト】
+{knowledge_context[:500]}...
+
+【要件】
+- トレンドを活かした企画
+- ターゲット視聴者に響く内容
+- 実現可能性が高い
+- 競合との差別化
+- SEOを意識したキーワード
+
+各企画について以下の形式で出力してください:
+
+企画1: [タイトル]
+概要: [簡単な説明]
+見込み視聴数: [high/medium/low]
+
+企画2: ...
+"""
+
+            response = self.model.generate_content(prompt)
+            content = response.text
+
+            # 企画を解析
+            import re
+            suggestions = []
+            pattern = r'企画\d+:\s*(.+?)\n概要:\s*(.+?)\n見込み視聴数:\s*(\w+)'
+            matches = re.finditer(pattern, content, re.MULTILINE | re.DOTALL)
+
+            for match in matches:
+                suggestions.append({
+                    "title": match.group(1).strip(),
+                    "description": match.group(2).strip(),
+                    "estimated_views": match.group(3).strip().lower(),
+                })
+
+            # 優先度順にソート
+            priority_order = {"high": 1, "medium": 2, "low": 3}
+            sorted_suggestions = sorted(
+                suggestions,
+                key=lambda x: priority_order.get(x.get("estimated_views", "low"), 3)
+            )
+
+            # 優先度リストを作成
+            priority = [s["title"] for s in sorted_suggestions]
+
+            return {
+                "suggestions": sorted_suggestions,
+                "priority": priority,
+                "reasoning": "トレンドデータとナレッジコンテキストに基づく企画提案",
+                "provider": AIProvider.GEMINI.value,
+            }
+
+        except Exception as e:
+            print(f"Gemini API Error: {e}")
+            return {"error": str(e), "suggestions": None}
+
+    async def suggest_improvements(
+        self,
+        content: str,
+        content_type: str,
+    ) -> Dict[str, Any]:
+        """
+        コンテンツの改善提案を生成
+
+        Args:
+            content: 改善対象のコンテンツ
+            content_type: コンテンツタイプ (script, title, description, thumbnail, etc.)
+
+        Returns:
+            Dict: {"improvements": list, "priority_order": list, "estimated_impact": dict}
+        """
+        if not self.is_available():
+            return {"error": "Gemini API is not available", "improvements": None}
+
+        try:
+            content_type_ja = {
+                "script": "台本",
+                "title": "タイトル",
+                "description": "説明文",
+                "thumbnail": "サムネイル",
+            }.get(content_type, content_type)
+
+            prompt = f"""あなたはYouTubeコンテンツの品質管理専門家です。
+以下の{content_type_ja}を分析し、改善提案をしてください。
+
+【{content_type_ja}】
+{content[:2000]}...
+
+【分析観点】
+- 視聴者への訴求力
+- SEO最適化
+- エンゲージメント要素
+- クリック率（CTR）
+- 視聴維持率
+- ブランド一貫性
+
+【要件】
+- 具体的で実行可能な改善案
+- 優先度の高い順に提案
+- 各改善の期待効果を明示
+
+以下の形式で出力してください:
+
+改善案1: [タイトル]
+詳細: [具体的な改善内容]
+優先度: [high/medium/low]
+期待効果: [具体的な効果]
+
+改善案2: ...
+"""
+
+            response = self.model.generate_content(prompt)
+            content_text = response.text
+
+            # 改善案を解析
+            import re
+            improvements = []
+            pattern = r'改善案\d+:\s*(.+?)\n詳細:\s*(.+?)\n優先度:\s*(\w+)\n期待効果:\s*(.+?)(?=\n改善案|\Z)'
+            matches = re.finditer(pattern, content_text, re.MULTILINE | re.DOTALL)
+
+            for match in matches:
+                improvements.append({
+                    "title": match.group(1).strip(),
+                    "detail": match.group(2).strip(),
+                    "priority": match.group(3).strip().lower(),
+                    "expected_impact": match.group(4).strip(),
+                })
+
+            # 優先度順にソート
+            priority_order = {"high": 1, "medium": 2, "low": 3}
+            sorted_improvements = sorted(
+                improvements,
+                key=lambda x: priority_order.get(x.get("priority", "low"), 3)
+            )
+
+            # 優先度リストを作成
+            priority_list = [imp["title"] for imp in sorted_improvements]
+
+            # インパクト推定
+            estimated_impact = {
+                "ctr_improvement": "5-15%",
+                "engagement_improvement": "10-20%",
+                "seo_score_improvement": "medium",
+            }
+
+            return {
+                "improvements": sorted_improvements,
+                "priority_order": priority_list,
+                "estimated_impact": estimated_impact,
+                "provider": AIProvider.GEMINI.value,
+            }
+
+        except Exception as e:
+            print(f"Gemini API Error: {e}")
+            return {"error": str(e), "improvements": None}
+
+    async def generate_keyword_ideas(
+        self,
+        seed_keywords: list,
+        category: str,
+    ) -> Dict[str, Any]:
+        """
+        関連キーワードアイデアを生成
+
+        Args:
+            seed_keywords: シードキーワードリスト
+            category: カテゴリ (ビジネス、教育、エンタメ、等)
+
+        Returns:
+            Dict: {"keywords": list, "long_tail": list, "trending": list}
+        """
+        if not self.is_available():
+            return {"error": "Gemini API is not available", "keywords": None}
+
+        try:
+            seed_keywords_str = ", ".join(seed_keywords) if seed_keywords else ""
+
+            prompt = f"""あなたはSEOとキーワードリサーチの専門家です。
+以下のシードキーワードとカテゴリを元に、YouTube動画のキーワードアイデアを提案してください。
+
+【シードキーワード】
+{seed_keywords_str}
+
+【カテゴリ】
+{category}
+
+【要件】
+- 検索ボリュームが期待できるキーワード
+- ロングテールキーワード
+- トレンド性のあるキーワード
+- 競合が少ない穴場キーワード
+
+以下の形式で出力してください:
+
+【関連キーワード】（10個）
+キーワード1
+キーワード2
+...
+
+【ロングテールキーワード】（10個）
+ロングテール1
+ロングテール2
+...
+
+【トレンドキーワード】（5個）
+トレンド1
+トレンド2
+...
+"""
+
+            response = self.model.generate_content(prompt)
+            content_text = response.text
+
+            # キーワードを抽出
+            import re
+
+            # 関連キーワード
+            keywords_section = re.search(
+                r'【関連キーワード】.*?\n(.*?)(?=\n【|$)',
+                content_text,
+                re.DOTALL
+            )
+            keywords = []
+            if keywords_section:
+                keywords = [
+                    line.strip().lstrip('キーワード0123456789.')
+                    for line in keywords_section.group(1).strip().split('\n')
+                    if line.strip()
+                ]
+
+            # ロングテールキーワード
+            long_tail_section = re.search(
+                r'【ロングテールキーワード】.*?\n(.*?)(?=\n【|$)',
+                content_text,
+                re.DOTALL
+            )
+            long_tail = []
+            if long_tail_section:
+                long_tail = [
+                    line.strip().lstrip('ロングテール0123456789.')
+                    for line in long_tail_section.group(1).strip().split('\n')
+                    if line.strip()
+                ]
+
+            # トレンドキーワード
+            trending_section = re.search(
+                r'【トレンドキーワード】.*?\n(.*?)(?=\n【|$)',
+                content_text,
+                re.DOTALL
+            )
+            trending = []
+            if trending_section:
+                trending = [
+                    line.strip().lstrip('トレンド0123456789.')
+                    for line in trending_section.group(1).strip().split('\n')
+                    if line.strip()
+                ]
+
+            return {
+                "keywords": keywords[:10],
+                "long_tail": long_tail[:10],
+                "trending": trending[:5],
+                "provider": AIProvider.GEMINI.value,
+            }
+
+        except Exception as e:
+            print(f"Gemini API Error: {e}")
+            return {"error": str(e), "keywords": None}
 
 
 # シングルトンインスタンス

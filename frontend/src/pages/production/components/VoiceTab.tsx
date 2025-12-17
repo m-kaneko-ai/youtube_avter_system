@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
-import { productionService, type VoiceProject } from '../../../services/production';
+import { productionService, type VoiceProject, type VoiceModel, type GenerationStatus } from '../../../services/production';
 import { Modal, toast } from '../../../components/common';
 
 type VoiceStatus = VoiceProject['status'];
@@ -134,7 +134,7 @@ export const VoiceTab = () => {
           </div>
         ) : (
           <div className="grid grid-cols-5 gap-4">
-            {voiceModels.map((model) => (
+            {voiceModels.map((model: VoiceModel) => (
               <button
                 key={model.id}
                 onClick={() => setSelectedModel(model.id)}
@@ -189,7 +189,7 @@ export const VoiceTab = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {projects.map((project) => (
+            {projects.map((project: VoiceProject) => (
               <div
                 key={project.id}
                 className={cn(
@@ -220,12 +220,12 @@ export const VoiceTab = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className={cn('font-medium', themeClasses.text)}>{project.title}</h4>
-                      <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium', STATUS_CONFIG[project.status].color)}>
-                        {STATUS_CONFIG[project.status].icon}
-                        {STATUS_CONFIG[project.status].label}
+                      <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium', STATUS_CONFIG[project.status as GenerationStatus].color)}>
+                        {STATUS_CONFIG[project.status as GenerationStatus].icon}
+                        {STATUS_CONFIG[project.status as GenerationStatus].label}
                       </span>
                     </div>
-                    <p className={cn('text-sm truncate', themeClasses.textSecondary)}>ステータス: {STATUS_CONFIG[project.status].label}</p>
+                    <p className={cn('text-sm truncate', themeClasses.textSecondary)}>ステータス: {STATUS_CONFIG[project.status as GenerationStatus].label}</p>
                     <div className={cn('flex items-center gap-4 mt-2 text-xs', themeClasses.textSecondary)}>
                       <span>モデル: {project.voiceModelName}</span>
                       {project.duration && <span>長さ: {project.duration}</span>}

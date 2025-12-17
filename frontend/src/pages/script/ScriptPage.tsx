@@ -2,13 +2,11 @@ import { useState, useCallback } from 'react';
 import {
   Lightbulb,
   Sparkles,
-  Wand2,
   Image,
   Edit3,
   Share2,
   Plus,
   ArrowLeft,
-  Users,
   CheckCircle,
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
@@ -104,44 +102,6 @@ const initialClaudeSections: ScriptSection[] = [
   },
 ];
 
-// AIミックス版の初期データ（両方の良いところを組み合わせ）
-const initialMixedSections: ScriptSection[] = [
-  {
-    id: 'mixed-1',
-    label: '導入（感情訴求）',
-    timestamp: '0:00-0:30',
-    content:
-      '毎日のルーチンワーク、退屈じゃありませんか？実はPythonを使えば、その作業、1クリックで終わります。',
-  },
-  {
-    id: 'mixed-2',
-    label: '理由1：読みやすさ',
-    timestamp: '0:30-1:30',
-    content:
-      'Pythonの最大の特徴は、英語を読むようにコードが読めることです。初心者でも理解しやすい構文で、挫折しにくいのが魅力です。',
-  },
-  {
-    id: 'mixed-3',
-    label: '自動化の実例',
-    timestamp: '1:30-2:30',
-    content:
-      '想像してみてください。朝出社してコーヒーを飲んでいる間に、昨日の売上集計が終わっている世界を。たった10行のコードで実現できます。',
-  },
-  {
-    id: 'mixed-4',
-    label: '豊富なライブラリ',
-    timestamp: '2:30-3:30',
-    content:
-      'データ分析、Web開発、AI開発。やりたいことに合わせたライブラリが揃っています。車輪の再発明は不要です。',
-  },
-  {
-    id: 'mixed-5',
-    label: 'アクション',
-    timestamp: '3:30-4:00',
-    content:
-      '今日からPythonを始めてみませんか？概要欄にサンプルコードを載せておきます。コメント欄で質問もお待ちしています。',
-  },
-];
 
 export const ScriptPage = () => {
   const { mode, getThemeClasses } = useThemeStore();
@@ -157,17 +117,16 @@ export const ScriptPage = () => {
   // 台本データ
   const [geminiSections, setGeminiSections] = useState<ScriptSection[]>(initialGeminiSections);
   const [claudeSections, setClaudeSections] = useState<ScriptSection[]>(initialClaudeSections);
-  const [mixedSections, setMixedSections] = useState<ScriptSection[]>(initialMixedSections);
-  const [isMixedGenerated, setIsMixedGenerated] = useState(false);
 
   // 表示モード管理
-  type ViewMode = 'compare' | 'withMix' | 'focus' | 'expertReview';
-  type FocusTarget = 'gemini' | 'claude' | 'mixed' | null;
+  type ViewMode = 'compare' | 'focus' | 'expertReview';
+  type FocusTarget = 'gemini' | 'claude' | null;
+  type SourceAiType = 'gemini' | 'claude';
   const [viewMode, setViewMode] = useState<ViewMode>('compare');
   const [focusedColumn, setFocusedColumn] = useState<FocusTarget>(null);
 
-  // 自動専門家レビューオプション
-  const [autoExpertReview, setAutoExpertReview] = useState(true);
+  // 専門家レビュー対象のAIタイプ（将来の拡張用に保持）
+  const [_selectedAiForReview, setSelectedAiForReview] = useState<SourceAiType>('gemini');
 
   // 専門家レビュー関連の状態
   const [isExpertReviewModalOpen, setIsExpertReviewModalOpen] = useState(false);
@@ -194,10 +153,6 @@ export const ScriptPage = () => {
     toast.info('Claudeで台本を書き直しています...');
   };
 
-  const handleRewriteMixed = () => {
-    toast.info('AIミックス版を再生成しています...');
-  };
-
   const handleColumnDoubleClick = (column: FocusTarget) => {
     setFocusedColumn(column);
     setViewMode('focus');
@@ -205,12 +160,11 @@ export const ScriptPage = () => {
 
   const handleExitFocus = () => {
     setFocusedColumn(null);
-    setViewMode(isMixedGenerated ? 'withMix' : 'compare');
+    setViewMode('compare');
   };
 
   const handleBackToCompare = () => {
     setViewMode('compare');
-    setIsMixedGenerated(false);
     setExpertReviewResult(null);
   };
 
@@ -220,10 +174,6 @@ export const ScriptPage = () => {
 
   const handleAdoptClaude = () => {
     toast.success('Claudeの台本を採用しました');
-  };
-
-  const handleAdoptMixed = () => {
-    toast.success('AIミックス版の台本を採用しました');
   };
 
   const handleAdoptExpertReview = () => {
@@ -246,8 +196,9 @@ export const ScriptPage = () => {
     toast.info('新しいバリエーションを生成中です...');
   };
 
-  // 専門家レビュー開始
-  const handleStartExpertReview = useCallback(async () => {
+  // 専門家レビュー開始（AIタイプを指定）
+  const handleStartExpertReview = useCallback(async (aiType: 'gemini' | 'claude') => {
+    setSelectedAiForReview(aiType);
     setIsExpertReviewModalOpen(true);
     setExpertReviewProgress({
       status: 'processing',
@@ -258,6 +209,9 @@ export const ScriptPage = () => {
     setCompletedExperts([]);
 
     try {
+      // 選択されたAIの台本を取得
+      const sourceSections = aiType === 'gemini' ? geminiSections : claudeSections;
+
       // 進捗シミュレーション
       await expertReviewService.simulateProgress(
         (expert) => {
@@ -276,8 +230,8 @@ export const ScriptPage = () => {
           });
         },
         async () => {
-          // レビュー完了 - APIからモックデータを取得
-          const sections = claudeSections.map((s) => ({
+          // レビュー完了 - APIからデータを取得
+          const sections = sourceSections.map((s) => ({
             id: s.id,
             label: s.label,
             timestamp: s.timestamp,
@@ -287,7 +241,7 @@ export const ScriptPage = () => {
           const result = await expertReviewService.startReview({
             scriptId: currentScriptId,
             sections,
-            sourceAiType: 'claude',
+            sourceAiType: aiType,
           });
 
           setExpertReviewResult(result);
@@ -322,24 +276,7 @@ export const ScriptPage = () => {
         progress: 0,
       });
     }
-  }, [claudeSections, currentScriptId]);
-
-  // ミックス版生成（専門家レビューの後に定義）
-  const handleGenerateMixed = useCallback(() => {
-    toast.info('両方の良いところをミックス中...');
-    setTimeout(() => {
-      setIsMixedGenerated(true);
-      setViewMode('withMix');
-      toast.success('AIミックス版を生成しました！');
-
-      // 自動専門家レビューが有効な場合、続けてレビューを開始
-      if (autoExpertReview) {
-        setTimeout(() => {
-          handleStartExpertReview();
-        }, 500);
-      }
-    }, 1500);
-  }, [autoExpertReview, handleStartExpertReview]);
+  }, [geminiSections, claudeSections, currentScriptId]);
 
   // 次の専門家を取得
   const getNextExpert = (current: ExpertType): ExpertType | null => {
@@ -460,13 +397,6 @@ export const ScriptPage = () => {
           onAdopt: handleAdoptClaude,
           onRewrite: handleRewriteClaude,
         },
-        mixed: {
-          sections: mixedSections,
-          setSections: setMixedSections,
-          title: 'Python入門×自動化で始める効率化ライフ',
-          onAdopt: handleAdoptMixed,
-          onRewrite: handleRewriteMixed,
-        },
       }[focusedColumn];
 
       return (
@@ -499,7 +429,8 @@ export const ScriptPage = () => {
                 onSectionsChange={focusData.setSections}
                 onAdopt={focusData.onAdopt}
                 onRewriteAll={focusData.onRewrite}
-                isRecommended={focusedColumn === 'mixed'}
+                onRequestExpertReview={() => handleStartExpertReview(focusedColumn)}
+                showExpertReviewButton
               />
             </div>
           </div>
@@ -507,7 +438,7 @@ export const ScriptPage = () => {
       );
     }
 
-    // 通常表示（比較モード / ミックス込みモード）
+    // 通常表示（比較モード）
     return (
       <>
         <div className="px-6 pb-4 h-[calc(100vh-5rem)]">
@@ -541,55 +472,18 @@ export const ScriptPage = () => {
                     <Sparkles size={14} /> 生成
                   </button>
                 </div>
-
-                {/* 自動専門家レビューチェックボックス */}
-                <label
-                  className={cn(
-                    'flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer select-none whitespace-nowrap',
-                    isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-slate-100'
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={autoExpertReview}
-                    onChange={(e) => setAutoExpertReview(e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
-                  />
-                  <span className={cn('text-xs font-medium', themeClasses.text)}>
-                    生成後、自動で専門家レビュー
-                  </span>
-                  <Users size={14} className="text-purple-500" />
-                </label>
               </div>
 
-              {/* モード切替・戻るボタン */}
+              {/* ヒント */}
               <div className="flex items-center gap-2 ml-4">
-                {viewMode === 'withMix' && (
-                  <button
-                    onClick={handleBackToCompare}
-                    className={cn(
-                      'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
-                      isDarkMode
-                        ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    )}
-                  >
-                    <ArrowLeft size={12} /> 比較に戻る
-                  </button>
-                )}
                 <span className={cn('text-[10px]', themeClasses.textSecondary)}>
-                  ダブルクリックで拡大
+                  ダブルクリックで拡大 / 各カラムから専門家レビューを開始
                 </span>
               </div>
             </div>
 
             {/* AI Comparison Columns */}
-            <div
-              className={cn(
-                'flex-1 grid gap-4 min-h-0',
-                viewMode === 'withMix' ? 'grid-cols-3' : 'grid-cols-2'
-              )}
-            >
+            <div className="flex-1 grid grid-cols-2 gap-4 min-h-0">
               {/* Gemini */}
               <div
                 onDoubleClick={() => handleColumnDoubleClick('gemini')}
@@ -602,6 +496,8 @@ export const ScriptPage = () => {
                   onSectionsChange={setGeminiSections}
                   onAdopt={handleAdoptGemini}
                   onRewriteAll={handleRewriteGemini}
+                  onRequestExpertReview={() => handleStartExpertReview('gemini')}
+                  showExpertReviewButton
                 />
               </div>
 
@@ -617,43 +513,10 @@ export const ScriptPage = () => {
                   onSectionsChange={setClaudeSections}
                   onAdopt={handleAdoptClaude}
                   onRewriteAll={handleRewriteClaude}
+                  onRequestExpertReview={() => handleStartExpertReview('claude')}
+                  showExpertReviewButton
                 />
               </div>
-
-              {/* ミックス生成ボタン or ミックス版 */}
-              {viewMode === 'compare' ? (
-                <div className="col-span-2 flex flex-col justify-center items-center gap-4 pt-4">
-                  <div className="text-center">
-                    <button
-                      onClick={handleGenerateMixed}
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-xl text-base font-bold flex items-center gap-3 shadow-lg shadow-purple-500/20 transition-all transform active:scale-95"
-                    >
-                      <Wand2 size={20} /> 両方の良いところをミックスして生成
-                    </button>
-                    {autoExpertReview && (
-                      <p className={cn('text-xs mt-2 flex items-center justify-center gap-1', themeClasses.textSecondary)}>
-                        <Users size={12} className="text-purple-500" />
-                        生成後、5人の専門家が自動で添削します
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div
-                  onDoubleClick={() => handleColumnDoubleClick('mixed')}
-                  className="cursor-pointer min-h-0"
-                >
-                  <ScriptEditorColumn
-                    aiType="mixed"
-                    title="Python入門×自動化で始める効率化ライフ"
-                    sections={mixedSections}
-                    onSectionsChange={setMixedSections}
-                    onAdopt={handleAdoptMixed}
-                    onRewriteAll={handleRewriteMixed}
-                    isRecommended
-                  />
-                </div>
-              )}
             </div>
           </div>
         </div>

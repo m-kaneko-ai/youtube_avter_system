@@ -207,7 +207,7 @@ export const QualityTab = ({ videoId = 'current' }: QualityTabProps) => {
               問題は検出されませんでした
             </div>
           ) : (
-            video.issues.map((issue, index) => (
+            video.issues.map((issue: QualityIssue, index: number) => (
               <div
                 key={index}
                 className={cn(

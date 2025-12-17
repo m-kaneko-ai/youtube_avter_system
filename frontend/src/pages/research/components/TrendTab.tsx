@@ -5,7 +5,7 @@ import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { researchService } from '../../../services/research';
 import { toast } from '../../../components/common';
-import type { TrendKeyword, BookRanking } from '../../../types';
+import type { TrendKeyword, TrendNews, BookRanking } from '../../../types';
 
 export const TrendTab = () => {
   const { mode, getThemeClasses } = useThemeStore();
@@ -195,7 +195,7 @@ export const TrendTab = () => {
           </div>
         ) : (
         <div className="grid grid-cols-2 gap-4">
-          {trendKeywords.map((keyword) => (
+          {trendKeywords.map((keyword: TrendKeyword) => (
             <div
               key={keyword.id}
               onClick={() => handleKeywordClick(keyword)}
@@ -251,7 +251,7 @@ export const TrendTab = () => {
           </div>
         ) : (
         <div className="space-y-4">
-          {trendNews.map((news) => (
+          {trendNews.map((news: TrendNews) => (
             <div
               key={news.id}
               onClick={() => handleNewsClick(news.url)}
@@ -312,7 +312,7 @@ export const TrendTab = () => {
           </div>
         ) : (
         <div className="space-y-3">
-          {bookRankings.map((book) => (
+          {bookRankings.map((book: BookRanking) => (
             <div
               key={book.id}
               onClick={() => handleBookClick(book)}

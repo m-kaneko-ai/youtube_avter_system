@@ -117,45 +117,56 @@ class AuthService:
         Returns:
             User: ユーザーモデル
         """
-        # 既存ユーザーを検索（google_idまたはemailで）
-        result = await db.execute(
-            select(User).where(
-                (User.google_id == google_id) | (User.email == email)
+        try:
+            # 既存ユーザーを検索（google_idまたはemailで）
+            result = await db.execute(
+                select(User).where(
+                    (User.google_id == google_id) | (User.email == email)
+                )
             )
-        )
-        user = result.scalars().first()
+            user = result.scalars().first()
 
-        if user:
-            # 既存ユーザーの情報を更新
-            if user.google_id != google_id:
-                user.google_id = google_id
-            if user.name != name:
-                user.name = name
-            if avatar_url and user.avatar_url != avatar_url:
-                user.avatar_url = avatar_url
-            await db.commit()
-            await db.refresh(user)
-        else:
-            # ユーザー数を確認して初回ユーザーかどうかを判定
-            count_result = await db.execute(select(func.count()).select_from(User))
-            user_count = count_result.scalar_one()
+            if user:
+                # 既存ユーザーの情報を更新
+                async with db.begin():
+                    if user.google_id != google_id:
+                        user.google_id = google_id
+                    if user.name != name:
+                        user.name = name
+                    if avatar_url and user.avatar_url != avatar_url:
+                        user.avatar_url = avatar_url
 
-            # 最初のユーザーはOWNER、それ以外はTEAM
-            role = UserRole.OWNER if user_count == 0 else UserRole.TEAM
+                # トランザクション完了後にリフレッシュ
+                await db.refresh(user)
+            else:
+                # 明示的なトランザクション管理
+                async with db.begin():
+                    # ユーザー数を確認して初回ユーザーかどうかを判定
+                    count_result = await db.execute(select(func.count()).select_from(User))
+                    user_count = count_result.scalar_one()
 
-            # 新規ユーザーを作成
-            user = User(
-                google_id=google_id,
-                email=email,
-                name=name,
-                avatar_url=avatar_url,
-                role=role,
-            )
-            db.add(user)
-            await db.commit()
-            await db.refresh(user)
+                    # 最初のユーザーはOWNER、それ以外はTEAM
+                    role = UserRole.OWNER if user_count == 0 else UserRole.TEAM
 
-        return user
+                    # 新規ユーザーを作成
+                    user = User(
+                        google_id=google_id,
+                        email=email,
+                        name=name,
+                        avatar_url=avatar_url,
+                        role=role,
+                    )
+                    db.add(user)
+
+                # トランザクション完了後にリフレッシュ
+                await db.refresh(user)
+
+            return user
+        except Exception as e:
+            # エラーが発生した場合はロールバックして例外を投げる
+            await db.rollback()
+            logger.error(f"Failed to get or create user: {e}")
+            raise ValueError(f"ユーザーの取得または作成に失敗しました: {str(e)}")
 
     @staticmethod
     def create_tokens(user_id: str, role: str, client_id: Optional[str] = None) -> Dict[str, Any]:

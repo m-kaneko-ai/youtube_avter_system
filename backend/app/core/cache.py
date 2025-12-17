@@ -7,8 +7,13 @@ import json
 import functools
 import hashlib
 import logging
-from typing import Any, Callable, TypeVar, ParamSpec, Optional
+from typing import Any, Callable, TypeVar, Optional
 from datetime import timedelta
+
+try:
+    from typing import ParamSpec
+except ImportError:
+    from typing_extensions import ParamSpec
 
 import redis.asyncio as redis
 from redis.asyncio.connection import ConnectionPool

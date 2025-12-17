@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
-import { productionService, type AvatarProject } from '../../../services/production';
+import { productionService, type AvatarProject, type AvatarModel, type GenerationStatus } from '../../../services/production';
 import { Modal, toast } from '../../../components/common';
 
 type AvatarStatus = AvatarProject['status'];
@@ -128,7 +128,7 @@ export const AvatarTab = () => {
             </div>
           ) : (
             <div className="grid grid-cols-5 gap-3">
-              {avatarModels.map((avatar) => (
+              {avatarModels.map((avatar: AvatarModel) => (
                 <button
                   key={avatar.id}
                   onClick={() => setSelectedAvatar(avatar.id)}
@@ -232,7 +232,7 @@ export const AvatarTab = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {projects.map((project) => (
+            {projects.map((project: AvatarProject) => (
               <div
                 key={project.id}
                 className={cn(
@@ -260,9 +260,9 @@ export const AvatarTab = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className={cn('font-medium', themeClasses.text)}>{project.title}</h4>
-                      <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium', STATUS_CONFIG[project.status].color)}>
-                        {STATUS_CONFIG[project.status].icon}
-                        {STATUS_CONFIG[project.status].label}
+                      <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium', STATUS_CONFIG[project.status as GenerationStatus].color)}>
+                        {STATUS_CONFIG[project.status as GenerationStatus].icon}
+                        {STATUS_CONFIG[project.status as GenerationStatus].label}
                       </span>
                     </div>
                     <div className={cn('flex items-center gap-4 text-sm', themeClasses.textSecondary)}>

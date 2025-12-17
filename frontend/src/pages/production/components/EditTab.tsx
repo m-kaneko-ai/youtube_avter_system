@@ -522,7 +522,7 @@ export const EditTab = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {projects.map((project) => (
+            {projects.map((project: EditProject) => (
               <div
                 key={project.id}
                 className={cn(
@@ -544,8 +544,8 @@ export const EditTab = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
                       <h4 className={cn('font-medium', themeClasses.text)}>{project.title}</h4>
-                      <span className={cn('px-2 py-0.5 rounded text-xs font-medium', STATUS_CONFIG[project.status].color)}>
-                        {STATUS_CONFIG[project.status].label}
+                      <span className={cn('px-2 py-0.5 rounded text-xs font-medium', STATUS_CONFIG[project.status as EditStatus].color)}>
+                        {STATUS_CONFIG[project.status as EditStatus].label}
                       </span>
                     </div>
 

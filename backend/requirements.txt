@@ -27,6 +27,7 @@ redis==5.0.1
 
 # ===== Monitoring =====
 psutil==5.9.8
+prometheus-fastapi-instrumentator==7.0.0
 
 # ===== AI APIs =====
 anthropic==0.40.0

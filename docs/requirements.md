@@ -477,8 +477,8 @@ LINE登録（リスト獲得）
 ---
 
 **作成日**: 2025-12-11
-**最終更新日**: 2025-12-16
-**バージョン**: 3.1
+**最終更新日**: 2025-12-17
+**バージョン**: 3.2
 **作成者**: Creator Studio AI 開発チーム
 
 **注**: 実装済み機能の詳細は docs/SCOPE_PROGRESS.md およびコードベースを参照してください。
@@ -865,5 +865,310 @@ Phase 3のUIは、データ蓄積後に以下を追加予定：
 | 🏆 成功事例との類似度 | 過去の高パフォーマンス台本との類似度表示 | 50本以上の採用済み台本 |
 | 📈 過去の自分との比較 | 同じナレッジ内でのスコア推移グラフ | 10本以上のスコア履歴 |
 | 🎯 学習による精度向上 | 予測と実績の比較による予測精度向上 | 公開後パフォーマンスデータ |
+
+---
+
+## 15. 🆕 機能拡張要件 - AIエージェント実動作ロジック
+
+### 15.1 拡張概要
+
+- **機能名**: AIエージェント実動作ロジック
+- **目的**: 7つのエージェントに実行ロジックを実装し、自動化を完成させる
+- **解決する課題**:
+  - エージェントのUI/API骨格は完成しているが、実動作ロジックが0%
+  - スケジュール実行エンジン（Celery）が未実装
+  - 外部API連携（YouTube, SerpAPI, Social Blade）が未実装
+- **期待効果**:
+  - 競合分析・トレンド監視の自動化
+  - コメント返信の効率化（AI生成→承認→投稿）
+  - YouTube API活用によるデータ駆動型運用
+
+### 15.2 現状と目標
+
+#### 現状（実装済み）
+| レイヤー | 状態 |
+|---------|------|
+| DBモデル | ✅ 100%（7テーブル） |
+| APIスキーマ | ✅ 100%（511行） |
+| APIエンドポイント | ✅ 100%（32エンドポイント、ロジックはTODO） |
+| フロントエンドUI | ✅ 80%（5タブ構成） |
+| サービス層 | ❌ 0%（未作成） |
+| 実行エンジン | ❌ 0%（Celery未設定） |
+
+#### 目標
+- 7つのエージェント全ての実行ロジック完成
+- 1日3回（9時, 15時, 21時）の自動実行
+- コメント返信は全件承認フロー
+
+### 15.3 エージェント仕様
+
+#### 15.3.1 trend_monitor（トレンド監視エージェント）
+
+| 項目 | 内容 |
+|------|------|
+| トリガー | 1日3回スケジュール実行（9:00, 15:00, 21:00） |
+| 入力 | ナレッジのキーワード一覧 |
+| 処理 | Google Trends(pytrends) + YouTube検索 → スコア計算 → 閾値判定 |
+| 閾値 | score >= 70 → High, score >= 50 → Medium |
+| AI連携 | Claude（重要度判定）、Gemini（企画提案） |
+| 出力 | TrendAlertレコード |
+| 通知 | アプリ内 + Slack |
+
+```
+処理フロー:
+1. ナレッジDBから監視キーワード取得
+2. Google Trends API (pytrends) でトレンドスコア取得
+3. YouTube Data APIで関連動画数・再生数取得
+4. スコア計算: score = (trends_score * 0.4) + (youtube_growth * 0.6)
+5. 閾値超過時 → Claude（重要度判定）→ Gemini（企画提案）
+6. TrendAlert保存 + 通知送信
+```
+
+#### 15.3.2 competitor_analyzer（競合分析エージェント）
+
+| 項目 | 内容 |
+|------|------|
+| トリガー | 1日1回スケジュール実行（21:00） |
+| 入力 | 登録済み競合チャンネルID |
+| 処理 | YouTube Data API + Social Blade API → 新着動画検出 → 分析 |
+| 閾値 | score >= 150 → High（平均の1.5倍） |
+| AI連携 | Claude（分析レポート生成） |
+| 出力 | CompetitorAlertレコード |
+| 通知 | アプリ内 + Slack |
+
+#### 15.3.3 comment_responder（コメント返信エージェント）
+
+| 項目 | 内容 |
+|------|------|
+| トリガー | 1日3回スケジュール実行（9:00, 15:00, 21:00） |
+| 入力 | 公開済み動画のコメント |
+| 処理 | コメント取得 → AI返信生成 → 承認キュー登録 |
+| 承認フロー | **全件承認必須** |
+| AI連携 | Claude（返信文生成） |
+| 出力 | CommentQueueレコード（status='pending'） |
+| 通知 | アプリ内 + Slack（「新しい返信候補がN件あります」） |
+
+```
+承認フロー:
+1. CommentQueue生成（status='pending'）
+2. ユーザーがダッシュボードで確認
+3. 「承認」→ YouTube API投稿 → status='posted'
+4. 「編集して承認」→ 修正 → 投稿
+5. 「却下」→ status='rejected'
+```
+
+#### 15.3.4 content_scheduler（コンテンツスケジューラー）
+
+| 項目 | 内容 |
+|------|------|
+| トリガー | 手動実行 or 公開予定日時（cron） |
+| 入力 | 動画ID、公開設定 |
+| 処理 | YouTube公開API呼び出し |
+| AI連携 | なし |
+| 出力 | 公開結果記録 |
+
+#### 15.3.5 performance_tracker（パフォーマンス追跡）
+
+| 項目 | 内容 |
+|------|------|
+| トリガー | 1日1回スケジュール実行（21:00） |
+| 入力 | 公開済み動画ID一覧 |
+| 処理 | YouTube Analytics API → メトリクス取得 → 週次サマリー生成 |
+| AI連携 | Claude（パフォーマンスサマリー生成、週1回） |
+| 出力 | VideoAnalytics更新、WeeklyReport生成 |
+
+#### 15.3.6 qa_checker（QAチェッカー）
+
+| 項目 | 内容 |
+|------|------|
+| トリガー | 台本/サムネイル保存時（イベントドリブン） |
+| 入力 | 台本テキスト、サムネイル画像 |
+| 処理 | AIによる品質評価 |
+| 閾値 | score < 70 → 改善推奨通知 |
+| AI連携 | Claude（品質評価）、Gemini（改善提案） |
+| 出力 | QAスコア、改善提案 |
+| サムネイル評価 | **Phase 1で実装**（Vision API使用） |
+
+```
+評価項目（5項目）:
+1. フック（冒頭30秒の引き込み）: 0-100点
+2. ストーリー構成: 0-100点
+3. ターゲット適合性: 0-100点
+4. CTA明確性: 0-100点
+5. 全体スコア: 0-100点
+```
+
+#### 15.3.7 keyword_researcher（キーワードリサーチ）
+
+| 項目 | 内容 |
+|------|------|
+| トリガー | 手動実行 |
+| 入力 | 検索クエリ、カテゴリ |
+| 処理 | YouTube検索 + SerpAPI → キーワード抽出 |
+| AI連携 | Claude（キーワード分析） |
+| 出力 | キーワードリスト（検索ボリューム付き） |
+
+### 15.4 共通基盤設計
+
+#### 15.4.1 実行エンジン: Celery + Redis
+
+```python
+# backend/app/core/celery_config.py
+celery_app.conf.update(
+    beat_schedule={
+        "trend-monitor-9am": {
+            "task": "tasks.agent_tasks.run_trend_monitor",
+            "schedule": crontab(hour=9, minute=0),
+        },
+        "trend-monitor-3pm": {
+            "task": "tasks.agent_tasks.run_trend_monitor",
+            "schedule": crontab(hour=15, minute=0),
+        },
+        "trend-monitor-9pm": {
+            "task": "tasks.agent_tasks.run_trend_monitor",
+            "schedule": crontab(hour=21, minute=0),
+        },
+        # ...他のエージェント
+    }
+)
+```
+
+#### 15.4.2 AI API使い分け
+
+| 用途 | AIモデル |
+|------|---------|
+| 分析系（トレンド分析、競合分析、コメント感情分析） | Claude |
+| 生成系（企画アイデア、キーワード提案） | Gemini |
+| 品質評価（台本評価） | Claude |
+| 改善提案生成 | Gemini |
+
+#### 15.4.3 通知システム
+
+| 通知先 | 用途 |
+|-------|------|
+| アプリ内通知 | 全ての通知 |
+| Slack Webhook | 重要アラート（トレンドHigh、承認待ち、エラー） |
+
+#### 15.4.4 YouTube API制限管理
+
+```
+制約: 10,000 units/日
+
+配分:
+- trend_monitor: 3,000 units (30%)
+- comment_responder取得: 3,000 units (30%)
+- comment_responder投稿: 1,500 units (15%)
+- competitor_analyzer: 500 units (5%)
+- performance_tracker: 500 units (5%)
+- keyword_researcher: 500 units (5%)
+- 予備: 1,000 units (10%)
+
+超過時対応: 全エージェント停止、翌日リセットを待つ
+警告閾値: 8,000 units到達時に通知
+```
+
+### 15.5 外部API連携
+
+| API | 用途 | 料金 |
+|-----|------|------|
+| YouTube Data API v3 | 動画検索、コメント取得・投稿 | 無料（10,000 units/日） |
+| YouTube Analytics API | 自チャンネル分析 | 無料（OAuth必要） |
+| Google Trends (pytrends) | トレンド監視 | 無料 |
+| SerpAPI | キーワードリサーチ | $50/月（有料プラン） |
+| Social Blade API | 競合チャンネル詳細データ | ~$30-50/月 |
+| Claude API | 分析系タスク | 従量課金 |
+| Gemini API | 生成系タスク | 従量課金 |
+
+### 15.6 新規作成ファイル
+
+#### バックエンド（17ファイル）
+
+```
+backend/app/
+├── core/
+│   └── celery_config.py              # Celery設定
+├── tasks/
+│   └── agent_executor.py             # Celeryタスク定義
+└── services/
+    ├── agent_orchestrator_service.py # エージェント統括
+    ├── notification_service.py       # 通知サービス
+    ├── external/
+    │   ├── base_service.py           # 外部API基底クラス
+    │   ├── youtube_api_service.py    # YouTube Data API
+    │   ├── youtube_analytics_service.py # YouTube Analytics
+    │   ├── serp_api_service.py       # SerpAPI
+    │   └── social_blade_service.py   # Social Blade
+    ├── ai/
+    │   ├── claude_service.py         # Claude API
+    │   └── gemini_service.py         # Gemini API
+    └── agents/
+        ├── trend_monitor_service.py
+        ├── competitor_analyzer_service.py
+        ├── comment_responder_service.py
+        ├── content_scheduler_service.py
+        ├── performance_tracker_service.py
+        ├── qa_checker_service.py
+        └── keyword_researcher_service.py
+```
+
+### 15.7 環境変数追加
+
+```
+# 必須
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/1
+SOCIAL_BLADE_API_KEY=xxx
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/xxx
+
+# オプション
+AGENT_EXECUTION_TIMES=09:00,15:00,21:00
+TREND_SCORE_THRESHOLD=70
+QUOTA_WARNING_THRESHOLD=8000
+QUOTA_STOP_THRESHOLD=9500
+```
+
+### 15.8 実装フェーズ（ブルーランプ爆速開発）
+
+| Day | 内容 | 並列度 |
+|-----|------|--------|
+| Day 1 | Phase 1: Celery設定、Redis接続、config修正 | 順次 |
+| Day 2 | Phase 1: OAuth認証、クォータ管理、基底クラス | 3並列 |
+| Day 3 | Phase 2: 外部API連携（YouTube, SerpAPI, Social Blade, pytrends） | 4並列 |
+| Day 4 | Phase 2: AI連携（Claude, Gemini）+ 通知サービス | 3並列 |
+| Day 5 | Phase 3: エージェント実装（trend_monitor, competitor_analyzer, comment_responder） | 3並列 |
+| Day 6 | Phase 3: エージェント実装（content_scheduler, performance_tracker, qa_checker） | 3並列 |
+| Day 7 | Phase 3: エージェント実装（keyword_researcher）+ 単体テスト | 2並列 |
+| Day 8 | Phase 4: API統合、エンドポイント修正 | 順次 |
+| Day 9 | Phase 4: E2Eテスト、統合テスト | 順次 |
+| Day 10 | Phase 4: バグ修正、ドキュメント整備、最終調整 | 順次 |
+
+**合計工数: 10日**
+
+### 15.9 成功基準
+
+#### 機能面
+- [ ] 7種類のエージェントが全て正常動作
+- [ ] 1日3回のスケジュール実行が安定動作
+- [ ] 承認フローが正常に機能
+- [ ] エラー発生時の通知が正常に届く
+
+#### 品質面
+- [ ] 外部APIエラー時に適切にリトライ・スキップ
+- [ ] YouTube APIクォータ管理が正常動作
+- [ ] ログ出力が適切（デバッグ可能）
+
+#### パフォーマンス面
+- [ ] エージェント実行時間 < 5分/エージェント
+- [ ] API応答時間 < 500ms（手動実行トリガー）
+
+### 15.10 月額コスト概算
+
+| サービス | 月額 |
+|---------|------|
+| SerpAPI | $50 |
+| Social Blade API | ~$30-50 |
+| Claude API | ~$20-50 |
+| Gemini API | ~$10-30 |
+| **合計** | **約$110-180/月** |
 
 ---

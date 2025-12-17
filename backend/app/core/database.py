@@ -7,7 +7,12 @@ SQLAlchemy 2.0 AsyncSessionを使用したPostgreSQL接続設定
 import functools
 import logging
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Callable, TypeVar, ParamSpec
+from typing import AsyncGenerator, Callable, TypeVar, Optional
+
+try:
+    from typing import ParamSpec
+except ImportError:
+    from typing_extensions import ParamSpec
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import declarative_base
@@ -144,7 +149,7 @@ async def transaction(session: AsyncSession):
 
 
 @asynccontextmanager
-async def savepoint(session: AsyncSession, name: str | None = None):
+async def savepoint(session: AsyncSession, name: Optional[str] = None):
     """
     セーブポイント（ネストされたトランザクション）コンテキストマネージャー
 
@@ -199,7 +204,7 @@ def transactional(func: Callable[P, T]) -> Callable[P, T]:
     @functools.wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         # 第一引数からセッションを取得
-        session: AsyncSession | None = None
+        session: Optional[AsyncSession] = None
         if args and isinstance(args[0], AsyncSession):
             session = args[0]
         elif 'db' in kwargs and isinstance(kwargs['db'], AsyncSession):

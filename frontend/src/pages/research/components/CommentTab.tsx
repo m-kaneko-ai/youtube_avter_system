@@ -4,6 +4,7 @@ import { MessageSquare, Smile, Hash, Star, ThumbsUp, ThumbsDown, Minus, Play, Lo
 import { cn } from '../../../utils/cn';
 import { useThemeStore } from '../../../stores/themeStore';
 import { researchService } from '../../../services/research';
+import type { KeywordFrequency, NotableComment } from '../../../types';
 
 export const CommentTab = () => {
   const { mode, getThemeClasses } = useThemeStore();
@@ -272,7 +273,7 @@ export const CommentTab = () => {
           </div>
         ) : (
         <div className="flex flex-wrap gap-3">
-          {keywords.map((keyword) => (
+          {keywords.map((keyword: KeywordFrequency) => (
             <span
               key={keyword.keyword}
               className={cn(
@@ -314,7 +315,7 @@ export const CommentTab = () => {
           </div>
         ) : (
         <div className="space-y-4">
-          {notableComments.map((comment) => {
+          {notableComments.map((comment: NotableComment) => {
             const sentimentConfig = getSentimentBadge(comment.sentiment);
             return (
               <div

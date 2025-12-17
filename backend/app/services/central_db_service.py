@@ -288,6 +288,206 @@ class CentralDBService:
         )
 
     # ============================================================
+    # 台本専門家レビュー連携
+    # ============================================================
+
+    async def save_expert_review_score(
+        self,
+        script_id: str,
+        video_title: str,
+        overall_score: int,
+        grade: str,
+        expert_scores: Dict[str, int],
+        source_ai_type: str,
+        knowledge_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        専門家レビューのスコアをナレッジとして保存
+
+        Args:
+            script_id: 台本ID
+            video_title: 動画タイトル
+            overall_score: 総合スコア（0-100）
+            grade: グレード（S/A/B/C/D）
+            expert_scores: 専門家別スコア
+            source_ai_type: 元のAIタイプ（gemini/claude）
+            knowledge_id: 関連ナレッジID
+
+        Returns:
+            保存結果
+        """
+        import json
+
+        content = json.dumps({
+            "script_id": script_id,
+            "overall_score": overall_score,
+            "grade": grade,
+            "expert_scores": expert_scores,
+            "source_ai_type": source_ai_type,
+            "knowledge_id": knowledge_id,
+            "reviewed_at": datetime.utcnow().isoformat(),
+        }, ensure_ascii=False, indent=2)
+
+        summary = f"総合スコア: {overall_score}点 ({grade}グレード)"
+
+        return await self.add_knowledge(
+            title=f"台本スコア - {video_title}",
+            content=content,
+            category=CentralDBCategory.CONTENT,
+            subcategory="script_quality",
+            tags=["expert_review", grade, source_ai_type],
+            summary=summary,
+            source=f"script:{script_id}",
+            source_type="import",
+        )
+
+    async def save_adopted_script(
+        self,
+        script_id: str,
+        video_title: str,
+        script_content: str,
+        overall_score: int,
+        grade: str,
+        source_ai_type: str,
+        adopted_at: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        採用された台本をナレッジとして保存
+
+        Args:
+            script_id: 台本ID
+            video_title: 動画タイトル
+            script_content: 台本内容
+            overall_score: 最終スコア
+            grade: 最終グレード
+            source_ai_type: 元のAIタイプ
+            adopted_at: 採用日時
+
+        Returns:
+            保存結果
+        """
+        import json
+
+        metadata = {
+            "script_id": script_id,
+            "overall_score": overall_score,
+            "grade": grade,
+            "source_ai_type": source_ai_type,
+            "adopted_at": adopted_at or datetime.utcnow().isoformat(),
+        }
+
+        content = f"""【台本メタデータ】
+{json.dumps(metadata, ensure_ascii=False, indent=2)}
+
+【台本内容】
+{script_content}
+"""
+
+        summary = f"スコア: {overall_score}点 ({grade}), AI: {source_ai_type}"
+
+        return await self.add_knowledge(
+            title=f"採用台本 - {video_title}",
+            content=content,
+            category=CentralDBCategory.CONTENT,
+            subcategory="adopted_scripts",
+            tags=["adopted", grade, source_ai_type],
+            summary=summary,
+            source=f"script:{script_id}",
+            source_type="import",
+        )
+
+    async def save_improvement_pattern(
+        self,
+        pattern_type: str,
+        original_text: str,
+        improved_text: str,
+        improvement_reason: str,
+        expert_type: str,
+        score_improvement: int,
+    ) -> Dict[str, Any]:
+        """
+        改善パターンをナレッジとして保存（学習用）
+
+        Args:
+            pattern_type: パターンタイプ（hook/structure/entertainment/target/cta）
+            original_text: 改善前のテキスト
+            improved_text: 改善後のテキスト
+            improvement_reason: 改善理由
+            expert_type: 専門家タイプ
+            score_improvement: スコア向上値
+
+        Returns:
+            保存結果
+        """
+        import json
+
+        content = json.dumps({
+            "pattern_type": pattern_type,
+            "original": original_text,
+            "improved": improved_text,
+            "reason": improvement_reason,
+            "expert": expert_type,
+            "score_boost": score_improvement,
+            "recorded_at": datetime.utcnow().isoformat(),
+        }, ensure_ascii=False, indent=2)
+
+        summary = f"タイプ: {pattern_type}, 向上: +{score_improvement}点"
+
+        return await self.add_knowledge(
+            title=f"改善パターン - {pattern_type}",
+            content=content,
+            category=CentralDBCategory.CONTENT,
+            subcategory="improvement_patterns",
+            tags=["improvement", pattern_type, expert_type],
+            summary=summary,
+            source_type="import",
+        )
+
+    async def get_similar_scripts(
+        self,
+        topic: str,
+        min_score: int = 80,
+        limit: int = 5,
+    ) -> List[Dict[str, Any]]:
+        """
+        類似の高スコア台本を取得
+
+        Args:
+            topic: トピック
+            min_score: 最低スコア
+            limit: 取得件数
+
+        Returns:
+            類似台本リスト
+        """
+        return await self.search_knowledge(
+            query=f"{topic} 採用台本 {min_score}点以上",
+            category=CentralDBCategory.CONTENT,
+            limit=limit,
+        )
+
+    async def get_improvement_patterns_by_expert(
+        self,
+        expert_type: str,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """
+        専門家タイプ別の改善パターンを取得
+
+        Args:
+            expert_type: 専門家タイプ
+            limit: 取得件数
+
+        Returns:
+            改善パターンリスト
+        """
+        return await self.search_knowledge(
+            query=f"改善パターン {expert_type}",
+            category=CentralDBCategory.CONTENT,
+            limit=limit,
+        )
+
+    # ============================================================
     # DNA・学習連携
     # ============================================================
 

@@ -43,7 +43,7 @@ from app.api.v1.endpoints import (
     auth, users, clients, master, knowledges, projects, videos,
     research, planning, scripts, metadata, thumbnails,
     audio, avatar, broll, publish, analytics, admin, dashboard, metrics,
-    cta, engagement, series, learning, dna, optimization, agent
+    cta, engagement, series, learning, dna, optimization, agent, youtube_oauth
 )
 
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
@@ -73,3 +73,4 @@ api_router.include_router(learning.router, prefix="/learning", tags=["Learning"]
 api_router.include_router(dna.router, prefix="/dna", tags=["DNA"])
 api_router.include_router(optimization.router, prefix="/optimization", tags=["Optimization"])
 api_router.include_router(agent.router, prefix="/agent", tags=["Agent"])
+api_router.include_router(youtube_oauth.router, prefix="/youtube", tags=["YouTube OAuth"])

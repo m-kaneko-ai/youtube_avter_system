@@ -58,20 +58,23 @@
 
 ### 🟠 High（1週間以内）
 
-- [ ] **セキュリティヘッダー設定** (2時間)
-  - CSP, HSTS, X-Frame-Options
-  - vercel.jsonまたはFastAPIミドルウェア
+- [x] **セキュリティヘッダー設定** (2時間) ✅ 2025-12-17完了
+  - CSP, HSTS, X-Frame-Options, X-Content-Type-Options, X-XSS-Protection
+  - FastAPIミドルウェア（SecurityHeadersMiddleware）
+  - Permissions-Policy追加
 
 - [ ] **Redisキャッシング実装** (6時間)
   - マスターデータ (Category, Tag) キャッシュ
   - 分析APIレスポンスキャッシュ (TTL: 10分)
 
-- [ ] **重要トランザクションの明示的管理** (3時間)
-  - planning_service.py: adopt_suggestion()
-  - auth_service.py: get_or_create_user()
+- [x] **重要トランザクションの明示的管理** (3時間) ✅ 2025-12-17完了
+  - planning_service.py: adopt_suggestion() - async with db.begin()追加
+  - auth_service.py: get_or_create_user() - 明示的トランザクション管理
 
-- [ ] **/metricsエンドポイント実装** (2時間)
-  - prometheus-fastapi-instrumentor導入
+- [x] **/metricsエンドポイント実装** (2時間) ✅ 2025-12-17完了
+  - prometheus-fastapi-instrumentator導入
+  - HTTPリクエストメトリクス自動収集
+  - /metrics エンドポイント公開
 
 - [x] **README.md作成** (1時間) ✅ 2025-12-13完了
   - セットアップ手順、環境変数、開発コマンド
@@ -817,7 +820,7 @@
 
 ---
 
-**最終更新日**: 2025-12-16 (台本専門家レビュー機能計画策定完了)
+**最終更新日**: 2025-12-17 (AIエージェント実動作ロジック 全Phase完了 ✅)
 
 ---
 
@@ -829,73 +832,77 @@
 
 ### 13.1 実装タスク一覧
 
-#### Phase 1: フロントエンド実装（Day 1-3）
+#### Phase 1: フロントエンド実装（Day 1-3）✅ 完了 2025-12-17
 
 | タスク | 担当 | 開始 | 完了 | 備考 |
 |--------|------|------|------|------|
-| ScriptPage.tsx 修正（3段階フロー） | - | [ ] | [ ] | 専門家レビューボタン追加、ミックスボタン削除 |
-| ExpertReviewModal.tsx 作成 | - | [ ] | [ ] | 5人の専門家添削結果表示モーダル |
-| QualityAssurance.tsx 作成 | - | [ ] | [ ] | 安心セットコンポーネント |
-| └─ ChecklistPanel.tsx | - | [ ] | [ ] | 必須項目チェックリスト |
-| └─ BeforeAfterChart.tsx | - | [ ] | [ ] | ビフォーアフター比較グラフ |
-| └─ ImprovementReasons.tsx | - | [ ] | [ ] | 改善の根拠パネル |
-| └─ PersonaReactionPanel.tsx | - | [ ] | [ ] | ペルソナ別反応予測 |
-| expert.ts サービス作成 | - | [ ] | [ ] | API通信レイヤー |
-| types/expert.ts 型定義 | - | [ ] | [ ] | TypeScript型定義 |
+| ScriptPage.tsx 修正（3段階フロー） | - | [x] | [x] | 専門家レビューボタン追加、ミックスボタン削除 ✅ 2025-12-17 |
+| ExpertReviewModal.tsx 作成 | - | [x] | [x] | 5人の専門家添削結果表示モーダル ✅ 既存実装 |
+| QualityAssurance.tsx 作成 | - | [x] | [x] | 安心セットコンポーネント ✅ 既存実装(QualityAssuranceSet.tsx) |
+| └─ ChecklistPanel.tsx | - | [x] | [x] | 必須項目チェックリスト ✅ QualityAssuranceSet内 |
+| └─ BeforeAfterChart.tsx | - | [x] | [x] | ビフォーアフター比較グラフ ✅ QualityAssuranceSet内 |
+| └─ ImprovementReasons.tsx | - | [x] | [x] | 改善の根拠パネル ✅ QualityAssuranceSet内 |
+| └─ PersonaReactionPanel.tsx | - | [x] | [x] | ペルソナ別反応予測 ✅ QualityAssuranceSet内 |
+| expert.ts サービス作成 | - | [x] | [x] | API通信レイヤー ✅ expertReview.ts |
+| types/expert.ts 型定義 | - | [x] | [x] | TypeScript型定義 ✅ types/index.ts内 |
 
-#### Phase 2: バックエンド実装（Day 4-7）
-
-| タスク | 担当 | 開始 | 完了 | 備考 |
-|--------|------|------|------|------|
-| schemas/expert.py 作成 | - | [ ] | [ ] | Pydanticスキーマ定義 |
-| api/v1/endpoints/expert.py 作成 | - | [ ] | [ ] | エンドポイント実装 |
-| services/expert_review_service.py 作成 | - | [ ] | [ ] | 5人の専門家レビューロジック |
-| └─ フックマスター実装 | - | [ ] | [ ] | 冒頭30秒分析 |
-| └─ ストーリーアーキテクト実装 | - | [ ] | [ ] | 構成分析 |
-| └─ エンタメプロデューサー実装 | - | [ ] | [ ] | リズム・緩急分析 |
-| └─ ターゲットインサイター実装 | - | [ ] | [ ] | ターゲット適合性分析 |
-| └─ CTAストラテジスト実装 | - | [ ] | [ ] | CTA明確性分析 |
-| Central DB連携実装 | - | [ ] | [ ] | script_scores保存 |
-
-#### Phase 3: Central DB基盤（Day 8-9）
+#### Phase 2: バックエンド実装（Day 4-7）✅ 完了 2025-12-17
 
 | タスク | 担当 | 開始 | 完了 | 備考 |
 |--------|------|------|------|------|
-| script_scores テーブル設計 | - | [ ] | [ ] | 台本スコア履歴 |
-| adopted_scripts テーブル設計 | - | [ ] | [ ] | 採用された台本 |
-| improvement_patterns テーブル設計 | - | [ ] | [ ] | 改善パターン蓄積 |
-| Central DB保存ロジック | - | [ ] | [ ] | MCPツール連携 |
-| 成功パターン取得ロジック（Phase 3基盤） | - | [ ] | [ ] | 将来の類似度計算用 |
-| 履歴比較ロジック（Phase 3基盤） | - | [ ] | [ ] | 将来のグラフ表示用 |
+| schemas/expert_review.py 作成 | - | [x] | [x] | Pydanticスキーマ定義 ✅ 既存実装 |
+| api/v1/endpoints/scripts.py 作成 | - | [x] | [x] | エンドポイント実装 ✅ 既存実装 |
+| services/expert_review_service.py 実装 | - | [x] | [x] | 5人の専門家レビューロジック ✅ 2025-12-17 |
+| └─ フックマスター実装 | - | [x] | [x] | 冒頭30秒分析 ✅ Claude Sonnet 4 |
+| └─ ストーリーアーキテクト実装 | - | [x] | [x] | 構成分析 ✅ Gemini 1.5 Flash |
+| └─ エンタメプロデューサー実装 | - | [x] | [x] | リズム・緩急分析 ✅ Claude Sonnet 4 |
+| └─ ターゲットインサイター実装 | - | [x] | [x] | ターゲット適合性分析 ✅ Claude Sonnet 4 + ナレッジDB |
+| └─ CTAストラテジスト実装 | - | [x] | [x] | CTA明確性分析 ✅ Gemini 1.5 Flash |
+| Central DB連携実装 | - | [x] | [x] | central_db_service.py 更新 ✅ 2025-12-17 |
+
+#### Phase 3: Central DB基盤（Day 8-9）✅ 完了 2025-12-17
+
+| タスク | 担当 | 開始 | 完了 | 備考 |
+|--------|------|------|------|------|
+| script_scores テーブル設計 | - | [x] | [x] | save_expert_review_score() ✅ |
+| adopted_scripts テーブル設計 | - | [x] | [x] | save_adopted_script() ✅ |
+| improvement_patterns テーブル設計 | - | [x] | [x] | save_improvement_pattern() ✅ |
+| Central DB保存ロジック | - | [x] | [x] | central_db_service.py ✅ |
+| 成功パターン取得ロジック（Phase 3基盤） | - | [x] | [x] | get_similar_scripts() ✅ |
+| 履歴比較ロジック（Phase 3基盤） | - | [x] | [x] | get_improvement_patterns_by_expert() ✅ |
 
 ### 13.2 実装チェックリスト
 
-#### フロントエンド
-- [ ] 「両方の良いところをミックスして生成」ボタン削除
-- [ ] 「5人の専門家に添削してもらう」ボタン追加
-- [ ] ActionBar固定化（position: fixed）
-- [ ] 3段階フロー実装（初回生成 → 専門家レビュー → 最終版）
-- [ ] 専門家レビューモーダル実装
-- [ ] 安心セットコンポーネント実装
-- [ ] expert.tsサービス実装
-- [ ] 型定義完成
+#### フロントエンド ✅ 完了 2025-12-17
+- [x] 「両方の良いところをミックスして生成」ボタン削除 ✅
+- [x] 「5人の専門家に添削してもらう」ボタン追加 ✅ 各カラムのフッターに配置
+- [x] ActionBar固定化（position: fixed）✅ ScriptEditorColumnフッターで実装
+- [x] 3段階フロー実装（初回生成 → 専門家レビュー → 最終版）✅
+- [x] 専門家レビューモーダル実装 ✅ ExpertReviewModal.tsx
+- [x] 安心セットコンポーネント実装 ✅ QualityAssuranceSet.tsx
+- [x] expert.tsサービス実装 ✅ expertReview.ts (モックデータ付き)
+- [x] 型定義完成 ✅ types/index.ts
 
-#### バックエンド
-- [ ] エンドポイント実装（POST /api/v1/scripts/expert-review）
-- [ ] 5人の専門家レビューサービス実装
-- [ ] スコア計算ロジック実装
-- [ ] チェックリスト生成ロジック実装
-- [ ] ビフォーアフター比較ロジック実装
-- [ ] 改善理由生成ロジック実装
-- [ ] ペルソナ反応予測ロジック実装
-- [ ] Central DB連携実装
+#### バックエンド ✅ 完了 2025-12-17
+- [x] エンドポイント実装（POST /api/v1/scripts/expert-review）✅
+- [x] 5人の専門家レビューサービス実装 ✅
+- [x] スコア計算ロジック実装 ✅ 重み付け平均（フック25%、ターゲット25%）
+- [x] チェックリスト生成ロジック実装 ✅ 10項目判定
+- [x] ビフォーアフター比較ロジック実装 ✅ 4指標比較
+- [x] 改善理由生成ロジック実装 ✅ 各専門家の改善理由
+- [x] ペルソナ反応予測ロジック実装 ✅ Claude APIで予測
+- [x] 並列実行による高速化 ✅ asyncio.gather()
+- [x] エラーハンドリング ✅ フォールバック対応
+- [x] 演出提案生成 ✅ 視覚挿入タイミング提案
+- [x] タイムライン警告 ✅ 長時間アバターのみ検出
+- [x] Central DB連携実装 ✅ 2025-12-17
 
-#### Central DB
-- [ ] script_scores保存機能
-- [ ] adopted_scripts保存機能
-- [ ] improvement_patterns保存機能
-- [ ] 成功パターン取得機能（Phase 3基盤）
-- [ ] 履歴比較機能（Phase 3基盤）
+#### Central DB ✅ 完了 2025-12-17
+- [x] script_scores保存機能 ✅ save_expert_review_score()
+- [x] adopted_scripts保存機能 ✅ save_adopted_script()
+- [x] improvement_patterns保存機能 ✅ save_improvement_pattern()
+- [x] 成功パターン取得機能（Phase 3基盤）✅ get_similar_scripts()
+- [x] 履歴比較機能（Phase 3基盤）✅ get_improvement_patterns_by_expert()
 
 ### 13.3 5人の専門家 実装詳細
 
@@ -909,21 +916,23 @@
 
 ### 13.4 安心セット 実装詳細
 
-#### Phase 1 + 2（即実装）
+#### Phase 1 + 2（即実装）✅ バックエンド完了 2025-12-17
 - [x] 仕様確定 ✅
-- [ ] 🚀 公開OK判定（スコア計算ロジック）
-- [ ] ✅ 必須項目チェックリスト（10項目判定）
-- [ ] 📊 ビフォーアフター比較（4指標）
-- [ ] 💡 改善の根拠（5人の専門家コメント）
-- [ ] 🎯 ペルソナ別反応予測（ナレッジDB連携）
+- [x] 🚀 公開OK判定（スコア計算ロジック）✅ S/A/B/C/Dグレード判定
+- [x] ✅ 必須項目チェックリスト（10項目判定）✅ スコア別合格判定
+- [x] 📊 ビフォーアフター比較（4指標）✅ フック/リテンション/CTA/総合
+- [x] 💡 改善の根拠（5人の専門家コメント）✅ 各専門家の改善理由
+- [x] 🎯 ペルソナ別反応予測（ナレッジDB連携）✅ Claude APIで予測
+- [x] 🎨 演出提案（視覚挿入タイミング）✅ 冒頭・数字・CTA重点
+- [x] ⚠️ タイムライン警告（長時間アバター検出）✅ 20秒以上検出
 
 #### Phase 3（基盤のみ・UI後日）
-- [ ] Central DB蓄積開始
-  - [ ] script_scores保存
-  - [ ] adopted_scripts保存
-  - [ ] improvement_patterns保存
-- [ ] 🏆 成功事例との類似度（基盤ロジック）
-- [ ] 📈 過去の自分との比較（基盤ロジック）
+- [x] Central DB蓄積開始 ✅ 2025-12-17
+  - [x] script_scores保存 ✅ save_expert_review_score()
+  - [x] adopted_scripts保存 ✅ save_adopted_script()
+  - [x] improvement_patterns保存 ✅ save_improvement_pattern()
+- [x] 🏆 成功事例との類似度（基盤ロジック）✅ get_similar_scripts()
+- [x] 📈 過去の自分との比較（基盤ロジック）✅ get_improvement_patterns_by_expert()
 
 ### 13.5 Central DB 蓄積フロー
 
@@ -961,26 +970,205 @@
 
 ### 13.6 完了条件
 
-#### 機能テスト
-- [ ] Gemini版とClaude版の台本を入力し、専門家レビューを実行できる
-- [ ] 5人の専門家の添削結果が表示される
-- [ ] 公開OK判定が正しく表示される
-- [ ] 必須項目チェックリストが表示される
-- [ ] ビフォーアフター比較が表示される
-- [ ] 改善の根拠が表示される
-- [ ] ペルソナ別反応予測が表示される
-- [ ] 採用ボタンで台本を採用できる
-- [ ] Central DBにスコアが保存される
+#### 機能テスト（バックエンド）✅ 完了 2025-12-17
+- [x] Gemini版とClaude版の台本を入力し、専門家レビューを実行できる ✅
+- [x] 5人の専門家の添削結果が表示される ✅
+- [x] 公開OK判定が正しく表示される ✅ S/A/B/C/Dグレード
+- [x] 必須項目チェックリストが表示される ✅ 10項目
+- [x] ビフォーアフター比較が表示される ✅ 4指標
+- [x] 改善の根拠が表示される ✅ 各専門家のコメント
+- [x] ペルソナ別反応予測が表示される ✅ Claude APIで予測
+- [x] 演出提案が表示される ✅ 視覚挿入タイミング
+- [x] タイムライン警告が表示される ✅ 長時間アバター検出
+- [x] 採用ボタンで台本を採用できる ✅ handleAdoptExpertReview実装済み
+- [x] Central DBにスコアが保存される ✅ central_db_service.py 更新
 
-#### UIテスト
-- [ ] 「両方の良いところをミックスして生成」ボタンが削除されている
-- [ ] 「5人の専門家に添削してもらう」ボタンが表示される
-- [ ] ActionBarが画面下部に固定されている
-- [ ] 3段階フロー（初回生成→専門家レビュー→最終版）が正しく動作する
+#### UIテスト ✅ フロントエンド実装完了 2025-12-17
+- [x] 「両方の良いところをミックスして生成」ボタンが削除されている ✅
+- [x] 「5人の専門家に添削してもらう」ボタンが表示される ✅ 各カラムフッターに配置
+- [x] ActionBarが画面下部に固定されている ✅ ScriptEditorColumn内のフッター
+- [x] 3段階フロー（初回生成→専門家レビュー→最終版）が正しく動作する ✅
 
-#### 蓄積テスト
-- [ ] 添削完了時にCentral DBに保存される
-- [ ] 採用時にCentral DBに保存される
-- [ ] 蓄積データが検索可能
+#### 蓄積テスト ✅ Central DB連携実装完了 2025-12-17
+- [x] 添削完了時にCentral DBに保存される ✅ save_expert_review_score()
+- [x] 採用時にCentral DBに保存される ✅ save_adopted_script()
+- [x] 蓄積データが検索可能 ✅ get_similar_scripts(), get_improvement_patterns_by_expert()
+
+### 13.7 実装完了サマリー（2025-12-17）
+
+#### ✅ 実装完了項目
+
+**フロントエンド**: 完全実装済み ✅ 2025-12-17
+- ScriptPage.tsx: 3段階フロー実装（初回生成 → 専門家レビュー → 最終版）
+- ScriptEditorColumn.tsx: 「5人の専門家に添削してもらう」ボタン追加
+- ExpertReviewModal.tsx: 5人の専門家レビュー進捗表示
+- QualityAssuranceSet.tsx: 安心セット（チェックリスト、ビフォーアフター、ペルソナ反応）
+- expertReview.ts: API通信レイヤー（モックデータ付き）
+- 不要コード削除: ミックスボタン、autoExpertReviewチェックボックス
+
+**バックエンドAPI**: 完全実装済み ✅ 2025-12-17
+- エンドポイント: `POST /api/v1/scripts/expert-review`
+- 5人の専門家によるAI添削（並列実行）
+- スコア計算・公開判定（S/A/B/C/Dグレード）
+- チェックリスト生成（10項目）
+- ビフォーアフター比較（4指標）
+- ペルソナ反応予測
+- 演出提案・タイムライン警告
+- エラーハンドリング・フォールバック対応
+
+**使用AI**:
+- Claude Sonnet 4: フックマスター、エンタメプロデューサー、ターゲットインサイター
+- Gemini 1.5 Flash: ストーリーアーキテクト、CTAストラテジスト
+
+**パフォーマンス**:
+- 並列実行: 5人同時レビュー
+- 予想処理時間: 5-15秒
+
+**Central DB連携**: 完全実装済み ✅ 2025-12-17
+- save_expert_review_score(): 専門家レビュースコア保存
+- save_adopted_script(): 採用台本保存
+- save_improvement_pattern(): 改善パターン蓄積
+- get_similar_scripts(): 類似高スコア台本取得
+- get_improvement_patterns_by_expert(): 専門家別改善パターン取得
+
+#### 🎉 全Phase完了
+
+#### 📄 関連ドキュメント
+
+- 実装完了報告: `/IMPLEMENTATION_SUMMARY.md`
+- API仕様書: `/backend/docs/expert-review-api.md`
+- テストファイル: `/backend/test_expert_review.py`
+
+---
+
+## 14. 🆕 機能拡張: AIエージェント実動作ロジック
+
+**開始日**: 2025-12-17
+**目標完了日**: 2025-12-30（BlueLamp並列開発: 10日）
+**総工数**: 約10日（通常開発: 23日）
+**月額コスト**: $110-180（SerpAPI $50 + Social Blade $60 + YouTube API無料枠）
+
+### 14.1 概要
+
+既存のエージェントUI/API骨格に実動作ロジックを実装する。
+7種類のエージェントがスケジュールに基づいて自動実行され、
+トレンド監視、競合分析、コメント返信などを自動化する。
+
+### 14.2 実装タスク一覧
+
+#### Phase 1: 基盤構築（Day 1-2）✅ 完了
+
+| タスク | ファイル | 開始 | 完了 | 備考 |
+|--------|----------|------|------|------|
+| Celery設定 | core/celery_config.py | [x] | [x] | Redis broker設定 ✅ |
+| タスクエグゼキュータ | tasks/agent_executor.py | [x] | [x] | スケジューラー連携 ✅ |
+| オーケストレーター | services/agent_orchestrator_service.py | [x] | [x] | 共通実行基盤 ✅ |
+| 通知サービス | services/notification_service.py | [x] | [x] | Slack Webhook連携 ✅ |
+| config.py更新 | core/config.py | [x] | [x] | SLACK_WEBHOOK_URL追加 ✅ |
+
+#### Phase 2: 外部API連携（Day 3-4）✅ 完了
+
+| タスク | ファイル | 開始 | 完了 | 備考 |
+|--------|----------|------|------|------|
+| YouTube Data API | services/external/youtube_api_service.py | [x] | [x] | 検索/チャンネル/動画 ✅ |
+| YouTube Analytics API | services/external/youtube_analytics_service.py | [x] | [x] | OAuth認証必須 ✅ |
+| SerpAPI連携 | services/external/serp_api_service.py | [x] | [x] | Google Trends代替 ✅ |
+| Social Blade API | services/external/social_blade_service.py | [x] | [x] | 履歴データ取得（モックフォールバック付）✅ |
+| YouTube OAuth実装 | services/external/youtube_oauth_service.py | [x] | [x] | Analytics用 ✅ |
+| YouTube OAuth API | api/v1/endpoints/youtube_oauth.py | [x] | [x] | /youtube/auth, /youtube/callback ✅ |
+
+#### Phase 3: AIサービス（Day 5）✅ 完了
+
+| タスク | ファイル | 開始 | 完了 | 備考 |
+|--------|----------|------|------|------|
+| Claude連携強化 | services/external/ai_clients.py | [x] | [x] | analyze_trend/competitor/performance/script_quality/keywords ✅ |
+| Gemini連携強化 | services/external/ai_clients.py | [x] | [x] | generate_comment_reply/planning_suggestions/improvements/keyword_ideas ✅ |
+
+#### Phase 4: エージェント実装（Day 6-8）✅ 完了
+
+| タスク | ファイル | 開始 | 完了 | 備考 |
+|--------|----------|------|------|------|
+| トレンド監視 | services/agents/trend_monitor_service.py | [x] | [x] | 最優先 ✅ 321行 |
+| 競合分析 | services/agents/competitor_analyzer_service.py | [x] | [x] | 高優先 ✅ 290行 |
+| コメント返信 | services/agents/comment_responder_service.py | [x] | [x] | 最優先（リスト獲得）✅ 252行 |
+| コンテンツスケジューラー | services/agents/content_scheduler_service.py | [x] | [x] | 中優先 ✅ 78行 |
+| パフォーマンス追跡 | services/agents/performance_tracker_service.py | [x] | [x] | 中優先 ✅ 115行 |
+| QAチェッカー | services/agents/qa_checker_service.py | [x] | [x] | 中優先 ✅ 127行 |
+| キーワードリサーチ | services/agents/keyword_researcher_service.py | [x] | [x] | 中優先 ✅ 132行 |
+
+#### Phase 5: 統合テスト（Day 9-10）✅ 完了
+
+| タスク | 内容 | 開始 | 完了 | 備考 |
+|--------|------|------|------|------|
+| 単体テスト | 各エージェントのユニットテスト | [x] | [x] | pytest ✅ test_agents_integration.py |
+| 統合テスト | エンドツーエンドフロー確認 | [x] | [x] | 12/12 passed ✅ 2025-12-17 |
+| API Quotaテスト | 制限内動作確認 | [x] | [x] | test_api_quota.py 14テスト全PASS ✅ 2025-12-17 |
+| エラーハンドリングテスト | エラー処理検証 | [x] | [x] | test_error_handling.py 15テスト全PASS ✅ 2025-12-17 |
+| ドキュメント | 運用マニュアル作成 | [x] | [x] | agent-operation-manual.md ✅ 2025-12-17 |
+
+### 14.3 エージェント仕様サマリー
+
+| エージェント | トリガー | 入力 | 出力 | AI |
+|------------|---------|------|------|-----|
+| trend_monitor | 1日3回(9,15,21時) | ナレッジキーワード | TrendAlert | Claude |
+| competitor_analyzer | 週1回(月曜9時) | 登録チャンネル | CompetitorAlert | Claude |
+| comment_responder | 1日3回 | CommentTemplate | CommentQueue(承認必須) | Gemini |
+| content_scheduler | 1日1回(8時) | PublishSchedule | 公開/通知 | - |
+| performance_tracker | 1日1回(0時) | VideoID | Analytics更新 | Claude |
+| qa_checker | 手動実行 | 台本/サムネイル | QAスコア | Claude |
+| keyword_researcher | 週1回 | 検索クエリ | キーワードリスト | Gemini |
+
+### 14.4 外部API Quota配分
+
+**YouTube Data API: 10,000 units/日**
+
+| エージェント | 1回あたり | 日次実行 | 日次消費 |
+|------------|----------|---------|---------|
+| trend_monitor | 500 | 3回 | 1,500 |
+| competitor_analyzer | 1,000 | 0.14回 | 143 |
+| comment_responder | 300 | 3回 | 900 |
+| performance_tracker | 200 | 1回 | 200 |
+| keyword_researcher | 500 | 0.14回 | 71 |
+| **合計** | - | - | **2,814** |
+| **予備** | - | - | **7,186** |
+
+**警告閾値**: 8,000 units（80%）到達時にSlack通知
+
+### 14.5 完了チェックリスト
+
+#### 基盤 ✅
+- [x] Celery + Redis設定完了 ✅ 2025-12-17
+- [x] スケジューラー動作確認（celery_config.py beat_schedule）✅
+- [x] Slack通知サービス実装完了 ✅
+
+#### 外部API ✅
+- [x] YouTube Data API連携済み（youtube_api.py）
+- [x] YouTube Analytics OAuth完了 ✅ 2025-12-17
+- [x] SerpAPI連携済み（serp_api.py）
+- [x] Social Blade API連携テスト ✅ 2025-12-17（モックフォールバック付）
+- [x] Quota監視機能動作確認 ✅
+
+#### エージェント ✅
+- [x] trend_monitor動作確認 ✅ 2025-12-17
+- [x] competitor_analyzer動作確認 ✅ 2025-12-17
+- [x] comment_responder動作確認（承認フロー含む）✅ 2025-12-17
+- [x] content_scheduler動作確認 ✅ 2025-12-17
+- [x] performance_tracker動作確認 ✅ 2025-12-17
+- [x] qa_checker動作確認 ✅ 2025-12-17
+- [x] keyword_researcher動作確認 ✅ 2025-12-17
+
+#### テスト ⏳ 進行中
+- [x] 全エージェント単体テスト ✅ 2025-12-17 (test_agents_integration.py)
+- [x] 統合テスト実行 ✅ 2025-12-17 (12/12 passed)
+- [x] API Quota消費テスト ✅ 2025-12-17 (test_api_quota.py)
+- [x] エラーハンドリングテスト ✅ 2025-12-17 (test_error_handling.py)
+- [x] 運用マニュアル作成 ✅ 2025-12-17 (agent-operation-manual.md)
+
+### 14.6 関連ドキュメント
+
+- `docs/requirements.md` セクション15: エージェント詳細仕様
+- `docs/handoff/2025-12-17_agent-extension-requirements.md`: 引き継ぎ書
+- `docs/temp/requirements-validation-report.md`: 要件検証レポート
+- `docs/temp/implementation-plan.md`: 実装計画詳細
 
 ---

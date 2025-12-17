@@ -4,7 +4,7 @@
 Google OAuth認証により作成されるユーザー情報を管理
 """
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Enum as SQLAlchemyEnum
+from sqlalchemy import Column, String, DateTime, Integer, Enum as SQLAlchemyEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -62,6 +62,27 @@ class User(Base):
         String(500),
         nullable=True,
         comment="アバター画像URL"
+    )
+    # YouTube OAuth認証情報
+    youtube_access_token = Column(
+        String(500),
+        nullable=True,
+        comment="YouTube Analytics API アクセストークン"
+    )
+    youtube_refresh_token = Column(
+        String(500),
+        nullable=True,
+        comment="YouTube Analytics API リフレッシュトークン"
+    )
+    youtube_token_expires_at = Column(
+        Integer,
+        nullable=True,
+        comment="YouTube トークン有効期限（UNIX timestamp）"
+    )
+    youtube_channel_id = Column(
+        String(255),
+        nullable=True,
+        comment="YouTube チャンネルID"
     )
     created_at = Column(
         DateTime,
