@@ -148,6 +148,39 @@ export const CalendarTab = () => {
 
   const calendarDays = generateCalendarDays();
 
+  // 週間表示用の日付を生成
+  const generateWeekDays = () => {
+    const today = new Date(currentYear, currentMonth - 1, 1);
+    // 現在表示中の月の最初の週を取得
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+
+    const weekDays: { date: Date; day: number; month: number; year: number }[] = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startOfWeek);
+      date.setDate(startOfWeek.getDate() + i);
+      weekDays.push({
+        date,
+        day: date.getDate(),
+        month: date.getMonth() + 1,
+        year: date.getFullYear(),
+      });
+    }
+    return weekDays;
+  };
+
+  const weekDays = generateWeekDays();
+
+  const getEventsForDate = (year: number, month: number, day: number) => {
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return events.filter((event) => event.date === dateStr);
+  };
+
+  const isTodayWeek = (year: number, month: number, day: number) => {
+    const today = new Date();
+    return today.getFullYear() === year && today.getMonth() + 1 === month && today.getDate() === day;
+  };
+
   // 今月の目標進捗データ（統計APIから取得）
   const byStatus = statsData?.byStatus ?? {};
   const byType = statsData?.byType ?? {};
@@ -282,74 +315,149 @@ export const CalendarTab = () => {
           <div className="flex items-center justify-center py-20">
             <Loader2 size={32} className="animate-spin text-blue-600" />
           </div>
-        ) : (
-        <div className="grid grid-cols-7 gap-2">
-          {calendarDays.map((day, index) => {
-            if (day === null) {
+        ) : view === 'week' ? (
+          /* 週間表示 */
+          <div className="grid grid-cols-7 gap-2">
+            {weekDays.map((weekDay) => {
+              const dayEvents = getEventsForDate(weekDay.year, weekDay.month, weekDay.day);
+              const isTodayDate = isTodayWeek(weekDay.year, weekDay.month, weekDay.day);
+              const isCurrentMonth = weekDay.month === currentMonth;
+
               return (
                 <div
-                  key={`empty-${index}`}
+                  key={`${weekDay.year}-${weekDay.month}-${weekDay.day}`}
+                  onClick={() => {
+                    if (dayEvents.length > 0) {
+                      setSelectedEvents(dayEvents);
+                      setSelectedDate(`${weekDay.year}年${weekDay.month}月${weekDay.day}日`);
+                      setIsDetailModalOpen(true);
+                    }
+                  }}
                   className={cn(
-                    'border rounded-xl p-3 min-h-28',
-                    isDarkMode
-                      ? 'border-slate-700 bg-slate-800/30'
-                      : 'border-slate-100 bg-slate-50/50'
-                  )}
-                />
-              );
-            }
-
-            const events = getEventsForDay(day);
-            const isTodayDate = isToday(day);
-
-            return (
-              <div
-                key={day}
-                onClick={() => handleDayClick(day)}
-                className={cn(
-                  'border rounded-xl p-3 min-h-28 cursor-pointer transition-colors',
-                  isTodayDate
-                    ? isDarkMode
-                      ? 'border-blue-500 bg-blue-900/20 hover:border-blue-400'
-                      : 'border-blue-200 bg-blue-50 hover:border-blue-300'
-                    : isDarkMode
-                    ? 'border-slate-700 hover:border-slate-600'
-                    : 'border-slate-100 hover:border-slate-200',
-                  isDarkMode ? 'bg-slate-800/50' : 'bg-white'
-                )}
-              >
-                <div
-                  className={cn(
-                    'text-sm font-medium mb-2',
+                    'border rounded-xl p-4 min-h-48 cursor-pointer transition-colors',
                     isTodayDate
                       ? isDarkMode
-                        ? 'text-blue-300'
-                        : 'text-blue-700'
+                        ? 'border-blue-500 bg-blue-900/20 hover:border-blue-400'
+                        : 'border-blue-200 bg-blue-50 hover:border-blue-300'
                       : isDarkMode
-                      ? 'text-slate-200'
-                      : 'text-slate-700'
+                      ? 'border-slate-700 hover:border-slate-600'
+                      : 'border-slate-100 hover:border-slate-200',
+                    isDarkMode ? 'bg-slate-800/50' : 'bg-white',
+                    !isCurrentMonth && (isDarkMode ? 'opacity-50' : 'opacity-60')
                   )}
                 >
-                  {day} {isTodayDate && <span className="text-xs">今日</span>}
+                  <div
+                    className={cn(
+                      'text-sm font-medium mb-3',
+                      isTodayDate
+                        ? isDarkMode
+                          ? 'text-blue-300'
+                          : 'text-blue-700'
+                        : isDarkMode
+                        ? 'text-slate-200'
+                        : 'text-slate-700'
+                    )}
+                  >
+                    {weekDay.month}/{weekDay.day}
+                    {isTodayDate && <span className="text-xs ml-1">今日</span>}
+                  </div>
+                  <div className="space-y-2">
+                    {dayEvents.map((event) => (
+                      <div
+                        key={event.id}
+                        className={cn(
+                          'text-xs rounded-lg px-3 py-2',
+                          getStatusStyle(event.status)
+                        )}
+                      >
+                        <div className="flex items-center gap-1 mb-1">
+                          {event.videoType === 'short' ? '📹' : '🎬'}
+                          <span className="font-medium truncate">{event.title}</span>
+                        </div>
+                        <div className="text-xs opacity-80">
+                          {getStatusLabel(event.status)}
+                        </div>
+                      </div>
+                    ))}
+                    {dayEvents.length === 0 && (
+                      <div className={cn('text-xs', themeClasses.textSecondary)}>
+                        予定なし
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  {events.map((event) => (
-                    <div
-                      key={event.id}
-                      className={cn(
-                        'flex items-center gap-1 text-xs rounded px-2 py-1',
-                        getStatusStyle(event.status)
-                      )}
-                    >
-                      {event.videoType === 'short' ? '📹' : '🎬'}{' '}
-                      <span className="truncate">{getStatusLabel(event.status)}</span>
-                    </div>
-                  ))}
+              );
+            })}
+          </div>
+        ) : (
+          /* 月間表示 */
+          <div className="grid grid-cols-7 gap-2">
+            {calendarDays.map((day, index) => {
+              if (day === null) {
+                return (
+                  <div
+                    key={`empty-${index}`}
+                    className={cn(
+                      'border rounded-xl p-3 min-h-28',
+                      isDarkMode
+                        ? 'border-slate-700 bg-slate-800/30'
+                        : 'border-slate-100 bg-slate-50/50'
+                    )}
+                  />
+                );
+              }
+
+              const events = getEventsForDay(day);
+              const isTodayDate = isToday(day);
+
+              return (
+                <div
+                  key={day}
+                  onClick={() => handleDayClick(day)}
+                  className={cn(
+                    'border rounded-xl p-3 min-h-28 cursor-pointer transition-colors',
+                    isTodayDate
+                      ? isDarkMode
+                        ? 'border-blue-500 bg-blue-900/20 hover:border-blue-400'
+                        : 'border-blue-200 bg-blue-50 hover:border-blue-300'
+                      : isDarkMode
+                      ? 'border-slate-700 hover:border-slate-600'
+                      : 'border-slate-100 hover:border-slate-200',
+                    isDarkMode ? 'bg-slate-800/50' : 'bg-white'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'text-sm font-medium mb-2',
+                      isTodayDate
+                        ? isDarkMode
+                          ? 'text-blue-300'
+                          : 'text-blue-700'
+                        : isDarkMode
+                        ? 'text-slate-200'
+                        : 'text-slate-700'
+                    )}
+                  >
+                    {day} {isTodayDate && <span className="text-xs">今日</span>}
+                  </div>
+                  <div className="space-y-1">
+                    {events.map((event) => (
+                      <div
+                        key={event.id}
+                        className={cn(
+                          'flex items-center gap-1 text-xs rounded px-2 py-1',
+                          getStatusStyle(event.status)
+                        )}
+                      >
+                        {event.videoType === 'short' ? '📹' : '🎬'}{' '}
+                        <span className="truncate">{getStatusLabel(event.status)}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
         )}
       </div>
 

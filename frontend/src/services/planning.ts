@@ -302,6 +302,11 @@ const mockActiveKnowledges = [
   { id: 'health', name: '健康・フィットネス' },
 ];
 
+// 動的にモックプロジェクトを追加するための関数
+const addMockProject = (project: PlanningProject) => {
+  mockProjects.unshift(project);
+};
+
 // ============================================================
 // サービスエクスポート
 // ============================================================
@@ -549,6 +554,42 @@ export const planningService = {
       // API接続エラー時はモックデータを返す
       console.info('[planningService] Using mock data for stats');
       return mockStats;
+    }
+  },
+
+  /**
+   * 採用済み提案をプロジェクト一覧に追加
+   */
+  async addAdoptedSuggestionsToProjects(suggestions: AISuggestion[]): Promise<{ success: boolean; addedCount: number }> {
+    try {
+      const response = await api.post<{ success: boolean; added_count: number }>('/api/v1/planning/projects/from-suggestions', {
+        suggestion_ids: suggestions.map(s => s.id),
+      });
+      return {
+        success: response.success,
+        addedCount: response.added_count,
+      };
+    } catch {
+      // API接続エラー時はモックでプロジェクトを追加
+      console.info('[planningService] Using mock implementation for addAdoptedSuggestionsToProjects');
+      const now = new Date().toISOString();
+      suggestions.forEach((suggestion, index) => {
+        const newProject: PlanningProject = {
+          id: `project-${Date.now()}-${index}`,
+          title: suggestion.title,
+          description: suggestion.reason,
+          videoType: suggestion.videoType,
+          status: 'planning',
+          scheduledDate: undefined,
+          createdAt: now,
+          updatedAt: now,
+        };
+        addMockProject(newProject);
+      });
+      return {
+        success: true,
+        addedCount: suggestions.length,
+      };
     }
   },
 };

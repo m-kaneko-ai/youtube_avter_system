@@ -75,6 +75,20 @@ export const AIChatTab = () => {
     },
   });
 
+  // API: POST /api/v1/planning/projects/from-suggestions - 採用済み提案をプロジェクトに追加
+  const addToProjectsMutation = useMutation({
+    mutationFn: (suggestions: AISuggestion[]) => planningService.addAdoptedSuggestionsToProjects(suggestions),
+    onSuccess: (data) => {
+      toast.success(`${data.addedCount}件の企画をプロジェクト一覧に追加しました`);
+      // プロジェクト一覧と採用済み提案を更新
+      queryClient.invalidateQueries({ queryKey: ['planning', 'projects'] });
+      queryClient.invalidateQueries({ queryKey: ['planning', 'chat', 'suggestions', 'adopted'] });
+    },
+    onError: () => {
+      toast.error('企画の追加に失敗しました');
+    },
+  });
+
   const messages = localMessages;
   const adoptedSuggestions = adoptedData?.suggestions ?? [];
   const activeKnowledges = contextData?.activeKnowledges ?? [
@@ -122,10 +136,9 @@ export const AIChatTab = () => {
   };
 
   const handleAddToProjects = () => {
+    if (adoptedSuggestions.length === 0 || addToProjectsMutation.isPending) return;
     // 採用済み企画をプロジェクト一覧に追加
-    toast.success(`${adoptedSuggestions.length}件の企画をプロジェクト一覧に追加しました`);
-    // TODO: 実際のAPI呼び出し（将来実装）
-    // planningService.addAdoptedSuggestionsToProjects();
+    addToProjectsMutation.mutate(adoptedSuggestions);
   };
 
   const handleRequestModification = () => {
@@ -467,10 +480,10 @@ export const AIChatTab = () => {
           <div className={cn('border-t pt-4', isDarkMode ? 'border-slate-700' : 'border-slate-200')}>
             <button
               onClick={handleAddToProjects}
-              disabled={adoptedSuggestions.length === 0}
+              disabled={adoptedSuggestions.length === 0 || addToProjectsMutation.isPending}
               className={cn(
                 'w-full px-4 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all',
-                adoptedSuggestions.length > 0
+                adoptedSuggestions.length > 0 && !addToProjectsMutation.isPending
                   ? isDarkMode
                     ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg'
                     : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg'
@@ -479,8 +492,12 @@ export const AIChatTab = () => {
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed'
               )}
             >
-              <Plus className="w-5 h-5" />
-              企画一覧に追加
+              {addToProjectsMutation.isPending ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Plus className="w-5 h-5" />
+              )}
+              {addToProjectsMutation.isPending ? '追加中...' : '企画一覧に追加'}
             </button>
           </div>
         </div>
