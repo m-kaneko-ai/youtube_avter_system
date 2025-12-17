@@ -3,6 +3,8 @@
 
 Google OAuth認証、ユーザー作成/取得、トークン管理のビジネスロジック
 """
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 from typing import Optional, Dict, Any
 import httpx
@@ -37,6 +39,33 @@ class AuthService:
     """認証サービスクラス"""
 
     @staticmethod
+    def _verify_google_token_sync(token: str) -> Dict[str, Any]:
+        """
+        GoogleのID tokenを同期的に検証（スレッドプール用）
+
+        Args:
+            token: GoogleのID token
+
+        Returns:
+            Dict[str, Any]: 検証されたトークンのペイロード
+
+        Raises:
+            ValueError: トークンが無効な場合
+        """
+        # Google OAuth 2.0でID tokenを検証
+        idinfo = id_token.verify_oauth2_token(
+            token,
+            requests.Request(),
+            settings.GOOGLE_CLIENT_ID
+        )
+
+        # 発行者を確認
+        if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+            raise ValueError('Wrong issuer.')
+
+        return idinfo
+
+    @staticmethod
     async def verify_google_token(token: str) -> Dict[str, Any]:
         """
         GoogleのID tokenを検証
@@ -51,17 +80,14 @@ class AuthService:
             ValueError: トークンが無効な場合
         """
         try:
-            # Google OAuth 2.0でID tokenを検証
-            idinfo = id_token.verify_oauth2_token(
-                token,
-                requests.Request(),
-                settings.GOOGLE_CLIENT_ID
-            )
-
-            # 発行者を確認
-            if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
-                raise ValueError('Wrong issuer.')
-
+            # 同期的なGoogle認証をスレッドプールで実行
+            loop = asyncio.get_event_loop()
+            with ThreadPoolExecutor() as executor:
+                idinfo = await loop.run_in_executor(
+                    executor,
+                    AuthService._verify_google_token_sync,
+                    token
+                )
             return idinfo
 
         except Exception as e:
