@@ -4,12 +4,9 @@
 Google OAuth認証、ユーザー作成/取得、トークン管理のビジネスロジック
 """
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 from typing import Optional, Dict, Any
 import httpx
-from google.auth.transport import requests
-from google.oauth2 import id_token
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
@@ -39,12 +36,13 @@ class AuthService:
     """認証サービスクラス"""
 
     @staticmethod
-    def _verify_google_token_sync(token: str) -> Dict[str, Any]:
+    def _verify_google_token_sync(token: str, client_id: str) -> Dict[str, Any]:
         """
-        GoogleのID tokenを同期的に検証（スレッドプール用）
+        GoogleのID tokenを同期的に検証（スレッド用）
 
         Args:
             token: GoogleのID token
+            client_id: Google Client ID
 
         Returns:
             Dict[str, Any]: 検証されたトークンのペイロード
@@ -52,11 +50,15 @@ class AuthService:
         Raises:
             ValueError: トークンが無効な場合
         """
+        # 遅延インポート（スレッドセーフのため）
+        from google.auth.transport import requests as google_requests
+        from google.oauth2 import id_token as google_id_token
+
         # Google OAuth 2.0でID tokenを検証
-        idinfo = id_token.verify_oauth2_token(
+        idinfo = google_id_token.verify_oauth2_token(
             token,
-            requests.Request(),
-            settings.GOOGLE_CLIENT_ID
+            google_requests.Request(),
+            client_id
         )
 
         # 発行者を確認
@@ -80,14 +82,12 @@ class AuthService:
             ValueError: トークンが無効な場合
         """
         try:
-            # 同期的なGoogle認証をスレッドプールで実行
-            loop = asyncio.get_event_loop()
-            with ThreadPoolExecutor() as executor:
-                idinfo = await loop.run_in_executor(
-                    executor,
-                    AuthService._verify_google_token_sync,
-                    token
-                )
+            # 同期的なGoogle認証を別スレッドで実行
+            idinfo = await asyncio.to_thread(
+                AuthService._verify_google_token_sync,
+                token,
+                settings.GOOGLE_CLIENT_ID
+            )
             return idinfo
 
         except Exception as e:
