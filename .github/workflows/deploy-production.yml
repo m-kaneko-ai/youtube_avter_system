@@ -24,7 +24,7 @@ jobs:
         run: npm install -g vercel@latest
 
       - name: Deploy to Vercel (Production)
-        working-directory: ./frontend
+        # Root Directory is already set to 'frontend' in Vercel project settings
         run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
