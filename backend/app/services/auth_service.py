@@ -222,16 +222,12 @@ class AuthService:
             avatar_url=idinfo.get('picture')
         )
 
-        # クライアントIDを取得（存在する場合）
-        client_id = None
-        if hasattr(user, 'clients') and user.clients:
-            client_id = str(user.clients[0].id)
-
         # トークンを生成（ロール情報を含める）
+        # Note: client_idは後で必要になった時に別途取得する
         tokens = AuthService.create_tokens(
             user_id=str(user.id),
             role=user.role.value,
-            client_id=client_id
+            client_id=None  # 遅延ロード問題を回避
         )
 
         # レスポンスを構築
