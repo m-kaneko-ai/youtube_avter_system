@@ -40,10 +40,10 @@ class AuthService:
     @staticmethod
     async def verify_google_token(token: str) -> Dict[str, Any]:
         """
-        GoogleのID tokenを検証（httpxで直接Google APIを呼び出し）
+        GoogleのID tokenをJWTとして検証（ローカル検証）
 
         Args:
-            token: GoogleのID token
+            token: GoogleのID token (JWT)
 
         Returns:
             Dict[str, Any]: 検証されたトークンのペイロード
@@ -51,40 +51,47 @@ class AuthService:
         Raises:
             ValueError: トークンが無効な場合
         """
+        import jwt
+        from jwt import PyJWKClient
+        import time
+
         try:
-            # Google OAuth2 tokeninfo エンドポイントで検証
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    "https://oauth2.googleapis.com/tokeninfo",
-                    params={"id_token": token}
-                )
+            # Google の公開鍵を取得
+            jwks_url = "https://www.googleapis.com/oauth2/v3/certs"
+            jwks_client = PyJWKClient(jwks_url)
 
-                if response.status_code != 200:
-                    logger.error(f"Google token verification failed: {response.text}")
-                    raise ValueError(f"Token verification failed: {response.status_code}")
+            # トークンのヘッダーからkidを取得して署名鍵を取得
+            signing_key = jwks_client.get_signing_key_from_jwt(token)
 
-                idinfo = response.json()
-
-            # Client IDを確認
-            if idinfo.get('aud') != settings.GOOGLE_CLIENT_ID:
-                logger.error(f"Token audience mismatch: {idinfo.get('aud')} != {settings.GOOGLE_CLIENT_ID}")
-                raise ValueError('Token was not issued for this application.')
+            # JWTを検証・デコード
+            idinfo = jwt.decode(
+                token,
+                signing_key.key,
+                algorithms=["RS256"],
+                audience=settings.GOOGLE_CLIENT_ID,
+                options={"verify_exp": True}
+            )
 
             # 発行者を確認
             if idinfo.get('iss') not in ['accounts.google.com', 'https://accounts.google.com']:
                 raise ValueError('Wrong issuer.')
 
-            # トークンの有効期限を確認
-            import time
+            # トークンの有効期限を確認（jwt.decodeで既にチェック済みだが念のため）
             if int(idinfo.get('exp', 0)) < time.time():
                 raise ValueError('Token has expired.')
 
             logger.info(f"Google token verified for email: {idinfo.get('email')}")
             return idinfo
 
-        except httpx.HTTPError as e:
-            logger.error(f"HTTP error during token verification: {e}")
-            raise ValueError(f"Token verification HTTP error: {str(e)}")
+        except jwt.ExpiredSignatureError:
+            logger.error("Token has expired")
+            raise ValueError("Token has expired")
+        except jwt.InvalidAudienceError:
+            logger.error(f"Token audience mismatch")
+            raise ValueError("Token was not issued for this application")
+        except jwt.InvalidTokenError as e:
+            logger.error(f"Invalid token: {e}")
+            raise ValueError(f"Invalid ID token: {str(e)}")
         except Exception as e:
             logger.error(f"Token verification error: {e}")
             raise ValueError(f"Invalid ID token: {str(e)}")

@@ -13,6 +13,7 @@ greenlet>=3.0.0  # Required for SQLAlchemy async
 
 # ===== Authentication & Security =====
 python-jose[cryptography]>=3.5.0
+PyJWT[crypto]>=2.8.0  # JWT verification with JWKS support
 passlib[bcrypt]==1.7.4
 pydantic==2.5.3
 pydantic-settings==2.1.0
