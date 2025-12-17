@@ -61,7 +61,7 @@ export const AIChatTab = () => {
 
   // API: POST /api/v1/planning/chat/suggestions/{id}/adopt - 提案採用
   const adoptSuggestionMutation = useMutation({
-    mutationFn: (suggestionId: string) => planningService.adoptSuggestion(suggestionId),
+    mutationFn: (suggestion: AISuggestion) => planningService.adoptSuggestion(suggestion.id, suggestion),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['planning', 'chat', 'suggestions', 'adopted'] });
     },
@@ -128,7 +128,7 @@ export const AIChatTab = () => {
   };
 
   const handleAdoptSuggestion = (suggestion: AISuggestion) => {
-    adoptSuggestionMutation.mutate(suggestion.id);
+    adoptSuggestionMutation.mutate(suggestion);
   };
 
   const handleRemoveAdopted = (suggestionId: string) => {

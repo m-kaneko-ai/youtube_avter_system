@@ -279,7 +279,8 @@ const mockChatMessages: AIChatMessage[] = [
   },
 ];
 
-const mockAdoptedSuggestions: AISuggestion[] = [
+// 採用済み提案を管理するための動的配列
+let mockAdoptedSuggestions: AISuggestion[] = [
   {
     id: 'sug-1',
     title: 'AIツール活用術【初心者向け】',
@@ -295,6 +296,23 @@ const mockAdoptedSuggestions: AISuggestion[] = [
     reference: '競合チャンネル分析',
   },
 ];
+
+// 採用済み提案を追加するヘルパー関数
+const addToMockAdoptedSuggestions = (suggestion: AISuggestion) => {
+  if (!mockAdoptedSuggestions.find(s => s.id === suggestion.id)) {
+    mockAdoptedSuggestions.push(suggestion);
+  }
+};
+
+// 採用済み提案を削除するヘルパー関数
+const removeFromMockAdoptedSuggestions = (suggestionId: string) => {
+  mockAdoptedSuggestions = mockAdoptedSuggestions.filter(s => s.id !== suggestionId);
+};
+
+// 採用済み提案をクリアするヘルパー関数
+const clearMockAdoptedSuggestions = () => {
+  mockAdoptedSuggestions = [];
+};
 
 const mockActiveKnowledges = [
   { id: 'business-marketing', name: 'ビジネスマーケティング' },
@@ -487,8 +505,17 @@ export const planningService = {
   /**
    * 提案を採用
    */
-  async adoptSuggestion(suggestionId: string): Promise<{ success: boolean }> {
-    return api.post<{ success: boolean }>(`/api/v1/planning/chat/suggestions/${suggestionId}/adopt`);
+  async adoptSuggestion(suggestionId: string, suggestion?: AISuggestion): Promise<{ success: boolean }> {
+    try {
+      return await api.post<{ success: boolean }>(`/api/v1/planning/chat/suggestions/${suggestionId}/adopt`);
+    } catch {
+      // API接続エラー時はモックで採用追加
+      console.info('[planningService] Using mock implementation for adoptSuggestion');
+      if (suggestion) {
+        addToMockAdoptedSuggestions(suggestion);
+      }
+      return { success: true };
+    }
   },
 
   /**
@@ -513,7 +540,14 @@ export const planningService = {
    * 提案の採用解除
    */
   async unadoptSuggestion(suggestionId: string): Promise<{ success: boolean }> {
-    return api.delete<{ success: boolean }>(`/api/v1/planning/chat/suggestions/${suggestionId}/adopt`);
+    try {
+      return await api.delete<{ success: boolean }>(`/api/v1/planning/chat/suggestions/${suggestionId}/adopt`);
+    } catch {
+      // API接続エラー時はモックで採用解除
+      console.info('[planningService] Using mock implementation for unadoptSuggestion');
+      removeFromMockAdoptedSuggestions(suggestionId);
+      return { success: true };
+    }
   },
 
   /**
@@ -586,6 +620,8 @@ export const planningService = {
         };
         addMockProject(newProject);
       });
+      // 採用済み提案をクリア
+      clearMockAdoptedSuggestions();
       return {
         success: true,
         addedCount: suggestions.length,
