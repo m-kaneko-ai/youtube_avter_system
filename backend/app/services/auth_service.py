@@ -3,7 +3,7 @@
 
 Google OAuth認証、ユーザー作成/取得、トークン管理のビジネスロジック
 """
-import asyncio
+import logging
 from datetime import timedelta
 from typing import Optional, Dict, Any
 import httpx
@@ -15,6 +15,8 @@ from app.core.security import create_access_token
 from app.models.user import User, UserRole
 from app.schemas.auth import TokenResponse, UserResponse
 
+
+logger = logging.getLogger("creator_studio")
 
 # Redisクライアント（トークンブラックリスト用）
 _redis_client = None
@@ -36,41 +38,9 @@ class AuthService:
     """認証サービスクラス"""
 
     @staticmethod
-    def _verify_google_token_sync(token: str, client_id: str) -> Dict[str, Any]:
-        """
-        GoogleのID tokenを同期的に検証（スレッド用）
-
-        Args:
-            token: GoogleのID token
-            client_id: Google Client ID
-
-        Returns:
-            Dict[str, Any]: 検証されたトークンのペイロード
-
-        Raises:
-            ValueError: トークンが無効な場合
-        """
-        # 遅延インポート（スレッドセーフのため）
-        from google.auth.transport import requests as google_requests
-        from google.oauth2 import id_token as google_id_token
-
-        # Google OAuth 2.0でID tokenを検証
-        idinfo = google_id_token.verify_oauth2_token(
-            token,
-            google_requests.Request(),
-            client_id
-        )
-
-        # 発行者を確認
-        if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
-            raise ValueError('Wrong issuer.')
-
-        return idinfo
-
-    @staticmethod
     async def verify_google_token(token: str) -> Dict[str, Any]:
         """
-        GoogleのID tokenを検証
+        GoogleのID tokenを検証（httpxで直接Google APIを呼び出し）
 
         Args:
             token: GoogleのID token
@@ -82,15 +52,41 @@ class AuthService:
             ValueError: トークンが無効な場合
         """
         try:
-            # 同期的なGoogle認証を別スレッドで実行
-            idinfo = await asyncio.to_thread(
-                AuthService._verify_google_token_sync,
-                token,
-                settings.GOOGLE_CLIENT_ID
-            )
+            # Google OAuth2 tokeninfo エンドポイントで検証
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    "https://oauth2.googleapis.com/tokeninfo",
+                    params={"id_token": token}
+                )
+
+                if response.status_code != 200:
+                    logger.error(f"Google token verification failed: {response.text}")
+                    raise ValueError(f"Token verification failed: {response.status_code}")
+
+                idinfo = response.json()
+
+            # Client IDを確認
+            if idinfo.get('aud') != settings.GOOGLE_CLIENT_ID:
+                logger.error(f"Token audience mismatch: {idinfo.get('aud')} != {settings.GOOGLE_CLIENT_ID}")
+                raise ValueError('Token was not issued for this application.')
+
+            # 発行者を確認
+            if idinfo.get('iss') not in ['accounts.google.com', 'https://accounts.google.com']:
+                raise ValueError('Wrong issuer.')
+
+            # トークンの有効期限を確認
+            import time
+            if int(idinfo.get('exp', 0)) < time.time():
+                raise ValueError('Token has expired.')
+
+            logger.info(f"Google token verified for email: {idinfo.get('email')}")
             return idinfo
 
+        except httpx.HTTPError as e:
+            logger.error(f"HTTP error during token verification: {e}")
+            raise ValueError(f"Token verification HTTP error: {str(e)}")
         except Exception as e:
+            logger.error(f"Token verification error: {e}")
             raise ValueError(f"Invalid ID token: {str(e)}")
 
     @staticmethod
