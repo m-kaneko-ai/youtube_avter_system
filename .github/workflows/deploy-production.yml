@@ -26,10 +26,11 @@ jobs:
           scope: ${{ secrets.VERCEL_ORG_ID }}
 
   # バックエンド: Google Cloud Run (production)
-  # GCP_SA_KEYが設定されている場合のみ実行
+  # GCP Service Account Keyが設定されている場合のみ手動で実行してください
+  # 現在フロントエンドのみ自動デプロイ
   deploy-backend:
     runs-on: ubuntu-latest
-    if: ${{ secrets.GCP_SA_KEY != '' }}
+    if: false  # バックエンドデプロイは手動で有効化（GCP設定後）
     environment:
       name: production
       url: https://creator-studio-backend.run.app
