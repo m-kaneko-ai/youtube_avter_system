@@ -1,0 +1,17 @@
+[project]
+name = "human-first-ai-staff"
+version = "2.0.0"
+description = "Human-First AIスタッフ MCPサーバー - 金子式・人間中心AI増幅システム"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.0.0",
+    "pydantic>=2.0.0",
+]
+
+[project.scripts]
+human-first-ai-staff = "server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "human-first-ai-staff": {
+      "command": "/Users/kanekomitsuyoshi/Blick-Labs/05_PROJECTS/自社アプリ/youtube_avter_system/mcp-server/.venv/bin/python",
+      "args": ["/Users/kanekomitsuyoshi/Blick-Labs/05_PROJECTS/自社アプリ/youtube_avter_system/mcp-server/server.py"]
+    }
+  }
+}
